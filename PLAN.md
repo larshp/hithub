@@ -446,6 +446,8 @@ Completion checks:
 - [ ] Build the compare view.
 - [ ] Build unified diff rendering.
 - [ ] Build split diff rendering.
+- [ ] Add Playwright browser end-to-end test infrastructure.
+- [ ] Add Playwright coverage for repository creation, browsing and comparison.
 - [ ] Add binary and oversized-file fallbacks.
 - [ ] Add keyboard navigation and semantic landmarks.
 - [ ] Add responsive layouts and accessible focus/contrast styles.
@@ -466,6 +468,7 @@ Completion checks:
 - [ ] Review the current abapGitServer merge-request flow and record reusable domain behavior and ABAP code.
 - [ ] Review the current abapGit diff/merge primitives and record reusable APIs and code.
 - [ ] Define `open`, `closed` and `merged` pull-request transitions.
+- [ ] Support draft pull requests and the ready-for-review transition.
 - [ ] Persist immutable head and base snapshots when a PR is opened.
 - [ ] Implement merge-base calculation.
 - [ ] Implement ahead/behind counting.
@@ -482,6 +485,7 @@ Completion checks:
 - [ ] Recompute mergeability when the base ref changes.
 - [ ] Implement target-branch protection in one merge-policy service.
 - [ ] Implement pull-request REST endpoints.
+- [ ] Expose draft and ready-for-review state through the pull-request REST endpoints.
 
 Completion checks:
 
@@ -506,6 +510,7 @@ Completion checks:
 - [ ] Emit merge events through an idempotent recovery workflow.
 - [ ] Persist the merge result for retry responses.
 - [ ] Add the merge button to the UI.
+- [ ] Add draft and ready-for-review actions to the pull-request UI.
 - [ ] Display blocking and conflict explanations in the UI.
 - [ ] Add optional post-merge source-branch deletion.
 - [ ] Add squash merging as a separately testable strategy.
@@ -623,6 +628,7 @@ Completion checks:
 ### Interoperability tests
 
 - Launch the transpiled server on an ephemeral port and use native `git clone`, `fetch`, `push`, tag and branch commands against it.
+- Run Playwright browser end-to-end tests against the local server, including repository browsing, draft pull requests, reviews and merges.
 - Exercise abapGit HTTP behavior with captured/replayable fixtures plus a scheduled real-client SAP test where available.
 - Run `git fsck --strict` on repositories cloned after pushes and PR merges.
 - Keep packet traces and minimal repository fixtures for regressions, with credentials redacted.
@@ -633,6 +639,12 @@ Completion checks:
 - Concurrent push/merge tests and injected failures at every quarantine/transaction/ref-update boundary.
 - Tests showing that optional deployment actor headers are trusted only from the configured adapter/gateway.
 - XSS/Markdown, CSRF, rate-limit and oversized-input cases.
+
+### Browser end-to-end tests
+
+- Use Playwright with deterministic fixtures and a fresh test database per run.
+- Cover keyboard navigation, responsive layouts and accessible names/landmarks in the browser UI.
+- Run the Playwright suite in CI against every supported browser and retain traces/screenshots for failures.
 
 ## 8. Milestones
 
