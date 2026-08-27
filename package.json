@@ -1,0 +1,26 @@
+{
+  "name": "hithub",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HitHub",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larshp/hithub.git"
+  },
+  "devDependencies": {
+    "@abaplint/cli": "^2.120.33",
+    "@abaplint/database-sqlite": "^2.13.40",
+    "@abaplint/runtime": "^2.13.60",
+    "@abaplint/transpiler-cli": "^2.13.60"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/larshp/hithub/issues"
+  },
+  "homepage": "https://github.com/larshp/hithub#readme"
+}
