@@ -191,14 +191,14 @@ Every checkbox is intended to be one isolated deliverable. Complete the checkbox
 
 ### Step 0 — Confirm scope and compatibility baseline
 
-- [ ] Record the minimum supported SAP release.
-- [ ] Record the supported ABAP language version.
-- [ ] Select the ABAP object namespace.
-- [ ] Select the project license.
-- [ ] Create `ANORMALIES.md` with the required entry template.
-- [ ] Create `SUGGESTIONS.md` with the required entry template.
-- [ ] List the supported native Git versions.
-- [ ] List the supported abapGit versions.
+- [x] Record the minimum supported SAP release.
+- [x] Record the supported ABAP language version.
+- [x] Select the ABAP object namespace.
+- [x] Select the project license.
+- [x] Create `ANORMALIES.md` with the required entry template.
+- [x] Create `SUGGESTIONS.md` with the required entry template.
+- [x] List the supported native Git versions.
+- [x] List the supported abapGit versions.
 - [ ] Inventory reusable Git server components in abapGitServer.
 - [ ] Inventory reusable Git primitives and services in abapGit.
 - [ ] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
