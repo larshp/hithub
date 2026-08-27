@@ -71,7 +71,6 @@ Each entry must contain:
 - the smallest proposed refactoring or public API change;
 - a short ABAP usage example showing the intended simpler call;
 - expected benefits for HitHub and other abapGit consumers;
-- backward-compatibility, release and migration considerations;
 - the HitHub fallback if the suggestion is not accepted upstream;
 - a link to the upstream issue or pull request, when one exists;
 - the first abapGit version containing the change, when implemented.
@@ -111,20 +110,21 @@ src/                         ABAP production sources
   application/               use cases and policies
   infrastructure/            SAP/open-abap-facing adapters
   http/                      Smart HTTP, REST and web handlers
-  persistence/               repositories and table mappings
+  persistence/               DDIC table definitions, repositories and table mappings
 test/                        ABAP Unit-style unit and contract tests
 integration/                 Node/native-Git interoperability tests
 web/                         source CSS, JavaScript and templates
 static/                      built frontend assets served by ABAP
-db/                          schema documentation and migrations
 docs/                        architecture decisions and API docs
 ```
+
+There is no `db/` directory, no hand-written SQL and no migration framework. The database schema exists only as ABAP artifacts: DDIC table, data-element and domain definitions checked in next to the persistence code. Schema changes are applied by activating those artifacts — through a transport on SAP and through the transpiler and database adapter locally — so SAP and local databases cannot drift apart. Design table changes to be additive and activation-safe instead of writing migration logic.
 
 Keep object names within the selected SAP release's naming constraints. Decide the namespace (`ZHI_*`, `/HITHUB/*`, or another registered namespace) before creating persisted ABAP artifacts.
 
 ## 4. Core data model
 
-Use metadata tables for product state and a content-addressed object store for Git data. Exact DDIC definitions are part of Step 2.
+Use metadata tables for product state and a content-addressed object store for Git data. The exact DDIC definitions are ABAP artifacts created in Step 2.
 
 | Aggregate | Minimum fields and constraints |
 | --- | --- |
@@ -251,7 +251,7 @@ Completion checks:
 - [ ] `/health` reports build, runtime and database status.
 - [ ] The complete CI workflow passes.
 
-### Step 2 — Establish ports, schema and migrations
+### Step 2 — Establish ports and schema
 
 - [ ] Define the object-store ABAP interface.
 - [ ] Define the metadata-store ABAP interfaces.
@@ -261,11 +261,8 @@ Completion checks:
 - [ ] Define the compression ABAP interface.
 - [ ] Define clock and UUID/random ABAP interfaces.
 - [ ] Define the domain-event sink ABAP interface.
-- [ ] Design the SAP DDIC metadata tables.
-- [ ] Design the local metadata tables with matching constraints.
-- [ ] Add the schema-version table.
-- [ ] Implement ordered schema migrations.
-- [ ] Make schema migrations restart-safe.
+- [ ] Define the metadata tables as DDIC artifacts in `src/persistence/`.
+- [ ] Verify that the transpiled DDIC artifacts create the same local tables and constraints.
 - [ ] Implement the local repository adapters.
 - [ ] Implement the SAP repository adapters.
 - [ ] Implement the local unit-of-work adapter.
@@ -561,7 +558,7 @@ Completion checks:
 - [ ] Resolve deployment-boundary findings.
 - [ ] Write the backup runbook.
 - [ ] Write the restore runbook.
-- [ ] Write the schema-migration runbook.
+- [ ] Write the DDIC activation and schema-change runbook.
 - [ ] Verify a restored backup by cloning it and running integrity checks.
 - [ ] Implement reachability-based garbage collection.
 - [ ] Protect active temporary and quarantine roots from garbage collection.
@@ -584,7 +581,7 @@ Completion checks:
 ### Step 13 — Release the MVP
 
 - [ ] Publish SAP ICF installation instructions.
-- [ ] Publish SAP DDIC installation and migration instructions.
+- [ ] Publish SAP DDIC installation and activation instructions.
 - [ ] Publish local open-abap setup instructions.
 - [ ] Publish administrator configuration documentation.
 - [ ] Publish the REST API contract.
@@ -596,7 +593,7 @@ Completion checks:
 - [ ] Run end-to-end tests with every supported abapGit version.
 - [ ] Run end-to-end tests with every supported browser.
 - [ ] Produce the release artifact.
-- [ ] Produce the database migration package.
+- [ ] Produce the DDIC artifact package.
 - [ ] Publish the changelog.
 - [ ] Publish known limitations.
 - [ ] Review unresolved `ANORMALIES.md` entries for release impact.
