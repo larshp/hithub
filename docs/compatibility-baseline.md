@@ -54,3 +54,25 @@ The initial abapGit interoperability target is:
 This version is the latest upstream release recorded in the baseline on
 2026-08-27. The release process must retest the supported abapGit version and
 update this matrix before selecting a newer revision.
+
+## GUI Git compatibility test target
+
+The selected GUI client for the first compatibility test is GitHub Desktop
+3.6.3 for Windows x64, the stable version listed in the official release notes
+reviewed on 2026-08-27. This is a test target, not a claim that the MVP already
+supports the client.
+
+The test must configure an HTTPS remote by URL and exercise the same
+repository through the GUI:
+
+- clone an empty and a populated repository;
+- fetch and refresh branches/tags after server-side changes;
+- create a branch, commit, and push it;
+- pull a fast-forward update and observe a rejected stale push;
+- verify that binary pack responses and authentication failures surface as
+  actionable errors rather than being treated as successful synchronization.
+
+The target is appropriate because GitHub Desktop exposes a URL-based clone
+flow and its documentation describes working with repositories hosted on
+GitHub or other Git hosting services. The test must use the URL path rather
+than GitHub-specific account or fork integration.

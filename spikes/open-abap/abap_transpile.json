@@ -1,0 +1,68 @@
+{
+  "input_folder": "spikes/open-abap/src",
+  "output_folder": "spikes/open-abap/output",
+  "libs": [
+    {
+      "url": "https://github.com/open-abap/open-abap-core",
+      "files": "/src/**/*.*"
+    },
+    {
+      "folder": "/spikes/open-abap/deps/abapgit",
+      "files": [
+        "/src/zcx_abapgit_exception.clas.*",
+        "/src/zcx_abapgit_not_found.clas.*",
+        "/src/zcx_abapgit_type_not_supported.clas.*",
+        "/src/zif_abapgit_definitions.intf.*",
+        "/src/zif_abapgit_version.intf.*",
+        "/src/zcl_abapgit_factory.clas.abap",
+        "/src/objects/core/zif_abapgit_tadir.intf.abap",
+        "/src/objects/sap/zif_abapgit_sap_package.intf.abap",
+        "/src/cts/zif_abapgit_cts_api.intf.abap",
+        "/src/cts/zif_abapgit_default_transport.intf.abap",
+        "/src/objects/texts/zif_abapgit_longtexts.intf.abap",
+        "/src/objects/texts/zif_abapgit_lxe_texts.intf.abap",
+        "/src/objects/sap/zif_abapgit_sap_namespace.intf.abap",
+        "/src/objects/sap/zif_abapgit_sap_report.intf.abap",
+        "/src/objects/sap/zif_abapgit_function_module.intf.abap",
+        "/src/git/*.clas.abap",
+        "/src/git/*.intf.abap",
+        "/src/git/v2/*.clas.abap",
+        "/src/git/v2/*.intf.abap",
+        "/src/git/zlib/*.clas.abap",
+        "/src/http/*.clas.abap",
+        "/src/http/*.intf.abap",
+        "/src/utils/*.clas.abap",
+        "/src/utils/*.intf.abap",
+        "/src/utils/zcl_abapgit_convert.clas.locals_imp.abap",
+        "/src/exits/*.clas.abap",
+        "/src/exits/*.intf.abap",
+        "/src/env/zcl_abapgit_environment.clas.abap",
+        "/src/env/zcl_abapgit_settings.clas.abap",
+        "/src/env/zif_abapgit_environment.intf.abap",
+        "/src/ui/progress/*.clas.abap",
+        "/src/ui/progress/*.intf.abap",
+        "/src/ui/core/zcl_abapgit_html.clas.abap",
+        "/src/ui/core/zif_abapgit_html.intf.abap",
+        "/src/ui/core/zif_abapgit_gui_renderable.intf.abap",
+        "/src/persist/*.clas.abap",
+        "/src/persist/*.intf.abap",
+        "/src/xml/*.clas.abap",
+        "/src/xml/*.intf.abap",
+        "/src/json/*.clas.abap",
+        "/src/json/*.intf.abap"
+      ]
+    }
+  ],
+  "write_unit_tests": true,
+  "write_source_map": true,
+  "options": {
+    "addCommonJS": true,
+    "addFilenames": true,
+    "importProg": false,
+    "unknownTypes": "runtimeError",
+    "setup": {
+      "filename": "../setup.mjs",
+      "preFunction": "initializeDatabase"
+    }
+  }
+}

@@ -199,15 +199,15 @@ Every checkbox is intended to be one isolated deliverable. Complete the checkbox
 - [x] Create `SUGGESTIONS.md` with the required entry template.
 - [x] List the supported native Git versions.
 - [x] List the supported abapGit versions.
-- [ ] Inventory reusable Git server components in abapGitServer.
-- [ ] Inventory reusable Git primitives and services in abapGit.
-- [ ] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
-- [ ] Map each planned Git component to direct call, adapted copy, inspiration or new implementation.
-- [ ] Record the upstream revision for every selected reuse candidate.
-- [ ] Verify license and attribution requirements for every selected reuse candidate.
-- [ ] Select one GUI Git client for compatibility testing.
-- [ ] Build a SAP spike that calls abapGit to read one Git object.
-- [ ] Build an open-abap spike that calls the same abapGit API.
+- [x] Inventory reusable Git server components in abapGitServer.
+- [x] Inventory reusable Git primitives and services in abapGit.
+- [x] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
+- [x] Map each planned Git component to direct call, adapted copy, inspiration or new implementation.
+- [x] Record the upstream revision for every selected reuse candidate.
+- [x] Verify license and attribution requirements for every selected reuse candidate.
+- [x] Select one GUI Git client for compatibility testing.
+- [x] Build a SAP spike that calls abapGit to read one Git object.
+- [x] Build an open-abap spike that calls the same abapGit API.
 - [ ] Build an adapted-code spike for one abapGitServer HTTP flow.
 - [ ] Write an ADR selecting the Git-object implementation strategy.
 - [ ] Publish the MVP feature matrix.

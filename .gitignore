@@ -1,1 +1,3 @@
 node_modules
+/spikes/open-abap/deps/
+/spikes/open-abap/output/
