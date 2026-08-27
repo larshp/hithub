@@ -1,0 +1,33 @@
+{
+  "input_folder": ["spikes/open-abap"],
+  "input_filter": [],
+  "output_folder": "build/spikes/open-abap",
+  "libs": [
+    {
+      "url": "https://github.com/open-abap/open-abap-core",
+      "files": "/src/**/*.*"
+    },
+    {
+      "url": "https://github.com/abapGit/abapGit",
+      "files": [
+        "/src/git/**/*.*",
+        "/src/http/**/*.*",
+        "/src/convert/**/*.*",
+        "/src/exception/**/*.*",
+        "/src/zcl_abapgit_convert*.*",
+        "/src/zcl_abapgit_factory*.*",
+        "/src/zcl_abapgit_injector*.*",
+        "/src/zif_abapgit*.*",
+        "/src/zcx_abapgit*.*"
+      ]
+    }
+  ],
+  "write_unit_tests": false,
+  "write_source_map": true,
+  "options": {
+    "ignoreSyntaxCheck": false,
+    "addFilenames": true,
+    "addCommonJS": true,
+    "unknownTypes": "runtimeError"
+  }
+}

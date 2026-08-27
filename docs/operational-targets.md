@@ -1,0 +1,21 @@
+# Initial concurrency and timeout targets
+
+These targets apply per application-server instance unless the deployment
+adapter provides a shared limiter. They are Step 0 capacity targets, not a
+claim that the current skeleton meets them.
+
+| Target | Initial value | Policy |
+| --- | ---: | --- |
+| Total in-flight HTTP requests | 64 per instance | Excess requests receive a retryable overload response. |
+| Concurrent expensive Git operations | 8 per instance | Applies to pack generation, pack ingestion, reachability walks, and merge computation. |
+| Repository lock wait | 10 seconds | Fail the operation without changing refs when the lock cannot be acquired. |
+| REST request timeout | 30 seconds | Includes repository metadata and read-only browsing APIs. |
+| Smart HTTP discovery timeout | 10 seconds | Applies to `info/refs` requests. |
+| Upload-pack request timeout | 5 minutes | Includes negotiation and streamed pack generation. |
+| Receive-pack request timeout | 10 minutes | Includes streaming, validation, quarantine promotion, and ref commit. |
+| Merge request timeout | 5 minutes | Includes final locked validation and object persistence. |
+
+Timeouts cancel work at the port boundary and release locks/quarantine roots
+through cleanup handlers. A timed-out or overloaded write operation must not
+make a partial ref state visible. The values are revisited after the Step 0
+pack/delta performance spike and load tests.

@@ -5,6 +5,13 @@
   "description": "HitHub",
   "main": "index.js",
   "scripts": {
+    "lint": "abaplint",
+    "transpile": "abap_transpile abap_transpile.json",
+    "unit": "npm run transpile && node scripts/run-unit.mjs",
+    "schema": "npm run transpile && node scripts/verify-schema.mjs",
+    "fixtures": "node --test integration/fixtures/repository-fixtures.test.mjs",
+    "start": "node server/index.mjs",
+    "verify": "npm run lint && npm run unit && node scripts/verify-schema.mjs && npm run fixtures",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,10 +22,11 @@
     "@abaplint/cli": "^2.120.33",
     "@abaplint/database-sqlite": "^2.13.40",
     "@abaplint/runtime": "^2.13.60",
-    "@abaplint/transpiler-cli": "^2.13.60"
+    "@abaplint/transpiler-cli": "^2.13.60",
+    "express": "^4.22.2"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/larshp/hithub/issues"
   },

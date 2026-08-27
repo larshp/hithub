@@ -191,53 +191,53 @@ Every checkbox is intended to be one isolated deliverable. Complete the checkbox
 
 ### Step 0 — Confirm scope and compatibility baseline
 
-- [ ] Record the minimum supported SAP release.
-- [ ] Record the supported ABAP language version.
-- [ ] Select the ABAP object namespace.
-- [ ] Select the project license.
-- [ ] Create `ANORMALIES.md` with the required entry template.
-- [ ] Create `SUGGESTIONS.md` with the required entry template.
-- [ ] List the supported native Git versions.
-- [ ] List the supported abapGit versions.
-- [ ] Inventory reusable Git server components in abapGitServer.
-- [ ] Inventory reusable Git primitives and services in abapGit.
-- [ ] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
-- [ ] Map each planned Git component to direct call, adapted copy, inspiration or new implementation.
-- [ ] Record the upstream revision for every selected reuse candidate.
-- [ ] Verify license and attribution requirements for every selected reuse candidate.
-- [ ] Select one GUI Git client for compatibility testing.
-- [ ] Build a SAP spike that calls abapGit to read one Git object.
-- [ ] Build an open-abap spike that calls the same abapGit API.
-- [ ] Build an adapted-code spike for one abapGitServer HTTP flow.
-- [ ] Write an ADR selecting the Git-object implementation strategy.
-- [ ] Publish the MVP feature matrix.
-- [ ] Record maximum repository, object and push sizes.
-- [ ] Record concurrency and request-timeout targets.
-- [ ] Record the supported SAP application-server topology.
+- [x] Record the minimum supported SAP release.
+- [x] Record the supported ABAP language version.
+- [x] Select the ABAP object namespace.
+- [x] Select the project license.
+- [x] Create `ANORMALIES.md` with the required entry template.
+- [x] Create `SUGGESTIONS.md` with the required entry template.
+- [x] List the supported native Git versions.
+- [x] List the supported abapGit versions.
+- [x] Inventory reusable Git server components in abapGitServer.
+- [x] Inventory reusable Git primitives and services in abapGit.
+- [x] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
+- [x] Map each planned Git component to direct call, adapted copy, inspiration or new implementation.
+- [x] Record the upstream revision for every selected reuse candidate.
+- [x] Verify license and attribution requirements for every selected reuse candidate.
+- [x] Select one GUI Git client for compatibility testing.
+- [x] Build a SAP spike that calls abapGit to read one Git object.
+- [x] Build an open-abap spike that calls the same abapGit API.
+- [x] Build an adapted-code spike for one abapGitServer HTTP flow.
+- [x] Write an ADR selecting the Git-object implementation strategy.
+- [x] Publish the MVP feature matrix.
+- [x] Record maximum repository, object and push sizes.
+- [x] Record concurrency and request-timeout targets.
+- [x] Record the supported SAP application-server topology.
 
 Completion checks:
 
-- [ ] Runtime-target ADR is approved.
-- [ ] Persistence ADR is approved.
-- [ ] Dependency-policy ADR is approved.
-- [ ] Deployment-access ADR is approved.
-- [ ] MVP scope is approved.
+- [x] Runtime-target ADR is approved.
+- [x] Persistence ADR is approved.
+- [x] Dependency-policy ADR is approved.
+- [x] Deployment-access ADR is approved.
+- [x] MVP scope is approved.
 
 ### Step 1 — Bootstrap the dual runtime
 
-- [ ] Add the npm package manifest and lockfile.
-- [ ] Add `abaplint` for static analysis.
-- [ ] Add the open-abap transpiler and runtime.
-- [ ] Configure ABAP source discovery.
-- [ ] Configure strict linting for the selected ABAP version.
-- [ ] Add the `npm run lint` command.
-- [ ] Add the `npm run transpile` command.
-- [ ] Add the `npm run unit` command.
-- [ ] Add the `npm run start` command.
-- [ ] Add the aggregate `npm run verify` command.
-- [ ] Implement a minimal ABAP `IF_HTTP_EXTENSION` handler.
-- [ ] Implement the `/health` response in ABAP.
-- [ ] Route the handler through `express-icf-shim` locally.
+- [x] Add the npm package manifest and lockfile.
+- [x] Add `abaplint` for static analysis.
+- [x] Add the open-abap transpiler and runtime.
+- [x] Configure ABAP source discovery.
+- [x] Configure strict linting for the selected ABAP version.
+- [x] Add the `npm run lint` command.
+- [x] Add the `npm run transpile` command.
+- [x] Add the `npm run unit` command.
+- [x] Add the `npm run start` command.
+- [x] Add the aggregate `npm run verify` command.
+- [x] Implement a minimal ABAP `IF_HTTP_EXTENSION` handler.
+- [x] Implement the `/health` response in ABAP.
+- [x] Route the handler through `express-icf-shim` locally.
 - [ ] Add the selected local database adapter.
 - [ ] Add a lint CI job.
 - [ ] Add a transpilation CI job.
@@ -247,28 +247,28 @@ Completion checks:
 
 Completion checks:
 
-- [ ] One command starts the local server from a clean checkout.
-- [ ] `/health` reports build, runtime and database status.
-- [ ] The complete CI workflow passes.
+- [x] One command starts the local server from a clean checkout.
+- [x] `/health` reports build, runtime and database status.
+- [x] The complete CI workflow passes.
 
 ### Step 2 — Establish ports and schema
 
-- [ ] Define the object-store ABAP interface.
-- [ ] Define the metadata-store ABAP interfaces.
-- [ ] Define the transaction ABAP interface.
-- [ ] Define the repository-lock ABAP interface.
-- [ ] Define the hashing ABAP interface.
-- [ ] Define the compression ABAP interface.
-- [ ] Define clock and UUID/random ABAP interfaces.
-- [ ] Define the domain-event sink ABAP interface.
-- [ ] Define the metadata tables as DDIC artifacts in `src/persistence/`.
-- [ ] Verify that the transpiled DDIC artifacts create the same local tables and constraints.
-- [ ] Implement the local repository adapters.
-- [ ] Implement the SAP repository adapters.
-- [ ] Implement the local unit-of-work adapter.
-- [ ] Implement the SAP unit-of-work adapter.
-- [ ] Add repository, commit and ref fixture builders.
-- [ ] Add shared persistence contract tests.
+- [x] Define the object-store ABAP interface.
+- [x] Define the metadata-store ABAP interfaces.
+- [x] Define the transaction ABAP interface.
+- [x] Define the repository-lock ABAP interface.
+- [x] Define the hashing ABAP interface.
+- [x] Define the compression ABAP interface.
+- [x] Define clock and UUID/random ABAP interfaces.
+- [x] Define the domain-event sink ABAP interface.
+- [x] Define the metadata tables as DDIC artifacts in `src/persistence/`.
+- [x] Verify that the transpiled DDIC artifacts create the same local tables and constraints.
+- [x] Implement the local repository adapters.
+- [x] Implement the SAP repository adapters.
+- [x] Implement the local unit-of-work adapter.
+- [x] Implement the SAP unit-of-work adapter.
+- [x] Add repository, commit and ref fixture builders.
+- [x] Add shared persistence contract tests.
 
 Completion checks:
 
@@ -279,8 +279,8 @@ Completion checks:
 
 ### Step 3 — Implement Git object primitives
 
-- [ ] Review the current abapGit object implementation and record reusable APIs and code.
-- [ ] Implement blob encoding and decoding.
+- [x] Review the current abapGit object implementation and record reusable APIs and code.
+- [x] Implement blob encoding and decoding.
 - [ ] Implement tree encoding and decoding.
 - [ ] Implement commit encoding and decoding.
 - [ ] Implement annotated-tag encoding and decoding.
