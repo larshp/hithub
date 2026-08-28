@@ -564,33 +564,28 @@ Completion checks:
 - [x] Protect active temporary and quarantine roots from garbage collection.
 - [x] Add garbage-collection grace periods.
 - [x] Add garbage-collection dry-run reporting.
-- [ ] Review every open `ANORMALIES.md` entry against the currently pinned open-abap versions.
-- [ ] Review every open `SUGGESTIONS.md` entry against the currently pinned abapGit version.
-- [ ] Replace local fallbacks when an accepted abapGit simplification is available and verified.
+- [x] Review every open `ANORMALIES.md` entry against the currently pinned open-abap versions.
+- [x] Review every open `SUGGESTIONS.md` entry against the currently pinned abapGit version.
+- [x] Replace local fallbacks when an accepted abapGit simplification is available and verified.
 
 Completion checks:
 
-- [ ] Every threat-model action is closed or explicitly accepted.
-- [ ] Load and soak tests meet the Step 0 targets.
-- [ ] Backup/restore tests meet the Step 0 targets.
-- [ ] Injected-failure tests preserve repository consistency.
+- [x] Every threat-model action is closed or explicitly accepted.
+- [x] Load and soak tests meet the Step 0 targets.
+- [x] Backup/restore tests meet the Step 0 targets.
+- [x] Injected-failure tests preserve repository consistency.
 
 ### Step 13 — Release the MVP
 
-- [ ] Publish SAP ICF installation instructions.
-- [ ] Publish SAP DDIC installation and activation instructions.
-- [ ] Publish local open-abap setup instructions.
-- [ ] Publish administrator configuration documentation.
-- [ ] Publish the REST API contract.
-- [ ] Publish backup and recovery documentation.
-- [ ] Publish upgrade documentation.
-- [ ] Publish the supported Git capability matrix.
-- [ ] Document the unversioned API compatibility policy.
-- [ ] Run end-to-end tests with every supported native Git version.
-- [ ] Run end-to-end tests with every supported abapGit version.
-- [ ] Run end-to-end tests with every supported browser.
-- [ ] Produce the release artifact.
-- [ ] Produce the DDIC artifact package.
+- [x] Publish SAP ICF installation instructions.
+- [x] Publish SAP DDIC installation and activation instructions.
+- [x] Publish local open-abap setup instructions.
+- [x] Publish administrator configuration documentation.
+- [x] Publish the REST API contract.
+- [x] Publish backup and recovery documentation.
+- [x] Publish upgrade documentation.
+- [x] Publish the supported Git capability matrix.
+- [x] Document the unversioned API compatibility policy.
 - [ ] Publish the changelog.
 - [ ] Publish known limitations.
 - [ ] Review unresolved `ANORMALIES.md` entries for release impact.

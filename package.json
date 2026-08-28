@@ -16,6 +16,7 @@
     "readiness": "npm run transpile && node scripts/readiness-smoke.mjs",
     "timeout": "npm run transpile && node scripts/timeout-smoke.mjs",
     "backpressure": "node scripts/backpressure-smoke.mjs",
+    "load-soak": "npm run transpile && node scripts/load-soak.mjs",
     "restore-verify": "node scripts/restore-verify.mjs",
     "limits": "npm run transpile && node scripts/limits-smoke.mjs",
     "ui": "npm run transpile && node scripts/ui-smoke.mjs",

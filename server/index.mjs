@@ -90,8 +90,12 @@ const configuredOperationTimeout = Number(
 );
 const operationTimeoutMs = Number.isFinite(configuredOperationTimeout)
   && configuredOperationTimeout > 0 ? configuredOperationTimeout : 120000;
+const configuredHttpConcurrency = Number(
+  process.env.HITHUB_HTTP_CONCURRENCY || 64,
+);
+const httpAdmission = createGitAdmission(configuredHttpConcurrency);
 const configuredGitConcurrency = Number(
-  process.env.HITHUB_GIT_CONCURRENCY || 4,
+  process.env.HITHUB_GIT_CONCURRENCY || 8,
 );
 const gitAdmission = createGitAdmission(configuredGitConcurrency);
 const rateLimit = Number(process.env.HITHUB_RATE_LIMIT || 300);
@@ -116,6 +120,29 @@ app.use((req, res, next) => {
     ? supplied : randomUUID();
   req.hithubRequestId = requestId;
   res.setHeader("X-Request-ID", requestId);
+  next();
+});
+
+app.use((req, res, next) => {
+  if (!httpAdmission.acquire()) {
+    res.setHeader("Retry-After", "1");
+    res.status(503).type("application/problem+json").send(JSON.stringify({
+      type: "https://hithub.invalid/problems/http-backpressure",
+      title: "Service Unavailable",
+      status: 503,
+      detail: "HTTP request capacity is currently exhausted.",
+      instance: req.path,
+    }));
+    return;
+  }
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    httpAdmission.release();
+  };
+  res.on("finish", release);
+  res.on("close", release);
   next();
 });
 

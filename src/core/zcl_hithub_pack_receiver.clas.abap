@@ -100,36 +100,46 @@ CLASS zcl_hithub_pack_receiver IMPLEMENTATION.
     ENDIF.
 
     mo_transaction->start( ).
-    IF mo_quarantine->stage( lt_objects ) <> lines( lt_objects ).
-      mo_quarantine->discard( ).
-      mo_transaction->rollback( ).
-      RETURN.
-    ENDIF.
-    mo_quarantine->promote( ).
-    DATA ls_target_key TYPE zif_hithub_object_store=>ty_object_key.
-    ls_target_key-repository_id = iv_repository_id.
-    ls_target_key-algorithm = iv_algorithm.
-    ls_target_key-oid = iv_target_oid.
-    IF mo_store->contains( ls_target_key ) = abap_false.
-      mo_quarantine->discard( ).
-      mo_transaction->rollback( ).
-      RETURN.
-    ENDIF.
+    TRY.
+        IF mo_quarantine->stage( lt_objects ) <> lines( lt_objects ).
+          mo_quarantine->discard( ).
+          mo_transaction->rollback( ).
+          RETURN.
+        ENDIF.
+        IF mo_quarantine->promote( ) <> lines( lt_objects ).
+          mo_quarantine->discard( ).
+          mo_transaction->rollback( ).
+          RETURN.
+        ENDIF.
+        DATA ls_target_key TYPE zif_hithub_object_store=>ty_object_key.
+        ls_target_key-repository_id = iv_repository_id.
+        ls_target_key-algorithm = iv_algorithm.
+        ls_target_key-oid = iv_target_oid.
+        IF mo_store->contains( ls_target_key ) = abap_false.
+          mo_quarantine->discard( ).
+          mo_transaction->rollback( ).
+          RETURN.
+        ENDIF.
 
-    ls_reference-repository_id = iv_repository_id.
-    ls_reference-name = iv_ref_name.
-    ls_reference-algorithm = iv_algorithm.
-    ls_reference-oid = iv_target_oid.
-    lv_version = mo_metadata->save_reference(
-      is_reference = ls_reference
-      iv_expected_version = iv_expected_version ).
-    IF lv_version IS INITIAL.
-      mo_quarantine->discard( ).
-      mo_transaction->rollback( ).
-      RETURN.
-    ENDIF.
+        ls_reference-repository_id = iv_repository_id.
+        ls_reference-name = iv_ref_name.
+        ls_reference-algorithm = iv_algorithm.
+        ls_reference-oid = iv_target_oid.
+        lv_version = mo_metadata->save_reference(
+          is_reference = ls_reference
+          iv_expected_version = iv_expected_version ).
+        IF lv_version IS INITIAL.
+          mo_quarantine->discard( ).
+          mo_transaction->rollback( ).
+          RETURN.
+        ENDIF.
 
-    mo_transaction->commit( ).
+        mo_transaction->commit( ).
+      CATCH cx_static_check.
+        mo_quarantine->discard( ).
+        mo_transaction->rollback( ).
+        RETURN.
+    ENDTRY.
     IF mo_event_sink IS NOT INITIAL.
       DATA ls_event TYPE zif_hithub_event_sink=>ty_event.
       ls_event-action = 'push'.

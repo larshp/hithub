@@ -36,6 +36,7 @@ this instruction text from the completed entry.
 - Affected abapGit class, interface or component: `src/git`, especially
   `ZCL_ABAPGIT_GIT_COMMIT`, `ZCL_ABAPGIT_GIT_TAG`, and Git definitions
 - Reviewed upstream revision: `d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6`
+- Last reviewed: `2026-08-28`
 - Current integration difficulty: consumers must depend on concrete classes
   and internal type definitions to parse or emit canonical Git objects.
 - HitHub code complicated by this: the object-domain adapter would need to
@@ -58,6 +59,9 @@ this instruction text from the completed entry.
   concrete classes, protected by native-Git golden fixtures.
 - Upstream issue or pull request: `none`
 - First abapGit version containing the change: `unknown`
+- Review result: the pinned revision still exposes separate concrete commit
+  parsing and tag-prefix helper APIs; no shared public object-codec façade is
+  available, so this suggestion remains `proposed`.
 
 ## SUGGESTION-002 — Stream-oriented pack reader seam
 
@@ -65,6 +69,7 @@ this instruction text from the completed entry.
 - Affected abapGit class, interface or component: `ZCL_ABAPGIT_GIT_PACK`,
   `ZCL_ABAPGIT_GIT_DELTA`, and the `src/git/zlib` support
 - Reviewed upstream revision: `d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6`
+- Last reviewed: `2026-08-28`
 - Current integration difficulty: pack processing is exposed primarily as
   client-oriented operations, while callers with large repositories need
   bounded reads and an explicit base-object resolver.
@@ -87,3 +92,6 @@ this instruction text from the completed entry.
   the pack port, with the anomaly log used for runtime discrepancies.
 - Upstream issue or pull request: `none`
 - First abapGit version containing the change: `unknown`
+- Review result: the pinned revision exposes whole-buffer pack encode/decode
+  methods and table-based delta decoding, with no stream-oriented input or
+  repository-visible resolver seam; this suggestion remains `proposed`.

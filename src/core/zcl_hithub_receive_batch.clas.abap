@@ -125,71 +125,87 @@ CLASS zcl_hithub_receive_batch IMPLEMENTATION.
     ENDIF.
 
     mo_transaction->start( ).
-    IF lt_objects IS NOT INITIAL.
-      IF mo_quarantine->stage( lt_objects ) <> lines( lt_objects ).
-        mo_quarantine->discard( ).
-        mo_transaction->rollback( ).
-        RETURN.
-      ENDIF.
-      mo_quarantine->promote( ).
-    ENDIF.
+    TRY.
+        IF lt_objects IS NOT INITIAL.
+          IF mo_quarantine->stage( lt_objects ) <> lines( lt_objects ).
+            mo_quarantine->discard( ).
+            mo_transaction->rollback( ).
+            RETURN.
+          ENDIF.
+          IF mo_quarantine->promote( ) <> lines( lt_objects ).
+            mo_quarantine->discard( ).
+            mo_transaction->rollback( ).
+            RETURN.
+          ENDIF.
+        ENDIF.
 
-    LOOP AT lt_currents INTO ls_current.
-      IF ls_current-command-new_oid = lc_zero_oid.
-        CONTINUE.
-      ENDIF.
-      CLEAR ls_key.
-      ls_key-repository_id = iv_repository_id.
-      ls_key-algorithm = 'sha1'.
-      ls_key-oid = ls_current-command-new_oid.
-      IF zcl_hithub_receive_target=>is_valid_target(
-          io_store = mo_store is_key = ls_key
-          iv_ref_name = ls_current-command-ref_name ) = abap_false.
+        LOOP AT lt_currents INTO ls_current.
+          IF ls_current-command-new_oid = lc_zero_oid.
+            CONTINUE.
+          ENDIF.
+          CLEAR ls_key.
+          ls_key-repository_id = iv_repository_id.
+          ls_key-algorithm = 'sha1'.
+          ls_key-oid = ls_current-command-new_oid.
+          IF zcl_hithub_receive_target=>is_valid_target(
+              io_store = mo_store is_key = ls_key
+              iv_ref_name = ls_current-command-ref_name ) = abap_false.
+            mo_quarantine->discard( ).
+            mo_transaction->rollback( ).
+            LOOP AT et_results ASSIGNING <ls_rejected>.
+              CLEAR <ls_rejected>-ok.
+              IF <ls_rejected>-reason IS INITIAL.
+                <ls_rejected>-reason = 'invalid target'.
+              ENDIF.
+            ENDLOOP.
+            RETURN.
+          ENDIF.
+        ENDLOOP.
+
+        LOOP AT lt_currents INTO ls_current.
+          READ TABLE et_results ASSIGNING <ls_rejected> INDEX sy-tabix.
+          IF ls_current-command-new_oid = lc_zero_oid.
+            mo_metadata->delete_reference(
+              iv_repository_id = iv_repository_id
+              iv_name = ls_current-command-ref_name
+              iv_expected_version = ls_current-reference-version ).
+            <ls_rejected>-ok = abap_true.
+          ELSE.
+            DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+            ls_reference-repository_id = iv_repository_id.
+            ls_reference-name = ls_current-command-ref_name.
+            ls_reference-algorithm = 'sha1'.
+            ls_reference-oid = ls_current-command-new_oid.
+            lv_saved_version = mo_metadata->save_reference(
+              is_reference = ls_reference
+              iv_expected_version = ls_current-reference-version ).
+            IF lv_saved_version IS INITIAL.
+              mo_quarantine->discard( ).
+              mo_transaction->rollback( ).
+              LOOP AT et_results ASSIGNING <ls_rejected>.
+                CLEAR <ls_rejected>-ok.
+                IF <ls_rejected>-reason IS INITIAL.
+                  <ls_rejected>-reason = 'batch update failed'.
+                ENDIF.
+              ENDLOOP.
+              RETURN.
+            ENDIF.
+            <ls_rejected>-ok = abap_true.
+          ENDIF.
+        ENDLOOP.
+
+        mo_transaction->commit( ).
+      CATCH cx_static_check.
         mo_quarantine->discard( ).
         mo_transaction->rollback( ).
         LOOP AT et_results ASSIGNING <ls_rejected>.
           CLEAR <ls_rejected>-ok.
           IF <ls_rejected>-reason IS INITIAL.
-            <ls_rejected>-reason = 'invalid target'.
+            <ls_rejected>-reason = 'batch update failed'.
           ENDIF.
         ENDLOOP.
         RETURN.
-      ENDIF.
-    ENDLOOP.
-
-    LOOP AT lt_currents INTO ls_current.
-      READ TABLE et_results ASSIGNING <ls_rejected> INDEX sy-tabix.
-      IF ls_current-command-new_oid = lc_zero_oid.
-        mo_metadata->delete_reference(
-          iv_repository_id = iv_repository_id
-          iv_name = ls_current-command-ref_name
-          iv_expected_version = ls_current-reference-version ).
-        <ls_rejected>-ok = abap_true.
-      ELSE.
-        DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
-        ls_reference-repository_id = iv_repository_id.
-        ls_reference-name = ls_current-command-ref_name.
-        ls_reference-algorithm = 'sha1'.
-        ls_reference-oid = ls_current-command-new_oid.
-        lv_saved_version = mo_metadata->save_reference(
-          is_reference = ls_reference
-          iv_expected_version = ls_current-reference-version ).
-        IF lv_saved_version IS INITIAL.
-          mo_quarantine->discard( ).
-          mo_transaction->rollback( ).
-          LOOP AT et_results ASSIGNING <ls_rejected>.
-            CLEAR <ls_rejected>-ok.
-            IF <ls_rejected>-reason IS INITIAL.
-              <ls_rejected>-reason = 'batch update failed'.
-            ENDIF.
-          ENDLOOP.
-          RETURN.
-        ENDIF.
-        <ls_rejected>-ok = abap_true.
-      ENDIF.
-    ENDLOOP.
-
-    mo_transaction->commit( ).
+    ENDTRY.
     rv_success = abap_true.
   ENDMETHOD.
 

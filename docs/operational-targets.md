@@ -1,8 +1,9 @@
 # Initial concurrency and timeout targets
 
 These targets apply per application-server instance unless the deployment
-adapter provides a shared limiter. They are Step 0 capacity targets, not a
-claim that the current skeleton meets them.
+adapter provides a shared limiter. The configured defaults are exercised by
+the `npm run load-soak` harness; deployment adapters must provide equivalent
+limits when traffic is distributed across multiple instances.
 
 | Target | Initial value | Policy |
 | --- | ---: | --- |
@@ -17,5 +18,5 @@ claim that the current skeleton meets them.
 
 Timeouts cancel work at the port boundary and release locks/quarantine roots
 through cleanup handlers. A timed-out or overloaded write operation must not
-make a partial ref state visible. The values are revisited after the Step 0
-pack/delta performance spike and load tests.
+make a partial ref state visible. The values remain subject to revision when
+production traffic or a later pack/delta performance spike justifies tuning.

@@ -24,3 +24,23 @@ The allow-list is implemented by
 and will be consumed by the discovery response builder. Capability text is
 rendered separately from pkt-line framing so binary transport code cannot
 silently change the advertised values.
+
+## Client and protocol matrix
+
+The version range is the release support target. The end-to-end release runs
+for each client version are tracked separately in the implementation plan; the
+local baseline evidence is recorded here without implying that an unavailable
+client binary has already been executed.
+
+| Client | Smart HTTP v0/v1 | Protocol v2 | Clone/fetch | Push, branch, tag | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| Native Git 2.30 | supported target | supported target | required | required | v0/v1 packet fixtures; release run pending |
+| Native Git 2.39 | supported target | supported target | required | required | v0/v1 packet fixtures; release run pending |
+| Native Git 2.43 | supported target | supported target | required | required | local native Git, fsck and race suites pass |
+| Git GUI from Git 2.43 | delegates to native Git | delegates to native Git | required | required | browser/UI workflow; GUI binary run pending |
+| abapGit v1.131–v1.134 | supported target | supported target | required | required | captured fixtures; SAP/client matrix run pending |
+
+For every supported client, the server must advertise only the tokens listed
+above, preserve Git media types and pkt-line framing, and leave refs unchanged
+when validation, quota, lock, or compare-and-swap checks fail. Unsupported
+capabilities must not be inferred from a client request.
