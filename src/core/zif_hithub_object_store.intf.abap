@@ -11,6 +11,7 @@ INTERFACE zif_hithub_object_store
       key     TYPE ty_object_key,
       type    TYPE string,
       size    TYPE int8,
+      created_at TYPE timestampl,
       payload TYPE xstring,
     END OF ty_object.
 

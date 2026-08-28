@@ -12,22 +12,23 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
   METHOD zif_hithub_object_gc~list.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_object.
     DATA ls_row TYPE zhi_object.
-    DATA ls_key TYPE zif_hithub_object_store=>ty_object_key.
+    DATA ls_candidate TYPE zif_hithub_object_gc=>ty_candidate.
 
-    CLEAR rt_keys.
+    CLEAR rt_candidates.
     IF iv_repository_id IS INITIAL.
       RETURN.
     ENDIF.
     SELECT * FROM zhi_object INTO TABLE @lt_rows
       WHERE repository_id = @iv_repository_id.
     LOOP AT lt_rows INTO ls_row.
-      CLEAR ls_key.
-      ls_key-repository_id = ls_row-repository_id.
-      ls_key-algorithm = ls_row-algorithm.
-      ls_key-oid = ls_row-oid.
-      APPEND ls_key TO rt_keys.
+      CLEAR ls_candidate.
+      ls_candidate-key-repository_id = ls_row-repository_id.
+      ls_candidate-key-algorithm = ls_row-algorithm.
+      ls_candidate-key-oid = ls_row-oid.
+      ls_candidate-created_at = ls_row-created_at.
+      APPEND ls_candidate TO rt_candidates.
     ENDLOOP.
-    SORT rt_keys BY algorithm oid.
+    SORT rt_candidates BY key-algorithm key-oid.
   ENDMETHOD.
 
   METHOD zif_hithub_object_gc~delete.
@@ -60,6 +61,7 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
     rs_object-key-oid = ls_row-oid.
     rs_object-type = ls_row-object_type.
     rs_object-size = ls_row-object_size.
+    rs_object-created_at = ls_row-created_at.
     rs_object-payload = ls_row-payload.
     IF ls_row-object_size > 0.
       rs_object-payload = ls_row-payload(ls_row-object_size).
@@ -96,6 +98,11 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
     ls_row-oid = is_object-key-oid.
     ls_row-object_type = is_object-type.
     ls_row-object_size = is_object-size.
+    IF is_object-created_at IS INITIAL.
+      GET TIME STAMP FIELD ls_row-created_at.
+    ELSE.
+      ls_row-created_at = is_object-created_at.
+    ENDIF.
     ls_row-payload = is_object-payload.
     INSERT zhi_object FROM @ls_row.
     IF sy-subrc = 0.

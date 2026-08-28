@@ -19,7 +19,8 @@ const expected = {
   zhi_object: {
     columns: {
       repository_id: "NCHAR(36)", algorithm: "NCHAR(16)", oid: "NCHAR(64)",
-      object_type: "NCHAR(6)", object_size: "INT", payload: "NCHAR(64000)",
+      object_type: "NCHAR(6)", object_size: "INT", created_at: "NCHAR(27)",
+      payload: "NCHAR(64000)",
     },
     primaryKey: ["repository_id", "algorithm", "oid"],
   },

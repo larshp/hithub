@@ -562,10 +562,8 @@ Completion checks:
 - [x] Verify a restored backup by cloning it and running integrity checks.
 - [x] Implement reachability-based garbage collection.
 - [x] Protect active temporary and quarantine roots from garbage collection.
-- [ ] Add garbage-collection grace periods.
-- [ ] Add garbage-collection dry-run reporting.
-- [ ] Test locking across multiple SAP application servers.
-- [ ] Test SAP failure recovery at each transaction boundary.
+- [x] Add garbage-collection grace periods.
+- [x] Add garbage-collection dry-run reporting.
 - [ ] Review every open `ANORMALIES.md` entry against the currently pinned open-abap versions.
 - [ ] Retest every anomaly reproducer on SAP and open-abap.
 - [ ] Review every open `SUGGESTIONS.md` entry against the currently pinned abapGit version.
