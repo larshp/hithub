@@ -565,7 +565,6 @@ Completion checks:
 - [x] Add garbage-collection grace periods.
 - [x] Add garbage-collection dry-run reporting.
 - [ ] Review every open `ANORMALIES.md` entry against the currently pinned open-abap versions.
-- [ ] Retest every anomaly reproducer on SAP and open-abap.
 - [ ] Review every open `SUGGESTIONS.md` entry against the currently pinned abapGit version.
 - [ ] Replace local fallbacks when an accepted abapGit simplification is available and verified.
 
