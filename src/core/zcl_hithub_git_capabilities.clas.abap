@@ -10,6 +10,10 @@ CLASS zcl_hithub_git_capabilities DEFINITION
       RETURNING
         VALUE(rt_capabilities) TYPE ty_capabilities.
 
+    CLASS-METHODS receive_advertised
+      RETURNING
+        VALUE(rt_capabilities) TYPE ty_capabilities.
+
     CLASS-METHODS render
       IMPORTING
         it_capabilities TYPE ty_capabilities
@@ -33,6 +37,17 @@ CLASS zcl_hithub_git_capabilities IMPLEMENTATION.
   METHOD render.
     CLEAR rv_text.
     CONCATENATE LINES OF it_capabilities INTO rv_text SEPARATED BY space.
+  ENDMETHOD.
+
+  METHOD receive_advertised.
+    CLEAR rt_capabilities.
+    APPEND 'report-status' TO rt_capabilities.
+    APPEND 'side-band-64k' TO rt_capabilities.
+    APPEND 'no-thin' TO rt_capabilities.
+    APPEND 'delete-refs' TO rt_capabilities.
+    APPEND 'ofs-delta' TO rt_capabilities.
+    APPEND 'agent=hithub' TO rt_capabilities.
+    APPEND 'object-format=sha1' TO rt_capabilities.
   ENDMETHOD.
 
 ENDCLASS.

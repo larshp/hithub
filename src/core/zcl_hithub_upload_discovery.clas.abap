@@ -9,6 +9,7 @@ CLASS zcl_hithub_upload_discovery DEFINITION
         iv_head_ref   TYPE string
         iv_repository_id TYPE string OPTIONAL
         it_references TYPE zif_hithub_metadata_store=>ty_references
+        it_capabilities TYPE zcl_hithub_git_capabilities=>ty_capabilities OPTIONAL
       RETURNING
         VALUE(rv_body) TYPE xstring.
 
@@ -26,9 +27,11 @@ CLASS zcl_hithub_upload_discovery IMPLEMENTATION.
     DATA lv_capability_bytes TYPE xstring.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
     DATA lt_references TYPE zif_hithub_metadata_store=>ty_references.
+    DATA lt_capabilities TYPE zcl_hithub_git_capabilities=>ty_capabilities.
 
     CLEAR rv_body.
-    IF iv_service <> 'git-upload-pack'
+    IF ( iv_service <> 'git-upload-pack' AND
+        iv_service <> 'git-receive-pack' )
         OR zcl_hithub_ref_validator=>is_valid( iv_head_ref ) = abap_false
         OR ( iv_head_oid IS NOT INITIAL AND
           zcl_hithub_oid_validator=>is_valid(
@@ -40,6 +43,8 @@ CLASS zcl_hithub_upload_discovery IMPLEMENTATION.
     lv_text = cl_abap_codepage=>convert_to( source = lv_line ).
     lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_text ).
     CONCATENATE rv_body lv_packet INTO rv_body IN BYTE MODE.
+    lv_packet = zcl_hithub_pkt_line_codec=>flush( ).
+    CONCATENATE rv_body lv_packet INTO rv_body IN BYTE MODE.
 
     IF iv_head_oid IS INITIAL.
       lv_packet = zcl_hithub_pkt_line_codec=>flush( ).
@@ -50,8 +55,16 @@ CLASS zcl_hithub_upload_discovery IMPLEMENTATION.
     lv_head_prefix = cl_abap_codepage=>convert_to(
       source = |{ iv_head_oid } HEAD| ).
     lv_nul = CONV xstring( '00' ).
-    lv_capabilities = zcl_hithub_git_capabilities=>render(
-      zcl_hithub_git_capabilities=>advertised( iv_head_ref ) ).
+    IF it_capabilities IS INITIAL.
+      IF iv_service = 'git-receive-pack'.
+        lt_capabilities = zcl_hithub_git_capabilities=>receive_advertised( ).
+      ELSE.
+        lt_capabilities = zcl_hithub_git_capabilities=>advertised( iv_head_ref ).
+      ENDIF.
+    ELSE.
+      lt_capabilities = it_capabilities.
+    ENDIF.
+    lv_capabilities = zcl_hithub_git_capabilities=>render( lt_capabilities ).
     lv_capability_bytes = cl_abap_codepage=>convert_to(
       source = lv_capabilities && cl_abap_char_utilities=>newline ).
     CONCATENATE lv_head_prefix lv_nul lv_capability_bytes

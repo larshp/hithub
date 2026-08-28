@@ -36,4 +36,12 @@ INTERFACE zif_hithub_object_store
     RAISING
       cx_static_check.
 
+  METHODS purge_repository
+    IMPORTING
+      iv_repository_id TYPE string
+    RETURNING
+      VALUE(rv_purged) TYPE abap_bool
+    RAISING
+      cx_static_check.
+
 ENDINTERFACE.

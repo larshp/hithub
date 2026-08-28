@@ -14,6 +14,11 @@ server behavior is already available:
 | `shallow` | not advertised yet | Shallow negotiation is a later checkbox |
 | `include-tag`, `no-done` | not advertised yet | Their upload-pack semantics are not implemented yet |
 
+Receive-pack discovery advertises `report-status`, `side-band-64k`, `no-thin`,
+`delete-refs`, `ofs-delta`, `object-format=sha1`, and `agent=hithub`. These
+tokens are maintained separately from upload-pack capabilities because the
+client request and response contracts differ.
+
 The allow-list is implemented by
 [`ZCL_HITHUB_GIT_CAPABILITIES`](../src/core/zcl_hithub_git_capabilities.clas.abap)
 and will be consumed by the discovery response builder. Capability text is

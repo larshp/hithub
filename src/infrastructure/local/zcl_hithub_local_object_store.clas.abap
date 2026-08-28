@@ -68,4 +68,14 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+  METHOD zif_hithub_object_store~purge_repository.
+    CLEAR rv_purged.
+    IF iv_repository_id IS INITIAL.
+      RETURN.
+    ENDIF.
+    DELETE FROM zhi_object
+      WHERE repository_id = @iv_repository_id.
+    rv_purged = xsdbool( sy-subrc = 0 ).
+  ENDMETHOD.
+
 ENDCLASS.

@@ -2,6 +2,7 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
 
   PRIVATE SECTION.
     METHODS parses_v0_request FOR TESTING RAISING cx_static_check.
+    METHODS parses_space_capabilities FOR TESTING RAISING cx_static_check.
     METHODS rejects_bad_request FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -48,6 +49,35 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSERT ls_request-saw_flush = abap_true.
     ASSERT ls_request-saw_done = abap_true.
     READ TABLE ls_request-capabilities WITH KEY table_line = 'side-band-64k'
+      TRANSPORTING NO FIELDS.
+    ASSERT sy-subrc = 0.
+  ENDMETHOD.
+
+  METHOD parses_space_capabilities.
+    DATA lv_oid TYPE string.
+    DATA lv_payload TYPE xstring.
+    DATA lv_data TYPE xstring.
+    DATA lv_packet TYPE xstring.
+    DATA ls_request TYPE zcl_hithub_upload_request=>ty_request.
+
+    lv_oid = '1111111111111111111111111111111111111111'.
+    lv_payload = cl_abap_codepage=>convert_to(
+      source = |want { lv_oid } no-progress agent=git/2.43.0| &&
+        cl_abap_char_utilities=>newline ).
+    lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_payload ).
+    CONCATENATE lv_data lv_packet INTO lv_data IN BYTE MODE.
+    lv_packet = zcl_hithub_pkt_line_codec=>flush( ).
+    CONCATENATE lv_data lv_packet
+      INTO lv_data IN BYTE MODE.
+
+    ls_request = zcl_hithub_upload_request=>parse( lv_data ).
+    ASSERT ls_request-valid = abap_true.
+    ASSERT lines( ls_request-wants ) = 1.
+    ASSERT ls_request-wants[ 1 ] = lv_oid.
+    READ TABLE ls_request-capabilities WITH KEY table_line = 'no-progress'
+      TRANSPORTING NO FIELDS.
+    ASSERT sy-subrc = 0.
+    READ TABLE ls_request-capabilities WITH KEY table_line = 'agent=git/2.43.0'
       TRANSPORTING NO FIELDS.
     ASSERT sy-subrc = 0.
   ENDMETHOD.

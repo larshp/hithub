@@ -29,6 +29,14 @@ CLASS ltcl_persist_contract IMPLEMENTATION.
     ASSERT ls_read-name = ls_repository-name.
     ASSERT ls_read-default_branch = ls_repository-default_branch.
     ASSERT ls_read-version = 1.
+
+    ls_repository-description = 'Updated persistence contract'.
+    DATA(lv_version) = lo_store->zif_hithub_metadata_store~update_repository(
+      is_repository = ls_repository iv_expected_version = 1 ).
+    ASSERT lv_version = 2.
+    lv_version = lo_store->zif_hithub_metadata_store~update_repository(
+      is_repository = ls_repository iv_expected_version = 1 ).
+    ASSERT lv_version = 0.
   ENDMETHOD.
 
   METHOD reference_compare_and_swap.

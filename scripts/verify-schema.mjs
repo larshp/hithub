@@ -1,5 +1,5 @@
 import {readFileSync} from "node:fs";
-import {SQLiteDatabaseClient} from "@abaplint/database-sqlite";
+import {createLocalDatabase} from "./local-database.mjs";
 
 const expected = {
   zhi_repository: {
@@ -44,9 +44,7 @@ if (schemaStatements.length !== Object.keys(expected).length) {
 }
 
 globalThis.abap = {context: {databaseConnections: {}}};
-const database = new SQLiteDatabaseClient();
-await database.connect();
-await database.execute(schemaStatements);
+const database = await createLocalDatabase(schemaStatements);
 
 for (const [table, definition] of Object.entries(expected)) {
   const rows = (await database.select({select: `PRAGMA table_info('${table}')`})).rows;

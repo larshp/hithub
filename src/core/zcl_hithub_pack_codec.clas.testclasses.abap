@@ -5,6 +5,88 @@ CLASS lcl_pack_compression DEFINITION.
 
 ENDCLASS.
 
+CLASS lcl_receive_quarantine DEFINITION.
+
+  PUBLIC SECTION.
+    INTERFACES zif_hithub_quarantine.
+    METHODS staged RETURNING VALUE(rv_count) TYPE i.
+    METHODS promoted RETURNING VALUE(rv_count) TYPE i.
+
+  PRIVATE SECTION.
+    DATA mv_staged TYPE i.
+    DATA mv_promoted TYPE i.
+
+ENDCLASS.
+
+CLASS lcl_receive_event_sink DEFINITION.
+
+  PUBLIC SECTION.
+    INTERFACES zif_hithub_event_sink.
+    METHODS event RETURNING VALUE(rs_event) TYPE zif_hithub_event_sink=>ty_event.
+
+  PRIVATE SECTION.
+    DATA ms_event TYPE zif_hithub_event_sink=>ty_event.
+
+ENDCLASS.
+
+CLASS lcl_receive_event_sink IMPLEMENTATION.
+
+  METHOD zif_hithub_event_sink~emit.
+    ms_event = is_event.
+  ENDMETHOD.
+
+  METHOD event.
+    rs_event = ms_event.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS lcl_receive_clock DEFINITION.
+
+  PUBLIC SECTION.
+    INTERFACES zif_hithub_clock.
+
+ENDCLASS.
+
+CLASS lcl_receive_clock IMPLEMENTATION.
+
+  METHOD zif_hithub_clock~now.
+    rv_timestamp = '20260828123456.0000000'.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS lcl_receive_quarantine IMPLEMENTATION.
+
+  METHOD zif_hithub_quarantine~stage.
+    mv_staged = lines( it_objects ).
+    rv_staged = mv_staged.
+  ENDMETHOD.
+
+  METHOD zif_hithub_quarantine~promote.
+    mv_promoted = mv_staged.
+    rv_promoted = mv_promoted.
+    CLEAR mv_staged.
+  ENDMETHOD.
+
+  METHOD zif_hithub_quarantine~discard.
+    CLEAR mv_staged.
+  ENDMETHOD.
+
+  METHOD zif_hithub_quarantine~count.
+    rv_count = mv_staged.
+  ENDMETHOD.
+
+  METHOD staged.
+    rv_count = mv_staged.
+  ENDMETHOD.
+
+  METHOD promoted.
+    rv_count = mv_promoted.
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lcl_pack_compression IMPLEMENTATION.
 
   METHOD zif_hithub_compression~compress.
@@ -82,6 +164,10 @@ CLASS lcl_pack_object_store IMPLEMENTATION.
     rv_created = abap_false.
   ENDMETHOD.
 
+  METHOD zif_hithub_object_store~purge_repository.
+    rv_purged = abap_true.
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
@@ -92,6 +178,8 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
     METHODS rejects_corrupt_pack FOR TESTING RAISING cx_static_check.
     METHODS rejects_malformed_pack FOR TESTING RAISING cx_static_check.
     METHODS rejects_pack_before_ref_update FOR TESTING RAISING cx_static_check.
+    METHODS rejects_pack_over_limit FOR TESTING RAISING cx_static_check.
+    METHODS promotes_before_ref_save FOR TESTING RAISING cx_static_check.
     METHODS unpacks_delta_objects FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -330,6 +418,80 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSERT ls_read-version = 1.
     ASSERT lo_store->zif_hithub_object_store~contains( ls_object-key ) = abap_false.
     ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
+  ENDMETHOD.
+
+  METHOD rejects_pack_over_limit.
+    DATA(lo_compression) = NEW lcl_pack_compression( ).
+    DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
+    DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
+    DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
+    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_limits) = NEW zcl_hithub_pack_limits(
+      iv_max_pack_size = 1 iv_max_objects = 1 ).
+    DATA(lo_receiver) = NEW zcl_hithub_pack_receiver(
+      io_codec = lo_codec io_store = lo_store io_metadata = lo_metadata
+      io_transaction = lo_transaction io_limits = lo_limits ).
+
+    ASSERT lo_receiver->receive(
+      iv_pack = CONV xstring( '5041434B0000000200000000' )
+      iv_repository_id = 'pack-limit-repository-000000000'
+      iv_ref_name = 'refs/heads/main'
+      iv_target_oid = '1111111111111111111111111111111111111111' ) =
+      abap_false.
+    ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
+  ENDMETHOD.
+
+  METHOD promotes_before_ref_save.
+    DATA(lo_compression) = NEW lcl_pack_compression( ).
+    DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
+    DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
+    DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
+    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_quarantine) = NEW zcl_hithub_quarantine( lo_store ).
+    DATA(lo_event_sink) = NEW lcl_receive_event_sink( ).
+    DATA(lo_clock) = NEW lcl_receive_clock( ).
+    DATA(lo_context) = NEW zcl_hithub_request_context(
+      iv_actor_label = 'actor-1' iv_correlation_id = 'correlation-1' ).
+    DATA(lo_receiver) = NEW zcl_hithub_pack_receiver(
+      io_codec = lo_codec io_store = lo_store io_metadata = lo_metadata
+      io_transaction = lo_transaction io_quarantine = lo_quarantine
+      io_event_sink = lo_event_sink io_request_context = lo_context
+      io_clock = lo_clock ).
+    DATA lt_objects TYPE zcl_hithub_pack_codec=>ty_objects.
+    DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA lv_repository_id TYPE string.
+    DATA lv_target_oid TYPE string.
+    DATA lv_pack TYPE xstring.
+
+    lv_repository_id = 'pack-quarantine-repository-0000'.
+    ls_object-key-repository_id = lv_repository_id.
+    ls_object-key-algorithm = 'sha1'.
+    ls_object-type = 'blob'.
+    ls_object-payload = cl_abap_codepage=>convert_to( source = 'incoming' ).
+    ls_object-size = xstrlen( ls_object-payload ).
+    lv_target_oid = zcl_hithub_object_id=>calculate(
+      iv_algorithm = 'sha1' iv_type = ls_object-type
+      iv_payload = ls_object-payload ).
+    ls_object-key-oid = lv_target_oid.
+    APPEND ls_object TO lt_objects.
+    lv_pack = lo_codec->repack( lt_objects ).
+
+    ASSERT lo_receiver->receive(
+      iv_pack = lv_pack iv_repository_id = lv_repository_id
+      iv_ref_name = 'refs/tags/incoming'
+      iv_target_oid = lv_target_oid ) = abap_true.
+    DATA ls_target_key TYPE zif_hithub_object_store=>ty_object_key.
+    ls_target_key-repository_id = lv_repository_id.
+    ls_target_key-algorithm = 'sha1'.
+    ls_target_key-oid = lv_target_oid.
+    ASSERT lo_store->zif_hithub_object_store~contains( ls_target_key ) =
+      abap_true.
+    DATA(ls_event) = lo_event_sink->event( ).
+    ASSERT ls_event-action = 'push'.
+    ASSERT ls_event-subject_id = lv_repository_id.
+    ASSERT ls_event-actor = 'actor-1'.
+    ASSERT ls_event-correlation_id = 'correlation-1'.
+    ASSERT ls_event-occurred_at = '20260828123456.0000000'.
   ENDMETHOD.
 
   METHOD unpacks_delta_objects.

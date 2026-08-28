@@ -3,6 +3,7 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
   PRIVATE SECTION.
     METHODS parses_fetch_request FOR TESTING RAISING cx_static_check.
     METHODS builds_packfile_response FOR TESTING RAISING cx_static_check.
+    METHODS builds_acknowledgments FOR TESTING RAISING cx_static_check.
     METHODS rejects_invalid_fetch FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -75,6 +76,33 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_request = zcl_hithub_v2_fetch=>parse(
       cl_abap_codepage=>convert_to( source = '0004' ) ).
     ASSERT ls_request-valid = abap_false.
+  ENDMETHOD.
+
+  METHOD builds_acknowledgments.
+    DATA lt_haves TYPE zcl_hithub_v2_fetch=>ty_lines.
+    DATA lv_response TYPE xstring.
+    DATA ls_packet TYPE zcl_hithub_pkt_line_codec=>ty_packet.
+    DATA lv_oid TYPE string.
+    DATA lv_rest TYPE xstring.
+    DATA lv_ack_rest TYPE xstring.
+
+    lv_oid = '1111111111111111111111111111111111111111'.
+    APPEND lv_oid TO lt_haves.
+    lv_response = zcl_hithub_v2_fetch=>build_acknowledgments( lt_haves ).
+    ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
+    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
+      source = 'acknowledgments' && cl_abap_char_utilities=>newline ).
+    lv_rest = lv_response+ls_packet-consumed_bytes.
+    ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
+    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
+      source = |ACK { lv_oid }| && cl_abap_char_utilities=>newline ).
+    lv_ack_rest = lv_rest+ls_packet-consumed_bytes.
+    ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_ack_rest ).
+    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
+      source = 'ready' && cl_abap_char_utilities=>newline ).
+    lv_ack_rest = lv_ack_rest+ls_packet-consumed_bytes.
+    ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_ack_rest ).
+    ASSERT ls_packet-kind = 'delim'.
   ENDMETHOD.
 
 ENDCLASS.

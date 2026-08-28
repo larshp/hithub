@@ -29,7 +29,17 @@ INTERFACE zif_hithub_metadata_store
     RAISING
       cx_static_check.
 
+  METHODS read_repository_any
+    IMPORTING
+      iv_id TYPE string
+    RETURNING
+      VALUE(rs_repository) TYPE ty_repository
+    RAISING
+      cx_static_check.
+
   METHODS list_repositories
+    IMPORTING
+      iv_include_deleted TYPE abap_bool OPTIONAL
     RETURNING
       VALUE(rt_repositories) TYPE ty_repositories
     RAISING
@@ -38,6 +48,24 @@ INTERFACE zif_hithub_metadata_store
   METHODS save_repository
     IMPORTING
       is_repository TYPE ty_repository
+    RAISING
+      cx_static_check.
+
+  METHODS update_repository
+    IMPORTING
+      is_repository       TYPE ty_repository
+      iv_expected_version TYPE int8
+    RETURNING
+      VALUE(rv_version) TYPE int8
+    RAISING
+      cx_static_check.
+
+  METHODS purge_repository
+    IMPORTING
+      iv_repository_id   TYPE string
+      iv_expected_version TYPE int8
+    RETURNING
+      VALUE(rv_purged) TYPE abap_bool
     RAISING
       cx_static_check.
 

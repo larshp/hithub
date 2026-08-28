@@ -28,6 +28,26 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+  METHOD zif_hithub_metadata_store~read_repository_any.
+    DATA ls_row TYPE zhi_repository.
+
+    CLEAR rs_repository.
+    SELECT SINGLE * FROM zhi_repository INTO @ls_row
+      WHERE id = @iv_id.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    rs_repository-id = ls_row-id.
+    rs_repository-name = ls_row-name.
+    rs_repository-description = ls_row-description.
+    rs_repository-default_branch = ls_row-default_branch.
+    rs_repository-version = ls_row-version.
+    IF ls_row-deleted = 'X'.
+      rs_repository-deleted = abap_true.
+    ENDIF.
+  ENDMETHOD.
+
   METHOD zif_hithub_metadata_store~list_repositories.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_repository WITH DEFAULT KEY.
     DATA ls_row TYPE zhi_repository.
@@ -36,13 +56,18 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
     CLEAR rt_repositories.
     SELECT * FROM zhi_repository INTO TABLE @lt_rows ORDER BY name.
     LOOP AT lt_rows INTO ls_row.
-      CHECK ls_row-deleted <> 'X'.
+      IF iv_include_deleted <> abap_true.
+        CHECK ls_row-deleted <> 'X'.
+      ENDIF.
       CLEAR ls_repository.
       ls_repository-id = ls_row-id.
       ls_repository-name = ls_row-name.
       ls_repository-description = ls_row-description.
       ls_repository-default_branch = ls_row-default_branch.
       ls_repository-version = ls_row-version.
+      IF ls_row-deleted = 'X'.
+        ls_repository-deleted = abap_true.
+      ENDIF.
       APPEND ls_repository TO rt_repositories.
     ENDLOOP.
   ENDMETHOD.
@@ -59,6 +84,50 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
       ls_row-deleted = 'X'.
     ENDIF.
     MODIFY zhi_repository FROM @ls_row.
+  ENDMETHOD.
+
+  METHOD zif_hithub_metadata_store~update_repository.
+    DATA ls_current TYPE zhi_repository.
+    DATA ls_row TYPE zhi_repository.
+
+    CLEAR rv_version.
+    IF iv_expected_version IS INITIAL.
+      RETURN.
+    ENDIF.
+    SELECT SINGLE * FROM zhi_repository INTO @ls_current
+      WHERE id = @is_repository-id.
+    IF sy-subrc <> 0 OR ls_current-version <> iv_expected_version.
+      RETURN.
+    ENDIF.
+    ls_row = ls_current.
+    ls_row-description = is_repository-description.
+    ls_row-default_branch = is_repository-default_branch.
+    ls_row-deleted = is_repository-deleted.
+    ls_row-version = ls_current-version + 1.
+    MODIFY zhi_repository FROM @ls_row.
+    IF sy-subrc = 0.
+      rv_version = ls_row-version.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD zif_hithub_metadata_store~purge_repository.
+    DATA ls_current TYPE zhi_repository.
+
+    CLEAR rv_purged.
+    IF iv_repository_id IS INITIAL OR iv_expected_version IS INITIAL.
+      RETURN.
+    ENDIF.
+    SELECT SINGLE * FROM zhi_repository INTO @ls_current
+      WHERE id = @iv_repository_id.
+    IF sy-subrc <> 0 OR ls_current-deleted <> 'X'
+        OR ls_current-version <> iv_expected_version.
+      RETURN.
+    ENDIF.
+    DELETE FROM zhi_reference
+      WHERE repository_id = @iv_repository_id.
+    DELETE FROM zhi_repository
+      WHERE id = @iv_repository_id.
+    rv_purged = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
   METHOD zif_hithub_metadata_store~list_references.

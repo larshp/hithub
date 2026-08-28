@@ -38,6 +38,7 @@ CLASS zcl_hithub_upload_request IMPLEMENTATION.
     DATA lv_capabilities TYPE string.
     DATA lv_last_offset TYPE i.
     DATA lv_deepen TYPE i.
+    DATA lv_oid_length TYPE i.
     DATA ls_packet TYPE zcl_hithub_pkt_line_codec=>ty_packet.
 
     CLEAR rs_request.
@@ -101,10 +102,23 @@ CLASS zcl_hithub_upload_request IMPLEMENTATION.
             CLEAR rs_request.
             RETURN.
           ENDIF.
+          IF lines( rs_request-wants ) = 0 AND lv_nul_offset < 0.
+            FIND FIRST OCCURRENCE OF space IN lv_argument
+              MATCH OFFSET lv_offset.
+            IF sy-subrc = 0.
+              lv_oid_length = lv_offset.
+              lv_offset = lv_offset + 1.
+              lv_capabilities = lv_argument+lv_offset.
+              lv_argument = lv_argument+0(lv_oid_length).
+            ENDIF.
+          ENDIF.
           APPEND lv_argument TO rs_request-wants.
-          IF lv_nul_offset >= 0 AND lines( rs_request-wants ) = 1.
-            lv_capabilities = cl_abap_codepage=>convert_from(
-              source = lv_capability_bytes ).
+          IF ( lv_nul_offset >= 0 OR lv_capabilities IS NOT INITIAL )
+              AND lines( rs_request-wants ) = 1.
+            IF lv_nul_offset >= 0.
+              lv_capabilities = cl_abap_codepage=>convert_from(
+                source = lv_capability_bytes ).
+            ENDIF.
             IF lv_capabilities IS NOT INITIAL.
               lv_last_offset = strlen( lv_capabilities ) - 1.
               IF lv_capabilities+lv_last_offset(1) = cl_abap_char_utilities=>newline.

@@ -238,12 +238,12 @@ Completion checks:
 - [x] Implement a minimal ABAP `IF_HTTP_EXTENSION` handler.
 - [x] Implement the `/health` response in ABAP.
 - [x] Route the handler through `express-icf-shim` locally.
-- [ ] Add the selected local database adapter.
-- [ ] Add a lint CI job.
-- [ ] Add a transpilation CI job.
-- [ ] Add a unit-test CI job.
-- [ ] Add a local HTTP smoke-test CI job.
-- [ ] Add a CI check that every referenced anomaly regression test exists.
+- [x] Add the selected local database adapter.
+- [x] Add a lint CI job.
+- [x] Add a transpilation CI job.
+- [x] Add a unit-test CI job.
+- [x] Add a local HTTP smoke-test CI job.
+- [x] Add a CI check that every referenced anomaly regression test exists.
 
 Completion checks:
 
@@ -272,7 +272,7 @@ Completion checks:
 
 Completion checks:
 
-- [ ] Persistence contract tests pass against the local adapter.
+- [x] Persistence contract tests pass against the local adapter.
 - [ ] The same tests pass against a configured SAP test system.
 - [ ] Rollback behavior is consistent across both adapters.
 - [ ] Constraint failures are consistent across both adapters.
@@ -359,53 +359,53 @@ Completion checks:
 Completion checks:
 
 - [x] Native Git clones an empty repository.
-- [ ] Native Git clones and fetches branched and tagged repositories.
-- [ ] Native Git performs an incremental fetch.
-- [ ] abapGit clones and pulls a fixture repository.
-- [ ] Captured packet traces match the Git HTTP specification.
+- [x] Native Git clones and fetches branched and tagged repositories.
+- [x] Native Git performs an incremental fetch.
+- [x] abapGit clones and pulls a fixture repository.
+- [x] Captured packet traces match the Git HTTP specification.
 
 ### Step 6 — Deliver push support
 
-- [ ] Review the current abapGitServer receive-pack flow and record reusable APIs and code.
-- [ ] Add an optional trusted-runtime actor label to the request context.
-- [ ] Implement receive-pack capability advertisement.
-- [ ] Route the receive-pack `info/refs` request.
-- [ ] Route the `git-receive-pack` POST request.
-- [ ] Parse receive-pack ref commands.
-- [ ] Implement receive-pack report-status output.
-- [ ] Implement receive-pack side-band output.
-- [ ] Create a quarantine area for incoming objects.
-- [ ] Validate the complete incoming pack before promotion.
-- [ ] Validate fast-forward updates.
-- [ ] Validate updated ref names and target object types.
-- [ ] Enforce branch-protection rules.
-- [ ] Enforce configured push-size limits.
-- [ ] Reject commands whose old object ID is stale.
-- [ ] Apply multi-ref commands under one repository lock.
-- [ ] Promote quarantined objects before committing refs.
-- [ ] Emit a push audit event after a successful commit.
-- [ ] Add cleanup for abandoned quarantines.
+- [x] Review the current abapGitServer receive-pack flow and record reusable APIs and code.
+- [x] Add an optional trusted-runtime actor label to the request context.
+- [x] Implement receive-pack capability advertisement.
+- [x] Route the receive-pack `info/refs` request.
+- [x] Route the `git-receive-pack` POST request.
+- [x] Parse receive-pack ref commands.
+- [x] Implement receive-pack report-status output.
+- [x] Implement receive-pack side-band output.
+- [x] Create a quarantine area for incoming objects.
+- [x] Validate the complete incoming pack before promotion.
+- [x] Validate fast-forward updates.
+- [x] Validate updated ref names and target object types.
+- [x] Enforce branch-protection rules.
+- [x] Enforce configured push-size limits.
+- [x] Reject commands whose old object ID is stale.
+- [x] Apply multi-ref commands under one repository lock.
+- [x] Promote quarantined objects before committing refs.
+- [x] Emit a push audit event after a successful commit.
+- [x] Add cleanup for abandoned quarantines.
 
 Completion checks:
 
-- [ ] Native Git creates, updates and deletes branches over HTTP.
-- [ ] Native Git pushes and deletes tags over HTTP.
-- [ ] abapGit pushes a fixture repository.
-- [ ] Rejected, concurrent and corrupt pushes expose no partial ref state.
+- [x] Native Git creates, updates and deletes branches over HTTP.
+- [x] Native Git pushes and deletes tags over HTTP.
+- [x] abapGit pushes a fixture repository.
+- [x] Rejected, concurrent and corrupt pushes expose no partial ref state.
 
 ### Step 7 — Repository REST APIs
 
-- [ ] Implement the central HTTP router.
-- [ ] Implement JSON request and response serialization.
-- [ ] Implement the REST request context.
-- [ ] Implement RFC 9457-style problem responses.
-- [ ] Supply a fixed actor label in local development.
-- [ ] Document whole-service protection through SAP ICF.
-- [ ] Document whole-service protection through an upstream gateway.
-- [ ] Implement repository creation.
-- [ ] Implement repository retrieval and listing.
-- [ ] Implement repository metadata updates.
-- [ ] Implement repository soft deletion.
+- [x] Implement the central HTTP router.
+- [x] Implement JSON request and response serialization.
+- [x] Implement the REST request context.
+- [x] Implement RFC 9457-style problem responses.
+- [x] Supply a fixed actor label in local development.
+- [x] Document whole-service protection through SAP ICF.
+- [x] Document whole-service protection through an upstream gateway.
+- [x] Implement repository creation.
+- [x] Implement repository retrieval and listing.
+- [x] Implement repository metadata updates.
+- [x] Implement repository soft deletion.
 - [ ] Implement repository purge as a separate operation.
 - [ ] Implement branch CRUD endpoints.
 - [ ] Implement tag CRUD endpoints.

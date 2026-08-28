@@ -17,6 +17,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_raw = cl_abap_codepage=>convert_to( source = 'compression adapter' ).
     lv_compressed = lo_compression->zif_hithub_compression~compress( lv_raw ).
     ASSERT lv_compressed IS NOT INITIAL.
+    ASSERT lv_compressed+0(2) = CONV xstring( '789C' ).
     lv_roundtrip = lo_compression->zif_hithub_compression~decompress(
       lv_compressed ).
     ASSERT lv_roundtrip = lv_raw.

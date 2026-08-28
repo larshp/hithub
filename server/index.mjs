@@ -1,7 +1,7 @@
 import express from "express";
 import {createHash} from "node:crypto";
 import {readFileSync} from "node:fs";
-import {SQLiteDatabaseClient} from "@abaplint/database-sqlite";
+import {createLocalDatabase} from "../scripts/local-database.mjs";
 import {initializeABAP} from "../build/transpiled/init.mjs";
 import {cl_express_icf_shim} from "../build/transpiled/cl_express_icf_shim.clas.mjs";
 
@@ -11,9 +11,7 @@ const tick = String.fromCharCode(96);
 const statements = generated.split("\n")
   .filter((line) => line.includes("sqlite.push("))
   .map((line) => line.slice(line.indexOf(tick) + 1, line.lastIndexOf(tick)));
-const database = new SQLiteDatabaseClient();
-await database.connect();
-await database.execute(statements);
+const database = await createLocalDatabase(statements);
 globalThis.abap.context.databaseConnections.DEFAULT = database;
 const seedRepository = process.env.HITHUB_EMPTY_REPOSITORY;
 if (seedRepository && /^[A-Za-z0-9._-]+$/.test(seedRepository)) {

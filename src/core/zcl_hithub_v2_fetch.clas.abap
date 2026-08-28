@@ -24,6 +24,12 @@ CLASS zcl_hithub_v2_fetch DEFINITION
       RETURNING
         VALUE(rv_response) TYPE xstring.
 
+    CLASS-METHODS build_acknowledgments
+      IMPORTING
+        it_common_haves TYPE ty_lines
+      RETURNING
+        VALUE(rv_response) TYPE xstring.
+
 ENDCLASS.
 
 CLASS zcl_hithub_v2_fetch IMPLEMENTATION.
@@ -164,6 +170,38 @@ CLASS zcl_hithub_v2_fetch IMPLEMENTATION.
     lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_text ).
     lv_sideband = zcl_hithub_sideband_output=>build( iv_pack ).
     CONCATENATE lv_packet lv_sideband INTO rv_response IN BYTE MODE.
+  ENDMETHOD.
+
+  METHOD build_acknowledgments.
+    DATA lv_text TYPE xstring.
+    DATA lv_line TYPE string.
+    DATA lv_packet TYPE xstring.
+    DATA lv_oid TYPE string.
+
+    CLEAR rv_response.
+    lv_text = cl_abap_codepage=>convert_to( source = 'acknowledgments' &&
+      cl_abap_char_utilities=>newline ).
+    lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_text ).
+    CONCATENATE rv_response lv_packet INTO rv_response IN BYTE MODE.
+    IF it_common_haves IS INITIAL.
+      lv_line = 'NAK' && cl_abap_char_utilities=>newline.
+      lv_text = cl_abap_codepage=>convert_to( source = lv_line ).
+      lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_text ).
+      CONCATENATE rv_response lv_packet INTO rv_response IN BYTE MODE.
+    ELSE.
+      LOOP AT it_common_haves INTO lv_oid.
+        lv_line = |ACK { lv_oid }| && cl_abap_char_utilities=>newline.
+        lv_text = cl_abap_codepage=>convert_to( source = lv_line ).
+        lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_text ).
+        CONCATENATE rv_response lv_packet INTO rv_response IN BYTE MODE.
+      ENDLOOP.
+      lv_line = 'ready' && cl_abap_char_utilities=>newline.
+      lv_text = cl_abap_codepage=>convert_to( source = lv_line ).
+      lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_text ).
+      CONCATENATE rv_response lv_packet INTO rv_response IN BYTE MODE.
+    ENDIF.
+    lv_packet = cl_abap_codepage=>convert_to( source = '0001' ).
+    CONCATENATE rv_response lv_packet INTO rv_response IN BYTE MODE.
   ENDMETHOD.
 
 ENDCLASS.
