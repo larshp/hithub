@@ -281,84 +281,84 @@ Completion checks:
 
 - [x] Review the current abapGit object implementation and record reusable APIs and code.
 - [x] Implement blob encoding and decoding.
-- [ ] Implement tree encoding and decoding.
-- [ ] Implement commit encoding and decoding.
-- [ ] Implement annotated-tag encoding and decoding.
-- [ ] Implement canonical object-header generation.
-- [ ] Implement object-ID calculation from `"<type> <size>\0<payload>"`.
-- [ ] Implement object-ID validation.
-- [ ] Implement commit identity and timestamp parsing.
-- [ ] Implement commit parent parsing.
-- [ ] Implement tree mode parsing and canonical ordering.
-- [ ] Implement immutable object-store reads.
-- [ ] Implement immutable object-store writes.
-- [ ] Implement object reachability walking.
-- [ ] Implement Git ref-name validation.
-- [ ] Implement loose-object compression through the compression port.
-- [ ] Implement loose-object decompression through the compression port.
-- [ ] Add native Git golden fixtures.
-- [ ] Add abapGit-produced fixture repositories.
-- [ ] Add malformed-object fixtures.
+- [x] Implement tree encoding and decoding.
+- [x] Implement commit encoding and decoding.
+- [x] Implement annotated-tag encoding and decoding.
+- [x] Implement canonical object-header generation.
+- [x] Implement object-ID calculation from `"<type> <size>\0<payload>"`.
+- [x] Implement object-ID validation.
+- [x] Implement commit identity and timestamp parsing.
+- [x] Implement commit parent parsing.
+- [x] Implement tree mode parsing and canonical ordering.
+- [x] Implement immutable object-store reads.
+- [x] Implement immutable object-store writes.
+- [x] Implement object reachability walking.
+- [x] Implement Git ref-name validation.
+- [x] Implement loose-object compression through the compression port.
+- [x] Implement loose-object decompression through the compression port.
+- [x] Add native Git golden fixtures.
+- [x] Add abapGit-produced fixture repositories.
+- [x] Add malformed-object fixtures.
 
 Completion checks:
 
-- [ ] Normal, empty, binary, non-ASCII and large objects match native Git byte for byte.
-- [ ] Every generated object ID matches native Git.
-- [ ] Malformed objects fail without being persisted.
+- [x] Normal, empty, binary, non-ASCII and large objects match native Git byte for byte.
+- [x] Every generated object ID matches native Git.
+- [x] Malformed objects fail without being persisted.
 
 ### Step 4 — Implement pack files and deltas
 
-- [ ] Review the current abapGit pack/delta implementation and record reusable APIs and code.
-- [ ] Implement pack-header parsing.
-- [ ] Implement pack-object entry parsing.
-- [ ] Implement pack-trailer and checksum validation.
-- [ ] Implement pack-header emission.
-- [ ] Implement base-object emission.
-- [ ] Implement `OFS_DELTA` decoding.
-- [ ] Implement `REF_DELTA` decoding.
-- [ ] Add bounds checks to delta instructions.
-- [ ] Resolve thin-pack bases against repository-visible objects only.
-- [ ] Implement pack indexing.
-- [ ] Implement object deduplication during ingestion.
-- [ ] Add streaming pack input.
-- [ ] Add streaming pack output.
-- [ ] Add configurable pack resource limits.
-- [ ] Limit decompressed object size.
-- [ ] Limit delta-chain depth.
-- [ ] Guard pack arithmetic against integer overflow.
-- [ ] Add a native Git pack corpus.
-- [ ] Add an abapGit pack corpus.
-- [ ] Add pack and delta property tests.
+- [x] Review the current abapGit pack/delta implementation and record reusable APIs and code.
+- [x] Implement pack-header parsing.
+- [x] Implement pack-object entry parsing.
+- [x] Implement pack-trailer and checksum validation.
+- [x] Implement pack-header emission.
+- [x] Implement base-object emission.
+- [x] Implement `OFS_DELTA` decoding.
+- [x] Implement `REF_DELTA` decoding.
+- [x] Add bounds checks to delta instructions.
+- [x] Resolve thin-pack bases against repository-visible objects only.
+- [x] Implement pack indexing.
+- [x] Implement object deduplication during ingestion.
+- [x] Add streaming pack input.
+- [x] Add streaming pack output.
+- [x] Add configurable pack resource limits.
+- [x] Limit decompressed object size.
+- [x] Limit delta-chain depth.
+- [x] Guard pack arithmetic against integer overflow.
+- [x] Add a native Git pack corpus.
+- [x] Add an abapGit pack corpus.
+- [x] Add pack and delta property tests.
 
 Completion checks:
 
-- [ ] Unpack/repack round trips preserve every reachable object ID.
-- [ ] Corrupt packs are rejected without hangs.
-- [ ] Rejected packs cannot update refs.
+- [x] Unpack/repack round trips preserve every reachable object ID.
+- [x] Corrupt packs are rejected without hangs.
+- [x] Rejected packs cannot update refs.
 
 ### Step 5 — Deliver read-only Smart HTTP
 
-- [ ] Review the current abapGitServer upload-pack flow and record reusable APIs and code.
-- [ ] Implement pkt-line encoding.
-- [ ] Implement pkt-line decoding.
-- [ ] Implement protocol v0/v1 capability advertisement.
-- [ ] Document each supported and unsupported capability.
-- [ ] Route the upload-pack `info/refs` request.
-- [ ] Return the exact upload-pack discovery headers and service preamble.
-- [ ] Route the `git-upload-pack` POST request.
-- [ ] Implement want/have parsing.
-- [ ] Implement ACK/NAK negotiation.
-- [ ] Implement basic shallow-clone negotiation.
-- [ ] Implement side-band pack output.
-- [ ] Stream generated pack responses.
-- [ ] Filter advertised refs through repository visibility rules.
-- [ ] Add protocol v2 capability advertisement.
-- [ ] Add protocol v2 `ls-refs`.
-- [ ] Add protocol v2 `fetch`.
+- [x] Review the current abapGitServer upload-pack flow and record reusable APIs and code.
+- [x] Implement pkt-line encoding.
+- [x] Implement pkt-line decoding.
+- [x] Implement protocol v0/v1 capability advertisement.
+- [x] Document each supported and unsupported capability.
+- [x] Route the upload-pack `info/refs` request.
+- [x] Return the exact upload-pack discovery headers and service preamble.
+- [x] Route the `git-upload-pack` POST request.
+- [x] Implement want/have parsing.
+- [x] Implement ACK/NAK negotiation.
+- [x] Implement basic shallow-clone negotiation.
+- [x] Implement side-band pack output.
+- [x] Stream generated pack responses.
+- [x] Filter advertised refs through repository visibility rules.
+- [x] Add protocol v2 capability advertisement.
+- [x] Add protocol v2 `ls-refs`.
+- [x] Add protocol v2 `fetch`.
 
 Completion checks:
 
-- [ ] Native Git clones an empty repository.
+- [x] Native Git clones an empty repository.
 - [ ] Native Git clones and fetches branched and tagged repositories.
 - [ ] Native Git performs an incremental fetch.
 - [ ] abapGit clones and pulls a fixture repository.

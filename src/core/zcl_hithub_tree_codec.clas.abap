@@ -8,7 +8,12 @@ CLASS zcl_hithub_tree_codec DEFINITION
         name TYPE string,
         oid  TYPE xstring,
       END OF ty_entry,
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY,
+      BEGIN OF ty_sort_entry,
+        entry    TYPE ty_entry,
+        sort_key TYPE string,
+      END OF ty_sort_entry,
+      ty_sort_entries TYPE STANDARD TABLE OF ty_sort_entry WITH DEFAULT KEY.
 
     CLASS-METHODS encode
       IMPORTING
@@ -35,13 +40,27 @@ CLASS zcl_hithub_tree_codec IMPLEMENTATION.
     DATA lo_out TYPE REF TO cl_abap_conv_out_ce.
     DATA lv_prefix TYPE xstring.
     DATA lv_zero TYPE x LENGTH 1.
+    DATA lt_sorted TYPE ty_sort_entries.
+    DATA ls_sorted TYPE ty_sort_entry.
 
     CLEAR rv_payload.
     LOOP AT it_entries INTO DATA(ls_entry).
+      CLEAR ls_sorted.
+      ls_sorted-entry = ls_entry.
+      IF ls_entry-mode = '040000'.
+        ls_sorted-sort_key = ls_entry-name && '/'.
+      ELSE.
+        ls_sorted-sort_key = ls_entry-name.
+      ENDIF.
+      APPEND ls_sorted TO lt_sorted.
+    ENDLOOP.
+    SORT lt_sorted BY sort_key.
+
+    LOOP AT lt_sorted INTO ls_sorted.
       lo_out = cl_abap_conv_out_ce=>create( encoding = 'UTF-8' ).
-      lo_out->write( data = |{ ls_entry-mode } { ls_entry-name }| ).
+      lo_out->write( data = |{ ls_sorted-entry-mode } { ls_sorted-entry-name }| ).
       lv_prefix = lo_out->get_buffer( ).
-      CONCATENATE rv_payload lv_prefix lv_zero ls_entry-oid
+      CONCATENATE rv_payload lv_prefix lv_zero ls_sorted-entry-oid
         INTO rv_payload IN BYTE MODE.
     ENDLOOP.
   ENDMETHOD.

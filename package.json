@@ -9,7 +9,7 @@
     "transpile": "abap_transpile abap_transpile.json",
     "unit": "npm run transpile && node scripts/run-unit.mjs",
     "schema": "npm run transpile && node scripts/verify-schema.mjs",
-    "fixtures": "node --test integration/fixtures/repository-fixtures.test.mjs",
+    "fixtures": "node --test integration/fixtures/*.test.mjs",
     "start": "node server/index.mjs",
     "verify": "npm run lint && npm run unit && node scripts/verify-schema.mjs && npm run fixtures",
     "test": "echo \"Error: no test specified\" && exit 1"
