@@ -61,7 +61,12 @@ test("the repository overview displays its clone URL", async ({page}, testInfo) 
   await expect(page.locator(".overview-header code")).toHaveText(
     `${new URL(page.url()).origin}/git/${name}.git`,
   );
+  await expect(page.locator(".overview-header .button")).toHaveCount(0);
   await expect(page.locator(".readme-content")).toContainText(name);
+  await expect(page.locator(".repository-contents")).toContainText("README.md");
+  await expect(page.getByText("Files on main")).toHaveCount(0);
+  await expect(page.locator("#tags")).toHaveCount(0);
+  await expect(page.getByText("Recent activity")).toHaveCount(0);
   await page.goto(`/ui/repos/${name}/files/main`);
   await expect(page.locator(".tree-list")).toContainText("README.md");
 });
@@ -114,16 +119,34 @@ test("browses a repository tree", async ({page}) => {
   await page.route("**/api/repos/demo/tags", async (route) => json(route, []));
   await page.route("**/api/repos/demo/contents/**", async (route) => json(route, {
     entries: [
-      {name: "README.md", type: "blob", last_commit: "Document the project"},
-      {name: "src", type: "tree", last_commit: "Add source"},
+      {name: "README.md", type: "blob", last_commit: "Document the project", last_commit_at: 1704067200},
+      {name: "src", type: "tree", last_commit: "Add source", last_commit_at: 1704067200},
     ],
   }));
   await page.goto("/ui/repos/demo");
   await expect(page.locator("#reference-choice")).toHaveValue("refs/heads/main");
+  await expect(page.locator(".contents-commit")).toContainText("Document the project");
+  await expect(page.locator(".tree-entry-time")).toHaveCount(2);
   await page.locator("#reference-choice").selectOption("refs/heads/main");
   await page.goto("/ui/repos/demo/files/main");
   await expect(page.locator(".tree-list")).toContainText("README.md");
   await expect(page.locator(".tree-list")).toContainText("src");
+});
+
+test("shows the supported repository navigation and pull requests", async ({page}) => {
+  await page.route("**/api/repos/demo/pulls", async (route) => json(route, [
+    {
+      id: "pull-1", state: "open", source_ref: "refs/heads/feature",
+      target_ref: "refs/heads/main", base_oid: "base", head_oid: "head", version: 1,
+    },
+  ]));
+  await page.goto("/ui/repos/demo/pulls");
+  await expect(page.locator(".repository-tabs")).toContainText("CodeIssuesPull Requests");
+  await expect(page.locator(".repository-tab.is-active")).toHaveText("Pull Requests");
+  await expect(page.locator(".pull-request-list")).toContainText("Pull request pull-1");
+  await expect(page.getByRole("link", {name: "New pull request"})).toHaveAttribute(
+    "href", "/ui/repos/demo/pulls/new",
+  );
 });
 
 test("compares references and toggles diff views", async ({page}) => {

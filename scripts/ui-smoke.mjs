@@ -63,8 +63,6 @@ try {
       || !appSource.includes("showCreateIssue")
       || !appSource.includes("Close issue")
       || !appSource.includes("Add comment")
-      || !appSource.includes("/activity")
-      || !appSource.includes("Recent activity")
       || !appSource.includes("showAudit")
       || !appSource.includes("Repository audit")
       || !appSource.includes("/audit")

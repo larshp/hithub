@@ -38,6 +38,14 @@ CLASS zcl_hithub_contents_repr IMPLEMENTATION.
         APPEND VALUE #( name = 'size' kind = 'number'
           value = lv_size ) TO lt_members.
       ENDIF.
+      IF ls_entry-last_commit IS NOT INITIAL.
+        APPEND VALUE #( name = 'last_commit' kind = 'string'
+          value = ls_entry-last_commit ) TO lt_members.
+      ENDIF.
+      IF ls_entry-last_commit_at IS NOT INITIAL.
+        APPEND VALUE #( name = 'last_commit_at' kind = 'string'
+          value = ls_entry-last_commit_at ) TO lt_members.
+      ENDIF.
       IF lv_json <> '{"entries":['.
         lv_json = lv_json && ','.
       ENDIF.

@@ -12,6 +12,8 @@ CLASS zcl_hithub_contents_service DEFINITION
         algorithm TYPE string,
         oid       TYPE string,
         size      TYPE int8,
+        last_commit TYPE string,
+        last_commit_at TYPE string,
       END OF ty_entry,
       ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
 
@@ -53,6 +55,15 @@ CLASS zcl_hithub_contents_service DEFINITION
       RAISING
         cx_static_check.
 
+    METHODS commit_for_ref
+      IMPORTING
+        iv_repository_id TYPE string
+        iv_ref           TYPE string
+      RETURNING
+        VALUE(rs_key) TYPE zif_hithub_object_store=>ty_object_key
+      RAISING
+        cx_static_check.
+
     METHODS find_path
       IMPORTING
         iv_repository_id TYPE string
@@ -67,21 +78,12 @@ ENDCLASS.
 
 CLASS zcl_hithub_contents_service IMPLEMENTATION.
 
-  METHOD constructor.
-    mo_metadata = io_metadata.
-    mo_objects = io_objects.
-  ENDMETHOD.
-
-  METHOD tree_for_ref.
+  METHOD commit_for_ref.
     DATA lv_ref TYPE string.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
-    DATA ls_commit_key TYPE zif_hithub_object_store=>ty_object_key.
-    DATA ls_commit_object TYPE zif_hithub_object_store=>ty_object.
-    DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
 
     CLEAR rs_key.
-    IF mo_metadata IS INITIAL OR mo_objects IS INITIAL
-        OR iv_repository_id IS INITIAL OR iv_ref IS INITIAL.
+    IF mo_metadata IS INITIAL OR iv_repository_id IS INITIAL OR iv_ref IS INITIAL.
       RETURN.
     ENDIF.
     lv_ref = iv_ref.
@@ -98,9 +100,30 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
     IF ls_reference-oid IS INITIAL.
       RETURN.
     ENDIF.
-    ls_commit_key-repository_id = iv_repository_id.
-    ls_commit_key-algorithm = ls_reference-algorithm.
-    ls_commit_key-oid = ls_reference-oid.
+    rs_key-repository_id = iv_repository_id.
+    rs_key-algorithm = ls_reference-algorithm.
+    rs_key-oid = ls_reference-oid.
+  ENDMETHOD.
+
+  METHOD constructor.
+    mo_metadata = io_metadata.
+    mo_objects = io_objects.
+  ENDMETHOD.
+
+  METHOD tree_for_ref.
+    DATA ls_commit_key TYPE zif_hithub_object_store=>ty_object_key.
+    DATA ls_commit_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
+
+    CLEAR rs_key.
+    IF mo_objects IS INITIAL OR iv_repository_id IS INITIAL OR iv_ref IS INITIAL.
+      RETURN.
+    ENDIF.
+    ls_commit_key = commit_for_ref(
+      iv_repository_id = iv_repository_id iv_ref = iv_ref ).
+    IF ls_commit_key-oid IS INITIAL.
+      RETURN.
+    ENDIF.
     ls_commit_object = mo_objects->read( ls_commit_key ).
     IF ls_commit_object-type <> 'commit'.
       RETURN.
@@ -194,12 +217,32 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
     DATA ls_object_key TYPE zif_hithub_object_store=>ty_object_key.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
     DATA ls_result TYPE ty_entry.
+    DATA ls_commit_key TYPE zif_hithub_object_store=>ty_object_key.
+    DATA ls_commit_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA ls_identity TYPE zcl_hithub_commit_identity=>ty_identity.
+    DATA lv_commit_at TYPE string.
 
     CLEAR rt_entries.
     ls_directory = find_path(
       iv_repository_id = iv_repository_id iv_ref = iv_ref iv_path = iv_path ).
     IF ls_directory-type <> 'tree'.
       RETURN.
+    ENDIF.
+    ls_commit_key = commit_for_ref(
+      iv_repository_id = iv_repository_id iv_ref = iv_ref ).
+    IF ls_commit_key-oid IS NOT INITIAL.
+      ls_commit_object = mo_objects->read( ls_commit_key ).
+      IF ls_commit_object-type = 'commit'.
+        ls_commit = zcl_hithub_commit_codec=>decode(
+          ls_commit_object-payload ).
+        ls_identity = zcl_hithub_commit_identity=>parse( ls_commit-committer ).
+        IF ls_identity-unix_seconds <> 0.
+          lv_commit_at = |{ ls_identity-unix_seconds }|.
+        ELSEIF ls_commit_object-created_at IS NOT INITIAL.
+          lv_commit_at = |{ ls_commit_object-created_at }|.
+        ENDIF.
+      ENDIF.
     ENDIF.
     ls_tree_key-repository_id = iv_repository_id.
     ls_tree_key-algorithm = ls_directory-algorithm.
@@ -227,6 +270,8 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
         ls_object = mo_objects->read( ls_object_key ).
         ls_result-size = ls_object-size.
       ENDIF.
+      ls_result-last_commit = ls_commit-message.
+      ls_result-last_commit_at = lv_commit_at.
       APPEND ls_result TO rt_entries.
     ENDLOOP.
   ENDMETHOD.

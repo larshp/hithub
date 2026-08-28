@@ -3,6 +3,8 @@ const serviceStatus = document.querySelector("#service-status");
 const dashboard = document.querySelector("#repository-dashboard");
 const pageTitle = document.querySelector("#page-title");
 const pageLede = document.querySelector(".lede");
+const pageIntro = document.querySelector(".page-intro");
+const repositoryNavigation = document.querySelector("#repository-navigation");
 const panel = document.querySelector(".content-panel");
 const panelHeading = document.querySelector(".panel-heading");
 const createRepositoryLink = document.querySelector(".page-intro .button");
@@ -124,6 +126,9 @@ const commitRoute = window.location.pathname.match(
   /^\/ui\/repos\/([^/]+)\/commit\/([^/]+)$/,
 );
 const compareRoute = window.location.pathname.match(/^\/ui\/repos\/([^/]+)\/compare$/);
+const pullRequestListRoute = window.location.pathname.match(
+  /^\/ui\/repos\/([^/]+)\/pulls$/,
+);
 const pullRequestRoute = window.location.pathname.match(
   /^\/ui\/repos\/([^/]+)\/pulls\/([^/]+)$/,
 );
@@ -142,6 +147,40 @@ const issueCreateRoute = window.location.pathname.match(
 const auditRoute = window.location.pathname.match(
   /^\/ui\/repos\/([^/]+)\/audit$/,
 );
+const repositoryPageRoute = repositoryRoute || treeRoute || blobRoute || historyRoute
+  || commitRoute || compareRoute || pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute
+  || issueListRoute || issueRoute || issueCreateRoute || auditRoute;
+
+function showRepositoryNavigation(repository) {
+  const encoded = encodeURIComponent(repository);
+  repositoryNavigation.hidden = false;
+  repositoryNavigation.replaceChildren();
+  const inner = document.createElement("div");
+  inner.className = "repository-navigation-inner";
+  const identity = document.createElement("a");
+  identity.className = "repository-identity";
+  identity.href = `/ui/repos/${encoded}`;
+  identity.textContent = repository;
+  inner.append(identity);
+  const tabs = [
+    ["Code", `/ui/repos/${encoded}`, repositoryRoute || treeRoute || blobRoute || historyRoute || commitRoute || compareRoute],
+    ["Issues", `/ui/repos/${encoded}/issues`, issueListRoute || issueRoute || issueCreateRoute],
+    ["Pull Requests", `/ui/repos/${encoded}/pulls`, pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute],
+  ];
+  const tabList = document.createElement("div");
+  tabList.className = "repository-tabs";
+  tabs.forEach(([label, href, active]) => {
+    const link = document.createElement("a");
+    link.href = href;
+    link.className = active ? "repository-tab is-active" : "repository-tab";
+    if (active) link.setAttribute("aria-current", "page");
+    link.textContent = label;
+    tabList.append(link);
+  });
+  inner.append(tabList);
+  repositoryNavigation.append(inner);
+}
+
 if (window.location.pathname !== "/") {
   createRepositoryLink.hidden = true;
   panelHeading.hidden = true;
@@ -149,7 +188,13 @@ if (window.location.pathname !== "/") {
   panel.classList.add("page-content-panel");
   dashboard.className = "page-dashboard";
 }
+if (repositoryPageRoute) {
+  const repositoryName = decodeURIComponent(repositoryPageRoute[1]);
+  pageIntro.classList.add("repository-page-intro");
+  showRepositoryNavigation(repositoryName);
+}
 if (window.location.pathname === "/ui/create") showCreateForm();
+else if (pullRequestListRoute) showPullRequests(decodeURIComponent(pullRequestListRoute[1]));
 else if (pullRequestCreateRoute) showCreatePullRequest(
   decodeURIComponent(pullRequestCreateRoute[1]),
 );
@@ -278,17 +323,25 @@ async function showRepositoryOverview(name) {
   dashboard.append(loading);
   try {
     const encoded = encodeURIComponent(name);
-    const [repositoryResponse, branchesResponse, tagsResponse, activityResponse] = await Promise.all([
+    const [repositoryResponse, branchesResponse, tagsResponse] = await Promise.all([
       fetch(`/api/repos/${encoded}`),
       fetch(`/api/repos/${encoded}/branches`),
       fetch(`/api/repos/${encoded}/tags`),
-      fetch(`/api/repos/${encoded}/activity`),
     ]);
     if (!repositoryResponse.ok) throw new Error("repository not found");
     const repository = await repositoryResponse.json();
     const branches = branchesResponse.ok ? await branchesResponse.json() : [];
     const tags = tagsResponse.ok ? await tagsResponse.json() : [];
-    const activity = activityResponse.ok ? await activityResponse.json() : [];
+    const defaultBranchName = String(repository.default_branch || "")
+      .replace(/^refs\/heads\//, "");
+    const defaultReference = branches.find((reference) => reference.name === repository.default_branch
+      || reference.name === `refs/heads/${defaultBranchName}`)?.name
+      || branches[0]?.name || "";
+    const contentsResponse = defaultReference ? await fetch(
+      `/api/repos/${encoded}/contents/?ref=${encodeURIComponent(defaultReference)}`,
+      {headers: {accept: "application/json"}},
+    ) : null;
+    const contents = contentsResponse?.ok ? await contentsResponse.json() : null;
     dashboard.replaceChildren();
     const header = document.createElement("div");
     header.className = "overview-header";
@@ -300,86 +353,69 @@ async function showRepositoryOverview(name) {
     const clone = document.createElement("code");
     clone.textContent = `${window.location.origin}/git/${repository.name}.git`;
     cloneInfo.append(cloneLabel, clone);
-    const actions = document.createElement("div");
-    actions.className = "overview-actions";
-    const issueLink = document.createElement("a");
-    issueLink.className = "button";
-    issueLink.href = `/ui/repos/${encoded}/issues`;
-    issueLink.textContent = "Issues";
-    const auditLink = document.createElement("a");
-    auditLink.className = "button";
-    auditLink.href = `/ui/repos/${encoded}/audit`;
-    auditLink.textContent = "Audit";
-    actions.append(issueLink, auditLink);
-    header.append(cloneInfo, actions);
-    const details = document.createElement("div");
-    details.className = "overview-meta";
-    for (const [label, value] of [
-      ["Default branch", repository.default_branch],
-      ["Version", String(repository.version)],
-      ["Branches", String(branches.length)],
-      ["Tags", String(tags.length)],
-    ]) {
-      const stat = document.createElement("div");
-      stat.className = "overview-stat";
-      const statLabel = document.createElement("span");
-      statLabel.className = "overview-label";
-      statLabel.textContent = label;
-      const statValue = document.createElement("strong");
-      statValue.textContent = value;
-      stat.append(statLabel, statValue);
-      details.append(stat);
-    }
-    const referenceColumns = document.createElement("div");
-    referenceColumns.className = "reference-columns";
+    header.append(cloneInfo);
     const selector = document.createElement("div");
-    selector.className = "reference-selector";
-    const selectorLabel = document.createElement("label");
-    selectorLabel.htmlFor = "reference-choice";
-    selectorLabel.textContent = "Open reference";
+    selector.className = "reference-toolbar";
+    const branchControl = document.createElement("div");
+    branchControl.className = "branch-control";
     const referenceChoice = document.createElement("select");
     referenceChoice.id = "reference-choice";
-    referenceChoice.setAttribute("aria-label", "Open branch or tag");
-    for (const reference of [...branches, ...tags]) {
+    referenceChoice.setAttribute("aria-label", "Select branch");
+    for (const reference of branches) {
       const option = document.createElement("option");
       option.value = reference.name;
-      option.textContent = reference.name;
+      option.textContent = reference.name.replace(/^refs\/(heads|tags)\//, "");
       referenceChoice.append(option);
     }
     referenceChoice.addEventListener("change", () => {
-      const selected = referenceChoice.value.replace(/^refs\/(heads|tags)\//, "");
-      const kind = referenceChoice.value.startsWith("refs/tags/") ? "tags" : "files";
-      window.location.href = `/ui/repos/${encoded}/${kind}/${encodeURIComponent(selected)}`;
+      const selected = referenceChoice.value.replace(/^refs\/heads\//, "");
+      window.location.href = `/ui/repos/${encoded}/files/${encodeURIComponent(selected)}`;
     });
-    selector.append(selectorLabel, referenceChoice);
-    for (const [heading, references, prefix] of [
-      ["Branches", branches, "refs/heads/"],
-      ["Tags", tags, "refs/tags/"],
-    ]) {
-      const section = document.createElement("section");
-      section.className = "reference-section";
-      const title = document.createElement("h3");
-      title.textContent = heading;
-      const list = document.createElement("ul");
-      if (!references.length) {
-        const empty = document.createElement("li");
-        empty.className = "muted-message";
-        empty.textContent = `No ${heading.toLowerCase()} yet.`;
-        list.append(empty);
-      }
-      references.forEach((reference) => {
-        const item = document.createElement("li");
-        const link = document.createElement("a");
-        const shortName = reference.name.startsWith(prefix)
-          ? reference.name.slice(prefix.length) : reference.name;
-        link.href = `/ui/repos/${encoded}/files/${encodeURIComponent(shortName)}`;
-        link.textContent = shortName;
-        item.append(link);
-        list.append(item);
-      });
-      section.append(title, list);
-      referenceColumns.append(section);
+    if (defaultReference) referenceChoice.value = defaultReference;
+    branchControl.append(referenceChoice);
+    const branchCount = document.createElement("span");
+    branchCount.className = "reference-count";
+    branchCount.textContent = `${branches.length} ${branches.length === 1 ? "Branch" : "Branches"}`;
+    const tagCount = document.createElement("span");
+    tagCount.className = "reference-count";
+    tagCount.textContent = `${tags.length} ${tags.length === 1 ? "Tag" : "Tags"}`;
+    selector.append(branchControl, branchCount, tagCount);
+    const contentsPanel = document.createElement("section");
+    contentsPanel.className = "repository-contents";
+    const latestEntry = Array.isArray(contents?.entries)
+      ? contents.entries.find((entry) => entry.last_commit || entry.last_commit_at)
+      : null;
+    const commitLine = document.createElement("div");
+    commitLine.className = "contents-commit";
+    const commitLabel = document.createElement("span");
+    commitLabel.className = "contents-commit-label";
+    commitLabel.textContent = "Latest commit";
+    const commitDescription = document.createElement("span");
+    commitDescription.className = "contents-commit-description";
+    commitDescription.textContent = latestEntry?.last_commit || "No commit description available.";
+    commitLine.append(commitLabel, commitDescription);
+    if (latestEntry?.last_commit_at !== undefined) {
+      const commitDate = commitTimestampDate(latestEntry.last_commit_at);
+      const commitTime = document.createElement("time");
+      commitTime.className = "contents-commit-time";
+      if (commitDate) commitTime.dateTime = commitDate.toISOString();
+      commitTime.textContent = formatCommitTimestamp(latestEntry.last_commit_at);
+      commitLine.append(commitTime);
     }
+    const contentsList = document.createElement("ul");
+    contentsList.className = "tree-list";
+    if (!Array.isArray(contents?.entries) || !contents.entries.length) {
+      const empty = document.createElement("li");
+      empty.className = "muted-message";
+      empty.textContent = defaultReference ? "This directory is empty." : "No branch is available.";
+      contentsList.append(empty);
+    } else {
+      const contentBranch = defaultReference.replace(/^refs\/heads\//, "");
+      contents.entries.forEach((entry) => contentsList.append(
+        renderTreeEntry(entry, name, contentBranch, ""),
+      ));
+    }
+    contentsPanel.append(commitLine, contentsList);
     const readme = document.createElement("section");
     readme.className = "readme-panel";
     const readmeTitle = document.createElement("h3");
@@ -392,33 +428,7 @@ async function showRepositoryOverview(name) {
       readmeContent.textContent = "No README is available for this repository.";
     }
     readme.append(readmeTitle, readmeContent);
-    const activityPanel = document.createElement("section");
-    activityPanel.className = "readme-panel activity-panel";
-    const activityTitle = document.createElement("h3");
-    activityTitle.textContent = "Recent activity";
-    const activityList = document.createElement("ul");
-    activityList.className = "activity-list";
-    if (!activity.length) {
-      const empty = document.createElement("li");
-      empty.className = "muted-message";
-      empty.textContent = "No activity yet.";
-      activityList.append(empty);
-    }
-    for (const entry of activity) {
-      const item = document.createElement("li");
-      const summary = document.createElement("span");
-      summary.textContent = `${entry.actor || "Unknown actor"} · ${entry.action} · ${entry.occurred_at}`;
-      item.append(summary);
-      if (entry.subject_type === "issue") {
-        const link = document.createElement("a");
-        link.href = `/ui/repos/${encoded}/issues/${encodeURIComponent(entry.subject_id)}`;
-        link.textContent = `Issue ${entry.subject_id}`;
-        item.append(" ", link);
-      }
-      activityList.append(item);
-    }
-    activityPanel.append(activityTitle, activityList);
-    dashboard.append(header, details, selector, referenceColumns, readme, activityPanel);
+    dashboard.append(header, selector, contentsPanel, readme);
   } catch (_error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -548,6 +558,56 @@ async function showPullRequest(repository, id) {
     const failure = document.createElement("p");
     failure.className = "muted-message";
     failure.textContent = "This pull request could not be loaded.";
+    dashboard.append(failure);
+  }
+}
+
+async function showPullRequests(repository) {
+  pageTitle.textContent = "Pull Requests";
+  pageLede.textContent = `${repository} · propose and merge changes.`;
+  dashboard.replaceChildren();
+  const create = document.createElement("a");
+  create.className = "button";
+  create.href = `/ui/repos/${encodeURIComponent(repository)}/pulls/new`;
+  create.textContent = "New pull request";
+  dashboard.append(create);
+  try {
+    const response = await fetch(
+      `/api/repos/${encodeURIComponent(repository)}/pulls`,
+      {headers: {accept: "application/json"}},
+    );
+    if (!response.ok) throw new Error(`pull requests returned ${response.status}`);
+    const pullRequests = await response.json();
+    const list = document.createElement("div");
+    list.className = "pull-request-list";
+    if (!pullRequests.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted-message";
+      empty.textContent = "No pull requests yet.";
+      list.append(empty);
+    }
+    for (const pullRequest of pullRequests) {
+      const card = document.createElement("article");
+      card.className = "issue-card";
+      const heading = document.createElement("h2");
+      const link = document.createElement("a");
+      link.href = `/ui/repos/${encodeURIComponent(repository)}/pulls/${encodeURIComponent(pullRequest.id)}`;
+      link.textContent = `Pull request ${pullRequest.id}`;
+      heading.append(link);
+      const state = document.createElement("span");
+      state.className = "status-pill";
+      state.textContent = pullRequest.state;
+      const refs = document.createElement("p");
+      refs.className = "issue-excerpt";
+      refs.textContent = `${pullRequest.source_ref} → ${pullRequest.target_ref}`;
+      card.append(heading, state, refs);
+      list.append(card);
+    }
+    dashboard.append(list);
+  } catch (_error) {
+    const failure = document.createElement("p");
+    failure.className = "muted-message";
+    failure.textContent = "Pull requests could not be loaded.";
     dashboard.append(failure);
   }
 }
@@ -1053,19 +1113,63 @@ async function showCompareView(repository) {
 function renderTreeEntry(entry, repository, branch, path) {
   const item = document.createElement("li");
   const link = document.createElement("a");
+  link.className = "tree-entry-link";
   const entryPath = path ? `${path}/${entry.name}` : entry.name;
   link.href = entry.type === "tree"
     ? `/ui/repos/${encodeURIComponent(repository)}/files/${encodeURIComponent(branch)}/${encodeURIComponent(entryPath)}`
     : `/ui/repos/${encodeURIComponent(repository)}/blob/${encodeURIComponent(branch)}/${encodeURIComponent(entryPath)}`;
-  link.textContent = entry.name;
+  const icon = document.createElement("span");
+  icon.className = `tree-entry-icon ${entry.type === "tree" ? "is-tree" : "is-blob"}`;
+  icon.setAttribute("aria-hidden", "true");
+  link.append(icon, document.createTextNode(entry.name));
   item.append(link);
-  if (entry.last_commit) {
-    const summary = document.createElement("span");
-    summary.className = "entry-summary";
-    summary.textContent = ` — ${entry.last_commit}`;
-    item.append(summary);
+  if (entry.last_commit || entry.last_commit_at !== undefined) {
+    const metadata = document.createElement("span");
+    metadata.className = "tree-entry-meta";
+    if (entry.last_commit) {
+      const summary = document.createElement("span");
+      summary.className = "entry-summary";
+      summary.textContent = entry.last_commit;
+      metadata.append(summary);
+    }
+    if (entry.last_commit_at !== undefined) {
+      const timestampDate = commitTimestampDate(entry.last_commit_at);
+      const timestamp = document.createElement("time");
+      timestamp.className = "tree-entry-time";
+      if (timestampDate) timestamp.dateTime = timestampDate.toISOString();
+      timestamp.textContent = formatCommitTimestamp(entry.last_commit_at);
+      metadata.append(timestamp);
+    }
+    item.append(metadata);
   }
   return item;
+}
+
+function commitTimestampDate(value) {
+  const raw = String(value ?? "");
+  if (/^-?\d+$/.test(raw)) {
+    const date = new Date(Number(raw) * 1000);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const compact = raw.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+  if (compact) {
+    const date = new Date(Date.UTC(
+      Number(compact[1]), Number(compact[2]) - 1, Number(compact[3]),
+      Number(compact[4]), Number(compact[5]), Number(compact[6]),
+    ));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatCommitTimestamp(value) {
+  const date = commitTimestampDate(value);
+  if (!date) return String(value);
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function sourceLanguage(path) {
@@ -1215,16 +1319,30 @@ async function showTreeBrowser(repository, branch, path) {
   pageTitle.textContent = repository;
   pageLede.textContent = `Files on ${branch}${path ? ` · ${path}` : ""}`;
   dashboard.replaceChildren();
+  const browserHeader = document.createElement("div");
+  browserHeader.className = "file-browser-header";
   const breadcrumb = document.createElement("p");
   breadcrumb.className = "breadcrumb";
   breadcrumb.textContent = `Repository / ${branch}${path ? ` / ${path}` : ""}`;
+  const browserActions = document.createElement("div");
+  browserActions.className = "file-browser-actions";
+  const overviewLink = document.createElement("a");
+  overviewLink.className = "button button-secondary";
+  overviewLink.href = `/ui/repos/${encodeURIComponent(repository)}`;
+  overviewLink.textContent = "Overview";
+  const historyLink = document.createElement("a");
+  historyLink.className = "button button-secondary";
+  historyLink.href = `/ui/repos/${encodeURIComponent(repository)}/commits/${encodeURIComponent(branch)}`;
+  historyLink.textContent = "History";
+  browserActions.append(overviewLink, historyLink);
+  browserHeader.append(breadcrumb, browserActions);
   const list = document.createElement("ul");
   list.className = "tree-list";
   const loading = document.createElement("li");
   loading.className = "muted-message";
   loading.textContent = "Loading files…";
   list.append(loading);
-  dashboard.append(breadcrumb, list);
+  dashboard.append(browserHeader, list);
   try {
     const encodedPath = path.split("/").filter(Boolean).map(encodeURIComponent).join("/");
     const response = await fetch(
