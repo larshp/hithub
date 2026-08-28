@@ -206,9 +206,6 @@ Every checkbox is intended to be one isolated deliverable. Complete the checkbox
 - [x] Record the upstream revision for every selected reuse candidate.
 - [x] Verify license and attribution requirements for every selected reuse candidate.
 - [x] Select one GUI Git client for compatibility testing.
-- [x] Build a SAP spike that calls abapGit to read one Git object.
-- [x] Build an open-abap spike that calls the same abapGit API.
-- [x] Build an adapted-code spike for one abapGitServer HTTP flow.
 - [x] Write an ADR selecting the Git-object implementation strategy.
 - [x] Publish the MVP feature matrix.
 - [x] Record maximum repository, object and push sizes.
@@ -361,7 +358,6 @@ Completion checks:
 - [x] Native Git clones an empty repository.
 - [x] Native Git clones and fetches branched and tagged repositories.
 - [x] Native Git performs an incremental fetch.
-- [x] abapGit clones and pulls a fixture repository.
 - [x] Captured packet traces match the Git HTTP specification.
 
 ### Step 6 — Deliver push support
@@ -390,7 +386,6 @@ Completion checks:
 
 - [x] Native Git creates, updates and deletes branches over HTTP.
 - [x] Native Git pushes and deletes tags over HTTP.
-- [x] abapGit pushes a fixture repository.
 - [x] Rejected, concurrent and corrupt pushes expose no partial ref state.
 
 ### Step 7 — Repository REST APIs

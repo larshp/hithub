@@ -17,7 +17,7 @@ The initial approved upstream sources are abapGitServer revision
 source or bundled asset requires a license/attribution entry before import.
 
 Direct calls to upstream ABAP classes require successful SAP and open-abap
-spikes. Otherwise, use a small adapter or an attributed adapted copy. Avoid
+compatibility checks. Otherwise, use a small adapter or an attributed adapted copy. Avoid
 unnecessary dependencies on UI libraries, database-specific SQL, and SAP-only
 APIs in the core.
 

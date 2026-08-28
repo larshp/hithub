@@ -7,7 +7,7 @@ components are relevant to HitHub:
 
 | abapGit component | Reusable behavior | HitHub treatment |
 | --- | --- | --- |
-| [`zcl_abapgit_git_transport`](https://github.com/abapGit/abapGit/blob/d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6/src/git/zcl_abapgit_git_transport.clas.abap) | Upload-pack transport orchestration; the SAP and open-abap spikes already call `upload_pack_by_commit` | Direct call in the spike; wrap behind a HitHub transport port when Smart HTTP is implemented |
+| [`zcl_abapgit_git_transport`](https://github.com/abapGit/abapGit/blob/d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6/src/git/zcl_abapgit_git_transport.clas.abap) | Upload-pack transport orchestration | Compatibility reference only; use captured fixtures and native-Git tests unless a dedicated client adapter is introduced |
 | [`zcl_abapgit_git_pack`](https://github.com/abapGit/abapGit/blob/d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6/src/git/zcl_abapgit_git_pack.clas.abap) | Pack header, entry and object handling | Adapted copy only if the required stream/resource-limit seam cannot be injected |
 | [`zcl_abapgit_git_delta`](https://github.com/abapGit/abapGit/blob/d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6/src/git/zcl_abapgit_git_delta.clas.abap) | OFS/REF delta application and delta instruction handling | Adapted copy with explicit bounds and delta-depth checks |
 | [`zcl_abapgit_git_commit`](https://github.com/abapGit/abapGit/blob/d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6/src/git/zcl_abapgit_git_commit.clas.abap) | Commit record parsing and serialization | Inspiration for HitHub value objects and validation tests |

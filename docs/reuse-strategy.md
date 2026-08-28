@@ -1,8 +1,8 @@
 # Git component reuse strategy
 
 The mapping below is the initial design decision for each planned Git-facing
-component. A `direct call` entry is a candidate only: it must pass the SAP and
-open-abap spikes before it is used in production. Every adapted or copied
+component. A `direct call` entry is a candidate only: it must pass SAP and
+open-abap compatibility checks before it is used in production. Every adapted or copied
 component remains behind a HitHub port and is covered by native-Git fixtures.
 
 The abapGitServer candidates below were reviewed at

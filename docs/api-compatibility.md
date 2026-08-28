@@ -42,7 +42,7 @@ shipping one:
 1. update the OpenAPI contract, capability matrix, compatibility document and
    changelog together;
 2. provide a migration and rollback path for durable data and DDIC artifacts;
-3. run REST, native Git, abapGit fixture, browser, backup/restore, and failure
+3. run REST, native Git interoperability, browser, backup/restore, and failure
    regression suites; and
 4. publish the new contract revision and obtain administrator sign-off.
 

@@ -14,7 +14,7 @@ The core will use abapGit as the primary behavior and test reference. Stable,
 pure Git routines may be adapted into HitHub when they fit the port contracts;
 each adapted portion keeps the MIT attribution recorded in
 `docs/attributions.md`. Direct calls are limited to APIs that pass both the
-SAP and open-abap spikes. SAP HTTP, persistence, locking, streaming limits,
+SAP and open-abap compatibility checks. SAP HTTP, persistence, locking, streaming limits,
 quarantine, and reference compare-and-swap remain HitHub-owned adapters and
 services.
 
