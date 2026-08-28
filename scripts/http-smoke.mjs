@@ -86,8 +86,36 @@ try {
     throw new Error(`HTTP smoke retrieve failed: ${retrieveResponse.status}`);
   }
   const retrieved = await retrieveResponse.json();
-  if (retrieved.id !== created.id || retrieved.name !== "smoke-repository") {
+  if (retrieved.id !== created.id
+      || retrieved.name !== "smoke-repository"
+      || retrieved.readme !== "# smoke-repository\n") {
     throw new Error("HTTP smoke retrieve returned an invalid repository");
+  }
+  const initialBranchesResponse = await fetch(
+    `http://127.0.0.1:${port}/api/repos/smoke-repository/branches`,
+  );
+  const initialBranches = await initialBranchesResponse.json();
+  if (initialBranchesResponse.status !== 200
+      || !initialBranches.some((item) => item.name === "refs/heads/main")) {
+    throw new Error("HTTP smoke create omitted the initial branch");
+  }
+  const contentsResponse = await fetch(
+    `http://127.0.0.1:${port}/api/repos/smoke-repository/contents/?ref=main`,
+  );
+  if (!contentsResponse.ok) {
+    throw new Error(`HTTP smoke contents lookup failed: ${contentsResponse.status}`);
+  }
+  const contents = await contentsResponse.json();
+  if (!Array.isArray(contents.entries)
+      || !contents.entries.some((entry) => entry.name === "README.md")) {
+    throw new Error("HTTP smoke contents omitted README.md");
+  }
+  const rawReadmeResponse = await fetch(
+    `http://127.0.0.1:${port}/api/repos/smoke-repository/contents/README.md?ref=main&format=raw`,
+  );
+  if (!rawReadmeResponse.ok
+      || await rawReadmeResponse.text() !== "# smoke-repository\n") {
+    throw new Error("HTTP smoke raw README lookup failed");
   }
   const updateResponse = await fetch(
     `http://127.0.0.1:${port}/api/repos/smoke-repository`,

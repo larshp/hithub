@@ -1005,6 +1005,67 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
           ENDIF.
         ENDIF.
+      ELSEIF lv_rest_method = 'GET' AND lv_path CS '/contents'.
+        DATA lv_contents_repo_name TYPE string.
+        DATA lv_contents_path TYPE string.
+        FIND REGEX '^/api/repos/([A-Za-z0-9._-]+)/contents(?:/(.*))?$'
+          IN lv_path SUBMATCHES lv_contents_repo_name lv_contents_path.
+        IF sy-subrc <> 0 OR lv_contents_repo_name IS INITIAL.
+          DATA(ls_contents_problem) = zcl_hithub_problem_response=>build(
+            iv_status = 404 iv_detail = 'Contents route was not found.'
+            iv_instance = lv_path ).
+          server->response->set_status( code = 404 reason = 'Not Found' ).
+          server->response->set_content_type(
+            ls_contents_problem-content_type ).
+          server->response->set_data( ls_contents_problem-body ).
+        ELSE.
+          DATA(ls_contents_repository) = lo_rest_query->find(
+            lv_contents_repo_name ).
+          IF ls_contents_repository-id IS INITIAL.
+            ls_contents_problem = zcl_hithub_problem_response=>build(
+              iv_status = 404 iv_detail = 'Repository was not found.'
+              iv_instance = lv_path ).
+            server->response->set_status( code = 404 reason = 'Not Found' ).
+            server->response->set_content_type(
+              ls_contents_problem-content_type ).
+            server->response->set_data( ls_contents_problem-body ).
+          ELSE.
+            DATA(lv_contents_ref) = server->request->get_form_field( 'ref' ).
+            IF lv_contents_ref IS INITIAL.
+              lv_contents_ref = ls_contents_repository-default_branch.
+            ENDIF.
+            DATA(lo_contents_service) = NEW zcl_hithub_contents_service(
+              io_metadata = NEW zcl_hithub_local_meta_store( )
+              io_objects = NEW zcl_hithub_local_object_store( ) ).
+            IF server->request->get_form_field( 'format' ) = 'raw'.
+              DATA(ls_contents_object) = lo_contents_service->read(
+                iv_repository_id = ls_contents_repository-id
+                iv_ref = lv_contents_ref iv_path = lv_contents_path ).
+              IF ls_contents_object-key-oid IS INITIAL.
+                ls_contents_problem = zcl_hithub_problem_response=>build(
+                  iv_status = 404 iv_detail = 'File was not found.'
+                  iv_instance = lv_path ).
+                server->response->set_status(
+                  code = 404 reason = 'Not Found' ).
+                server->response->set_content_type(
+                  ls_contents_problem-content_type ).
+                server->response->set_data( ls_contents_problem-body ).
+              ELSE.
+                server->response->set_status( code = 200 reason = 'OK' ).
+                server->response->set_content_type( 'text/plain; charset=utf-8' ).
+                server->response->set_data( ls_contents_object-payload ).
+              ENDIF.
+            ELSE.
+              DATA(lt_contents_entries) = lo_contents_service->list(
+                iv_repository_id = ls_contents_repository-id
+                iv_ref = lv_contents_ref iv_path = lv_contents_path ).
+              server->response->set_status( code = 200 reason = 'OK' ).
+              server->response->set_content_type( 'application/json' ).
+              server->response->set_data(
+                zcl_hithub_contents_repr=>list( lt_contents_entries ) ).
+            ENDIF.
+          ENDIF.
+        ENDIF.
       ELSEIF lv_rest_method = 'GET'.
         DATA lv_rest_repository_name TYPE string.
         FIND REGEX '^/api/repos/([A-Za-z0-9._-]+)$' IN lv_path
@@ -1037,7 +1098,10 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               code = 200 reason = 'OK' ).
             server->response->set_content_type( 'application/json' ).
             server->response->set_data(
-              zcl_hithub_repo_representation=>one( ls_rest_repository ) ).
+              zcl_hithub_repo_representation=>one_with_readme(
+                is_repository = ls_rest_repository
+                io_metadata = NEW zcl_hithub_local_meta_store( )
+                io_objects = NEW zcl_hithub_local_object_store( ) ) ).
           ENDIF.
         ENDIF.
       ELSEIF lv_rest_method = 'PATCH' AND lv_path CS '/pulls/'.
@@ -2725,6 +2789,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(lo_rest_identity) = NEW zcl_hithub_system_identity( ).
           DATA(lo_rest_creation) = NEW zcl_hithub_repository_creation(
             io_metadata = lo_rest_metadata
+            io_objects = NEW zcl_hithub_local_object_store( )
             io_transaction = lo_rest_transaction
             io_identity = lo_rest_identity ).
           DATA(ls_rest_result) = lo_rest_creation->create(

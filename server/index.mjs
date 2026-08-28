@@ -365,8 +365,10 @@ app.use((error, req, res, next) => {
   }));
 });
 
-const httpServer = app.listen(port, "127.0.0.1", () => {
-  logEvent("info", "server.started", {host: "127.0.0.1", port});
+const host = "127.0.0.1";
+const serverUrl = `http://${host}:${port}`;
+const httpServer = app.listen(port, host, () => {
+  logEvent("info", "server.started", {host, port, url: serverUrl});
 });
 httpServer.requestTimeout = operationTimeoutMs;
 httpServer.headersTimeout = Math.min(operationTimeoutMs, 60000);

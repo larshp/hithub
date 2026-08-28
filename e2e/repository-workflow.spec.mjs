@@ -61,6 +61,9 @@ test("the repository overview displays its clone URL", async ({page}, testInfo) 
   await expect(page.locator(".overview-header code")).toHaveText(
     `${new URL(page.url()).origin}/git/${name}.git`,
   );
+  await expect(page.locator(".readme-content")).toContainText(name);
+  await page.goto(`/ui/repos/${name}/files/main`);
+  await expect(page.locator(".tree-list")).toContainText("README.md");
 });
 
 test("browses every object in the abapGit interoperability fixture", async ({page}) => {

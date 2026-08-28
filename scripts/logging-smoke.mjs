@@ -46,7 +46,9 @@ try {
       return null;
     }
   }).filter(Boolean);
-  if (!records.some((record) => record.event === "server.started")
+  const started = records.find((record) => record.event === "server.started");
+  if (!started
+      || started.url !== `http://127.0.0.1:${port}`
       || !records.some((record) => record.event === "http.request"
         && record.method === "GET" && record.path === "/health"
         && record.request_id === "logging-correlation"
