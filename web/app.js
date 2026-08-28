@@ -3,6 +3,9 @@ const serviceStatus = document.querySelector("#service-status");
 const dashboard = document.querySelector("#repository-dashboard");
 const pageTitle = document.querySelector("#page-title");
 const pageLede = document.querySelector(".lede");
+const panel = document.querySelector(".content-panel");
+const panelHeading = document.querySelector(".panel-heading");
+const createRepositoryLink = document.querySelector(".page-intro .button");
 
 async function checkService() {
   try {
@@ -139,6 +142,13 @@ const issueCreateRoute = window.location.pathname.match(
 const auditRoute = window.location.pathname.match(
   /^\/ui\/repos\/([^/]+)\/audit$/,
 );
+if (window.location.pathname !== "/") {
+  createRepositoryLink.hidden = true;
+  panelHeading.hidden = true;
+  panel.removeAttribute("aria-labelledby");
+  panel.classList.add("page-content-panel");
+  dashboard.className = "page-dashboard";
+}
 if (window.location.pathname === "/ui/create") showCreateForm();
 else if (pullRequestCreateRoute) showCreatePullRequest(
   decodeURIComponent(pullRequestCreateRoute[1]),
@@ -260,6 +270,7 @@ function showCreateForm() {
 async function showRepositoryOverview(name) {
   pageTitle.textContent = name;
   pageLede.textContent = "Repository overview, references, and clone information.";
+  dashboard.className = "repository-overview";
   dashboard.replaceChildren();
   const loading = document.createElement("p");
   loading.className = "muted-message";
@@ -281,8 +292,16 @@ async function showRepositoryOverview(name) {
     dashboard.replaceChildren();
     const header = document.createElement("div");
     header.className = "overview-header";
+    const cloneInfo = document.createElement("div");
+    cloneInfo.className = "clone-info";
+    const cloneLabel = document.createElement("span");
+    cloneLabel.className = "overview-label";
+    cloneLabel.textContent = "Clone with Git";
     const clone = document.createElement("code");
     clone.textContent = `${window.location.origin}/git/${repository.name}.git`;
+    cloneInfo.append(cloneLabel, clone);
+    const actions = document.createElement("div");
+    actions.className = "overview-actions";
     const issueLink = document.createElement("a");
     issueLink.className = "button";
     issueLink.href = `/ui/repos/${encoded}/issues`;
@@ -291,20 +310,25 @@ async function showRepositoryOverview(name) {
     auditLink.className = "button";
     auditLink.href = `/ui/repos/${encoded}/audit`;
     auditLink.textContent = "Audit";
-    header.append(clone, issueLink, auditLink);
-    const details = document.createElement("dl");
-    details.className = "repository-meta overview-meta";
+    actions.append(issueLink, auditLink);
+    header.append(cloneInfo, actions);
+    const details = document.createElement("div");
+    details.className = "overview-meta";
     for (const [label, value] of [
       ["Default branch", repository.default_branch],
       ["Version", String(repository.version)],
       ["Branches", String(branches.length)],
       ["Tags", String(tags.length)],
     ]) {
-      const term = document.createElement("dt");
-      term.textContent = label;
-      const detail = document.createElement("dd");
-      detail.textContent = value;
-      details.append(term, detail);
+      const stat = document.createElement("div");
+      stat.className = "overview-stat";
+      const statLabel = document.createElement("span");
+      statLabel.className = "overview-label";
+      statLabel.textContent = label;
+      const statValue = document.createElement("strong");
+      statValue.textContent = value;
+      stat.append(statLabel, statValue);
+      details.append(stat);
     }
     const referenceColumns = document.createElement("div");
     referenceColumns.className = "reference-columns";
