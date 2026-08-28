@@ -19,6 +19,10 @@ CLASS zcl_hithub_push_lock DEFINITION
       RAISING
         cx_static_check.
 
+    METHODS is_held
+      RETURNING
+        VALUE(rv_held) TYPE abap_bool.
+
   PRIVATE SECTION.
     DATA mo_lock TYPE REF TO zif_hithub_repository_lock.
     DATA mv_repository_id TYPE string.
@@ -59,6 +63,10 @@ CLASS zcl_hithub_push_lock IMPLEMENTATION.
     mo_lock->release(
       iv_repository_id = mv_repository_id iv_owner = mv_owner ).
     CLEAR mv_acquired.
+  ENDMETHOD.
+
+  METHOD is_held.
+    rv_held = mv_acquired.
   ENDMETHOD.
 
 ENDCLASS.

@@ -3,6 +3,7 @@ CLASS zcl_hithub_quarantine DEFINITION
 
   PUBLIC SECTION.
     INTERFACES zif_hithub_quarantine.
+    INTERFACES zif_hithub_gc_roots.
 
     METHODS constructor
       IMPORTING
@@ -63,6 +64,20 @@ CLASS zcl_hithub_quarantine IMPLEMENTATION.
 
   METHOD zif_hithub_quarantine~count.
     rv_count = lines( mt_objects ).
+  ENDMETHOD.
+
+  METHOD zif_hithub_gc_roots~list.
+    DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+
+    CLEAR rt_keys.
+    IF iv_repository_id IS INITIAL.
+      RETURN.
+    ENDIF.
+    LOOP AT mt_objects INTO ls_object
+        WHERE key-repository_id = iv_repository_id.
+      APPEND ls_object-key TO rt_keys.
+    ENDLOOP.
+    SORT rt_keys BY algorithm oid.
   ENDMETHOD.
 
 ENDCLASS.

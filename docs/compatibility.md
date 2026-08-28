@@ -56,3 +56,10 @@ arbitrary HTTP remotes, keeping the GUI test focused on HitHub’s published
 Git behavior. `git-gui` is not installed in the current headless development
 environment; later GUI compatibility runs must install the client before
 executing this test target.
+
+## Supported browser UI baseline
+
+The browser UI smoke matrix supports the current Playwright Chromium and
+Firefox projects. The same suite runs against both browsers in CI; WebKit is
+not in the current support baseline because its host-library requirements are
+not part of the supported development and deployment environments.

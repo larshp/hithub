@@ -16,6 +16,8 @@ CLASS zcl_hithub_pack_codec DEFINITION
         iv_repository_id TYPE string
         iv_algorithm     TYPE string DEFAULT 'sha1'
         iv_max_delta_depth TYPE i DEFAULT 50
+        iv_max_pack_size  TYPE int8 DEFAULT 524288000
+        iv_max_objects    TYPE i DEFAULT 100000
       RETURNING
         VALUE(rt_objects) TYPE ty_objects.
 
@@ -69,6 +71,7 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
     DATA ls_decoded TYPE ty_decoded.
     DATA lt_decoded TYPE ty_decoded_objects.
     DATA ls_base_key TYPE zif_hithub_object_store=>ty_object_key.
+    DATA lo_limits TYPE REF TO zcl_hithub_pack_limits.
 
     CLEAR rt_objects.
     IF mo_compression IS INITIAL
@@ -77,6 +80,13 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
     ENDIF.
     ls_header = zcl_hithub_pack_header=>parse( iv_pack ).
     IF ls_header-signature IS INITIAL OR xstrlen( iv_pack ) <= 20.
+      RETURN.
+    ENDIF.
+    lo_limits = NEW zcl_hithub_pack_limits(
+      iv_max_pack_size = iv_max_pack_size iv_max_objects = iv_max_objects ).
+    IF lo_limits->is_allowed(
+        iv_pack_size = xstrlen( iv_pack )
+        iv_objects = ls_header-object_count ) = abap_false.
       RETURN.
     ENDIF.
     lv_body_length = xstrlen( iv_pack ) - 20.

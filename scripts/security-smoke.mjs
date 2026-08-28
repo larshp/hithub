@@ -25,6 +25,20 @@ try {
       || !policy.includes("frame-ancestors 'none'")) {
     throw new Error("CSP smoke did not receive a strict content security policy");
   }
+  const app = await fetch(`http://127.0.0.1:${port}/app.js`);
+  const appSource = await app.text();
+  if (!app.ok || appSource.includes("innerHTML")
+      || appSource.includes("eval(") || appSource.includes("new Function")) {
+    throw new Error("UI security smoke found an unsafe DOM execution sink");
+  }
+
+  const traversal = await fetch(
+    `http://127.0.0.1:${port}/api/repos/%2e%2e%2fsecret`,
+  );
+  if (traversal.status !== 404
+      || !traversal.headers.get("content-type")?.includes("application/problem+json")) {
+    throw new Error("path traversal smoke did not reject the route");
+  }
 
   const rejected = await fetch(`http://127.0.0.1:${port}/api/repos`, {
     method: "POST",

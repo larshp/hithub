@@ -1,10 +1,12 @@
 import {spawn} from "node:child_process";
+import {chromium} from "playwright";
 
 const port = 3500;
 const child = spawn(process.execPath, ["server/index.mjs"], {
   env: {...process.env, HITHUB_PORT: String(port)},
   stdio: "inherit",
 });
+let browser;
 
 try {
   let response;
@@ -47,10 +49,28 @@ try {
       || !appSource.includes("diff-added")
       || !appSource.includes("renderSplitDiffSafe")
       || !appSource.includes("Show split view")
+      || !appSource.includes("Merge pull request")
+      || !appSource.includes("merge-button")
       || !appSource.includes("showCommitHistory")
       || !appSource.includes("commit-list")
       || !appSource.includes("showCommitDetail")
       || !appSource.includes("commit-message")
+      || !appSource.includes("showPullRequest")
+      || !appSource.includes("Ready for review")
+      || !appSource.includes("showCreatePullRequest")
+      || !appSource.includes("showIssues")
+      || !appSource.includes("showIssue")
+      || !appSource.includes("showCreateIssue")
+      || !appSource.includes("Close issue")
+      || !appSource.includes("Add comment")
+      || !appSource.includes("/activity")
+      || !appSource.includes("Recent activity")
+      || !appSource.includes("showAudit")
+      || !appSource.includes("Repository audit")
+      || !appSource.includes("/audit")
+      || !appSource.includes("Merge pull request")
+      || !appSource.includes("Mergeability:")
+      || !appSource.includes("conflicting files")
       || !appSource.includes("textContent")
       || appSource.includes("innerHTML")) {
     throw new Error("UI smoke test could not load dashboard behavior");
@@ -59,7 +79,44 @@ try {
   if (!route.ok || !(await route.text()).includes("id=\"main-content\"")) {
     throw new Error("UI smoke test could not load the repository route shell");
   }
+  const created = await fetch(`http://127.0.0.1:${port}/api/repos`, {
+    method: "POST",
+    headers: {"content-type": "application/json"},
+    body: JSON.stringify({name: "ui-issue-repository"}),
+  });
+  if (created.status !== 201) throw new Error("UI issue test repository creation failed");
+  browser = await chromium.launch({headless: true});
+  const page = await browser.newPage();
+  await page.goto(
+    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/issues/new`,
+    {waitUntil: "networkidle"},
+  );
+  await page.getByLabel("Issue ID").fill("ui-issue");
+  await page.getByLabel("Title").fill("UI issue");
+  await page.getByLabel("Description").fill("Initial description");
+  await page.getByRole("button", {name: "Create issue"}).click();
+  await page.waitForURL(/\/issues\/ui-issue$/);
+  await page.getByRole("button", {name: "Close issue"}).click();
+  await page.getByLabel("State: closed").waitFor();
+  await page.getByRole("button", {name: "Reopen issue"}).click();
+  await page.getByLabel("State: open").waitFor();
+  await page.getByLabel("Edit title").fill("Updated UI issue");
+  await page.getByLabel("Edit description").fill("Updated description");
+  await page.getByRole("button", {name: "Save issue"}).click();
+  await page.getByText("Updated UI issue #ui-issue").waitFor();
+  const commentForm = page.locator(".issue-comments form");
+  await commentForm.locator("input").fill("ui-comment");
+  await commentForm.locator("textarea").fill("A UI comment");
+  await commentForm.getByRole("button", {name: "Add comment"}).click();
+  await page.getByText("A UI comment").waitFor();
+  await page.goto(
+    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/issues`,
+    {waitUntil: "networkidle"},
+  );
+  await page.getByRole("link", {name: /Updated UI issue #ui-issue/}).waitFor();
+  console.log("UI issue workflow passed");
   console.log("UI layout smoke test passed");
 } finally {
+  await browser?.close();
   child.kill("SIGTERM");
 }

@@ -71,6 +71,11 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.02em; }
 .readme-content { color: var(--muted); line-height: 1.6; }
 .readme-content h2, .readme-content h3, .readme-content h4 { color: var(--text); margin: 1rem 0 .5rem; }
 .readme-content p { margin: .5rem 0; }
+.activity-list { display: grid; gap: .6rem; margin: 0; padding-left: 1.1rem; color: var(--muted); }
+.activity-list a { color: var(--accent); }
+.audit-list { display: grid; gap: .9rem; margin-top: 1.5rem; }
+.audit-entry { padding: 1.1rem 1.25rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface-raised); }
+.audit-entry h2 { margin: 0 0 .9rem; color: var(--accent); font-size: 1rem; }
 .readme-code { overflow: auto; padding: 1rem; border-radius: .45rem; background: var(--canvas); color: var(--accent); }
 .breadcrumb { color: var(--muted); font-size: .85rem; }
 .tree-list { display: grid; gap: .75rem; margin: 1rem 0 0; padding: 1rem 1rem 1rem 2rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface-raised); }
@@ -91,6 +96,24 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.02em; }
 .commit-detail code { color: var(--accent); overflow: auto; }
 .commit-message { overflow: auto; margin: 0; padding: 1rem; border-radius: .45rem; background: var(--canvas); color: var(--text); white-space: pre-wrap; font: .9rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .commit-detail a { color: var(--accent); }
+.pull-request-panel { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface-raised); }
+.pull-request-panel h2 { margin: 0; }
+.merge-status { margin: 0; color: var(--muted); }
+.pull-request-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.issue-list { display: grid; gap: .9rem; margin-top: 1.5rem; }
+.issue-card, .issue-panel, .issue-comments { padding: 1.25rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface-raised); }
+.issue-card h2 { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 .7rem; font-size: 1.05rem; }
+.issue-card h2 a { color: var(--accent); text-decoration: none; }
+.issue-card h2 a:hover, .issue-card h2 a:focus-visible { text-decoration: underline; }
+.issue-card .status-pill { float: right; }
+.issue-excerpt { margin: 0; color: var(--muted); line-height: 1.5; }
+.issue-panel { display: grid; gap: 1rem; }
+.issue-panel h2, .issue-comments h2 { margin: 0; }
+.issue-body { min-height: 2rem; }
+.issue-comments { display: grid; gap: 1rem; margin-top: 1.5rem; }
+.issue-comment-list { display: grid; gap: .75rem; }
+.issue-comment { padding: .9rem 1rem; border: 1px solid var(--line); border-radius: .45rem; background: var(--canvas); }
+.issue-comment p:last-child { margin-bottom: 0; white-space: pre-wrap; }
 .repository-form { display: grid; max-width: 560px; gap: .55rem; margin-top: 1.5rem; }
 .repository-form label { color: var(--muted); font-size: .85rem; font-weight: 650; }
 .repository-form input, .repository-form textarea { width: 100%; padding: .7rem .75rem; border: 1px solid var(--line); border-radius: .45rem; background: var(--canvas); color: var(--text); font: inherit; }
@@ -100,6 +123,8 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.02em; }
 .compare-form label { color: var(--muted); font-size: .85rem; font-weight: 650; }
 .compare-form select { width: 100%; padding: .7rem .75rem; border: 1px solid var(--line); border-radius: .45rem; background: var(--canvas); color: var(--text); font: inherit; }
 .compare-form .button { justify-self: start; border: 0; cursor: pointer; font: inherit; }
+.merge-button { border: 0; cursor: pointer; font: inherit; }
+.merge-button:disabled { cursor: not-allowed; opacity: .6; }
 .diff-panel { display: grid; gap: .75rem; margin-top: 1.5rem; }
 .diff-panel h2 { font-size: 1rem; }
 .diff-toggle { margin-top: 0; border: 0; cursor: pointer; font: inherit; justify-self: start; }

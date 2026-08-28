@@ -458,110 +458,110 @@ Completion checks:
 - [x] The UI displays the repository clone URL.
 - [x] The UI browses every object in the interoperability fixture.
 - [x] Accessibility checks pass.
-- [ ] Supported-browser smoke tests pass.
+- [x] Supported-browser smoke tests pass.
 
 ### Step 9 — Pull-request domain and APIs
 
-- [ ] Review the current abapGitServer merge-request flow and record reusable domain behavior and ABAP code.
-- [ ] Review the current abapGit diff/merge primitives and record reusable APIs and code.
-- [ ] Define `open`, `closed` and `merged` pull-request transitions.
-- [ ] Support draft pull requests and the ready-for-review transition.
-- [ ] Persist immutable head and base snapshots when a PR is opened.
-- [ ] Implement merge-base calculation.
-- [ ] Implement ahead/behind counting.
-- [ ] Implement changed-file calculation.
-- [ ] Implement patch-summary generation.
-- [ ] Implement three-way tree merging.
-- [ ] Implement three-way text-blob merging.
-- [ ] Defer rename detection behind an explicit capability flag.
-- [ ] Implement pull-request comments.
-- [ ] Implement line comments with commit/path/line coordinates.
-- [ ] Implement reviews and approval/request-changes states.
-- [ ] Implement `clean`, `conflicting`, `stale`, `blocked` and `unknown` mergeability states.
-- [ ] Recompute mergeability when the head ref changes.
-- [ ] Recompute mergeability when the base ref changes.
-- [ ] Implement target-branch protection in one merge-policy service.
-- [ ] Implement pull-request REST endpoints.
-- [ ] Expose draft and ready-for-review state through the pull-request REST endpoints.
+- [x] Review the current abapGitServer merge-request flow and record reusable domain behavior and ABAP code.
+- [x] Review the current abapGit diff/merge primitives and record reusable APIs and code.
+- [x] Define `open`, `closed` and `merged` pull-request transitions.
+- [x] Support draft pull requests and the ready-for-review transition.
+- [x] Persist immutable head and base snapshots when a PR is opened.
+- [x] Implement merge-base calculation.
+- [x] Implement ahead/behind counting.
+- [x] Implement changed-file calculation.
+- [x] Implement patch-summary generation.
+- [x] Implement three-way tree merging.
+- [x] Implement three-way text-blob merging.
+- [x] Defer rename detection behind an explicit capability flag.
+- [x] Implement pull-request comments.
+- [x] Implement line comments with commit/path/line coordinates.
+- [x] Implement reviews and approval/request-changes states.
+- [x] Implement `clean`, `conflicting`, `stale`, `blocked` and `unknown` mergeability states.
+- [x] Recompute mergeability when the head ref changes.
+- [x] Recompute mergeability when the base ref changes.
+- [x] Implement target-branch protection in one merge-policy service.
+- [x] Implement pull-request REST endpoints.
+- [x] Expose draft and ready-for-review state through the pull-request REST endpoints.
 
 Completion checks:
 
-- [ ] Domain tests cover clean pull requests.
-- [ ] Domain tests cover conflicting pull requests.
-- [ ] Domain tests cover stale pull requests.
-- [ ] Domain tests cover updates after review.
-- [ ] Domain tests cover concurrent base movement.
-- [ ] REST contract tests cover every pull-request state.
+- [x] Domain tests cover clean pull requests.
+- [x] Domain tests cover conflicting pull requests.
+- [x] Domain tests cover stale pull requests.
+- [x] Domain tests cover updates after review.
+- [x] Domain tests cover concurrent base movement.
+- [x] REST contract tests cover every pull-request state.
 
 ### Step 10 — Merge pull requests safely
 
-- [ ] Implement the merge-commit strategy.
-- [ ] Require the expected head object ID in merge requests.
-- [ ] Acquire the repository lock before final merge validation.
-- [ ] Recheck the target object ID while holding the lock.
-- [ ] Validate merge author and committer identities.
-- [ ] Create the canonical merge commit.
-- [ ] Persist merged objects before updating the target ref.
-- [ ] Compare-and-swap the target ref.
-- [ ] Persist the merged pull-request state.
-- [ ] Emit merge events through an idempotent recovery workflow.
-- [ ] Persist the merge result for retry responses.
-- [ ] Add the merge button to the UI.
-- [ ] Add draft and ready-for-review actions to the pull-request UI.
-- [ ] Display blocking and conflict explanations in the UI.
-- [ ] Add optional post-merge source-branch deletion.
-- [ ] Add squash merging as a separately testable strategy.
-- [ ] Add rebase merging as a separately testable strategy.
+- [x] Implement the merge-commit strategy.
+- [x] Require the expected head object ID in merge requests.
+- [x] Acquire the repository lock before final merge validation.
+- [x] Recheck the target object ID while holding the lock.
+- [x] Validate merge author and committer identities.
+- [x] Create the canonical merge commit.
+- [x] Persist merged objects before updating the target ref.
+- [x] Compare-and-swap the target ref.
+- [x] Persist the merged pull-request state.
+- [x] Emit merge events through an idempotent recovery workflow.
+- [x] Persist the merge result for retry responses.
+- [x] Add the merge button to the UI.
+- [x] Add draft and ready-for-review actions to the pull-request UI.
+- [x] Display blocking and conflict explanations in the UI.
+- [x] Add optional post-merge source-branch deletion.
+- [x] Add squash merging as a separately testable strategy.
+- [x] Add rebase merging as a separately testable strategy.
 
 Completion checks:
 
-- [ ] Native Git fetches and validates a UI-created merge.
-- [ ] Native Git fetches and validates a REST-created merge.
-- [ ] `git fsck --strict` passes after each merge strategy.
-- [ ] Double submission produces only one merge result.
-- [ ] A racing push cannot cause the wrong commits to be merged.
+- [x] Native Git fetches and validates a UI-created merge.
+- [x] Native Git fetches and validates a REST-created merge.
+- [x] `git fsck --strict` passes after each merge strategy.
+- [x] Double submission produces only one merge result.
+- [x] A racing push cannot cause the wrong commits to be merged.
 
 ### Step 11 — Issues and collaboration baseline
 
-- [ ] Implement issue creation.
-- [ ] Implement issue editing.
-- [ ] Implement issue closing and reopening.
-- [ ] Implement issue comments.
-- [ ] Implement issue assignees as free-form actor labels.
-- [ ] Implement issue labels.
-- [ ] Implement the shared issue/PR timeline model.
-- [ ] Build issue REST endpoints.
-- [ ] Build issue web pages.
-- [ ] Build the repository activity view.
-- [ ] Build the repository audit view.
+- [x] Implement issue creation.
+- [x] Implement issue editing.
+- [x] Implement issue closing and reopening.
+- [x] Implement issue comments.
+- [x] Implement issue assignees as free-form actor labels.
+- [x] Implement issue labels.
+- [x] Implement the shared issue/PR timeline model.
+- [x] Build issue REST endpoints.
+- [x] Build issue web pages.
+- [x] Build the repository activity view.
+- [x] Build the repository audit view.
 
 Completion checks:
 
-- [ ] UI and REST expose equivalent issue workflows.
-- [ ] Timeline generation is deterministic.
-- [ ] Timeline entries preserve the optional runtime actor label.
+- [x] UI and REST expose equivalent issue workflows.
+- [x] Timeline generation is deterministic.
+- [x] Timeline entries preserve the optional runtime actor label.
 
 ### Step 12 — Hardening and operations
 
-- [ ] Add structured application logs.
-- [ ] Add request correlation IDs.
-- [ ] Add service metrics.
-- [ ] Separate liveness and readiness endpoints.
-- [ ] Redact secrets and repository content from operational telemetry.
-- [ ] Add request rate limits.
-- [ ] Add request-body and Git-object quotas.
-- [ ] Add operation timeouts.
-- [ ] Add back-pressure for expensive Git operations.
-- [ ] Write the threat model.
-- [ ] Resolve SSRF, XSS, CSRF and path-traversal findings.
-- [ ] Resolve ref-injection, decompression-bomb and hash-collision findings.
-- [ ] Resolve deployment-boundary findings.
-- [ ] Write the backup runbook.
-- [ ] Write the restore runbook.
-- [ ] Write the DDIC activation and schema-change runbook.
-- [ ] Verify a restored backup by cloning it and running integrity checks.
-- [ ] Implement reachability-based garbage collection.
-- [ ] Protect active temporary and quarantine roots from garbage collection.
+- [x] Add structured application logs.
+- [x] Add request correlation IDs.
+- [x] Add service metrics.
+- [x] Separate liveness and readiness endpoints.
+- [x] Redact secrets and repository content from operational telemetry.
+- [x] Add request rate limits.
+- [x] Add request-body and Git-object quotas.
+- [x] Add operation timeouts.
+- [x] Add back-pressure for expensive Git operations.
+- [x] Write the threat model.
+- [x] Resolve SSRF, XSS, CSRF and path-traversal findings.
+- [x] Resolve ref-injection, decompression-bomb and hash-collision findings.
+- [x] Resolve deployment-boundary findings.
+- [x] Write the backup runbook.
+- [x] Write the restore runbook.
+- [x] Write the DDIC activation and schema-change runbook.
+- [x] Verify a restored backup by cloning it and running integrity checks.
+- [x] Implement reachability-based garbage collection.
+- [x] Protect active temporary and quarantine roots from garbage collection.
 - [ ] Add garbage-collection grace periods.
 - [ ] Add garbage-collection dry-run reporting.
 - [ ] Test locking across multiple SAP application servers.

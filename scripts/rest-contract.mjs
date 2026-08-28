@@ -10,6 +10,19 @@ const operations = [
   ["/api/repos/{repo}", "patch", "updateRepository"],
   ["/api/repos/{repo}", "delete", "softDeleteRepository"],
   ["/api/repos/{repo}/purge", "post", "purgeRepository"],
+  ["/api/repos/{repo}/pulls", "get", "listPullRequests"],
+  ["/api/repos/{repo}/pulls", "post", "createPullRequest"],
+  ["/api/repos/{repo}/pulls/{pull}", "get", "getPullRequest"],
+  ["/api/repos/{repo}/pulls/{pull}", "patch", "updatePullRequestState"],
+  ["/api/repos/{repo}/pulls/{pull}", "put", "mergePullRequest"],
+  ["/api/repos/{repo}/issues", "get", "listIssues"],
+  ["/api/repos/{repo}/issues", "post", "createIssue"],
+  ["/api/repos/{repo}/issues/{issue}", "get", "getIssue"],
+  ["/api/repos/{repo}/issues/{issue}", "patch", "updateIssue"],
+  ["/api/repos/{repo}/issues/{issue}/comments", "get", "listIssueComments"],
+  ["/api/repos/{repo}/issues/{issue}/comments", "post", "createIssueComment"],
+  ["/api/repos/{repo}/activity", "get", "listRepositoryActivity"],
+  ["/api/repos/{repo}/audit", "get", "listRepositoryAudit"],
   ["/api/repos/{repo}/branches", "get", "listBranches"],
   ["/api/repos/{repo}/branches", "post", "createBranch"],
   ["/api/repos/{repo}/branches/{branch}", "get", "getBranch"],
@@ -200,6 +213,198 @@ try {
   );
   if (staleUpdate.response.status !== 412 || staleUpdate.body?.status !== 412) {
     fail("stale concurrent update did not match the documented response");
+  }
+
+  const pullRequestPayload = {
+    id: "contract-pull-request",
+    source_ref: "refs/heads/feature",
+    target_ref: "refs/heads/main",
+    base_oid: "base-contract",
+    head_oid: "head-contract",
+  };
+  const pullRequest = await request(
+    "/api/repos/contract-repository/pulls",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify(pullRequestPayload),
+    },
+  );
+  if (pullRequest.response.status !== 201
+      || pullRequest.body?.id !== pullRequestPayload.id
+      || pullRequest.body?.state !== "draft") {
+    fail("pull-request create did not return a draft request");
+  }
+  const pullRequestList = await request(
+    "/api/repos/contract-repository/pulls",
+  );
+  if (pullRequestList.response.status !== 200
+      || !Array.isArray(pullRequestList.body)
+      || pullRequestList.body.some((item) => item.id !== pullRequestPayload.id)) {
+    fail("pull-request list did not return the created request");
+  }
+  const pullRequestGet = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request",
+  );
+  if (pullRequestGet.response.status !== 200
+      || pullRequestGet.body?.head_oid !== pullRequestPayload.head_oid) {
+    fail("pull-request retrieve did not return the created request");
+  }
+  const readyForReview = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request",
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"1"',
+      },
+      body: JSON.stringify({state: "open"}),
+    },
+  );
+  if (readyForReview.response.status !== 200
+      || readyForReview.body?.state !== "open"
+      || readyForReview.body?.version !== 2) {
+    fail("pull-request ready-for-review transition failed");
+  }
+  const closedPullRequest = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request",
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"2"',
+      },
+      body: JSON.stringify({state: "closed"}),
+    },
+  );
+  if (closedPullRequest.response.status !== 200
+      || closedPullRequest.body?.state !== "closed"
+      || closedPullRequest.body?.version !== 3) {
+    fail("pull-request close transition failed");
+  }
+  const reopenedPullRequest = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request",
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"3"',
+      },
+      body: JSON.stringify({state: "open"}),
+    },
+  );
+  if (reopenedPullRequest.response.status !== 200
+      || reopenedPullRequest.body?.state !== "open"
+      || reopenedPullRequest.body?.version !== 4) {
+    fail("pull-request reopen transition failed");
+  }
+  const mergedPullRequest = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request",
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"4"',
+      },
+      body: JSON.stringify({state: "merged"}),
+    },
+  );
+  if (mergedPullRequest.response.status !== 200
+      || mergedPullRequest.body?.state !== "merged"
+      || mergedPullRequest.body?.version !== 5) {
+    fail("pull-request merge-state transition failed");
+  }
+
+  const issuePayload = {id: "contract-issue", title: "Contract issue", body: "body"};
+  const issue = await request(
+    "/api/repos/contract-repository/issues",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify(issuePayload),
+    },
+  );
+  if (issue.response.status !== 201 || issue.body?.id !== issuePayload.id
+      || issue.body?.state !== "open" || issue.body?.version !== 1) {
+    fail("issue create did not return an open issue");
+  }
+  const issueList = await request("/api/repos/contract-repository/issues");
+  if (issueList.response.status !== 200 || !Array.isArray(issueList.body)
+      || issueList.body.some((item) => item.id !== issuePayload.id)) {
+    fail("issue list did not return the created issue");
+  }
+  const issueGet = await request(
+    "/api/repos/contract-repository/issues/contract-issue",
+  );
+  if (issueGet.response.status !== 200
+      || issueGet.body?.title !== issuePayload.title) {
+    fail("issue retrieve did not return the created issue");
+  }
+  const issueUpdate = await request(
+    "/api/repos/contract-repository/issues/contract-issue",
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"1"',
+      },
+      body: JSON.stringify({title: "Updated issue"}),
+    },
+  );
+  if (issueUpdate.response.status !== 200
+      || issueUpdate.body?.title !== "Updated issue"
+      || issueUpdate.body?.version !== 2) {
+    fail("issue update did not use the expected version");
+  }
+  const issueClose = await request(
+    "/api/repos/contract-repository/issues/contract-issue",
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"2"',
+      },
+      body: JSON.stringify({state: "closed"}),
+    },
+  );
+  if (issueClose.response.status !== 200
+      || issueClose.body?.state !== "closed"
+      || issueClose.body?.version !== 3) {
+    fail("issue close transition failed");
+  }
+  const issueComment = await request(
+    "/api/repos/contract-repository/issues/contract-issue/comments",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({id: "contract-comment", body: "A comment"}),
+    },
+  );
+  if (issueComment.response.status !== 201
+      || issueComment.body?.id !== "contract-comment") {
+    fail("issue comment create failed");
+  }
+  const issueComments = await request(
+    "/api/repos/contract-repository/issues/contract-issue/comments",
+  );
+  if (issueComments.response.status !== 200
+      || !Array.isArray(issueComments.body)
+      || issueComments.body.length !== 1) {
+    fail("issue comment list failed");
+  }
+  const activity = await request(
+    "/api/repos/contract-repository/activity",
+  );
+  if (activity.response.status !== 200 || !Array.isArray(activity.body)
+      || !activity.body.some((item) => item.action === "issue.create")
+      || !activity.body.some((item) => item.action === "issue.comment")) {
+    fail("repository activity did not include issue events");
+  }
+  const audit = await request("/api/repos/contract-repository/audit");
+  if (audit.response.status !== 200 || !Array.isArray(audit.body)
+      || !audit.body.some((item) => item.action === "issue.create")
+      || !audit.body.every((item) => typeof item.correlation_id === "string")) {
+    fail("repository audit did not expose complete event records");
   }
   console.log("REST contract test passed");
 } finally {

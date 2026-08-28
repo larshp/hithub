@@ -1,10 +1,13 @@
 import express from "express";
-import {createHash} from "node:crypto";
+import {createHash, randomUUID} from "node:crypto";
 import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {createLocalDatabase} from "../scripts/local-database.mjs";
 import {initializeABAP} from "../build/transpiled/init.mjs";
 import {cl_express_icf_shim} from "../build/transpiled/cl_express_icf_shim.clas.mjs";
+import {logEvent} from "./logger.mjs";
+import {metricsSnapshot, observeRequest} from "./metrics.mjs";
+import {createGitAdmission} from "./git-admission.mjs";
 
 await initializeABAP();
 const generated = readFileSync(new URL("../build/transpiled/init.mjs", import.meta.url), "utf8");
@@ -82,6 +85,15 @@ const configuredCorsOrigins = (process.env.HITHUB_CORS_ORIGIN || "")
 const cookieAuthentication = process.env.HITHUB_COOKIE_AUTH === "true";
 const csrfCookieName = process.env.HITHUB_CSRF_COOKIE || "hithub_csrf";
 const requestBodyLimit = process.env.HITHUB_BODY_LIMIT || "64mb";
+const configuredOperationTimeout = Number(
+  process.env.HITHUB_OPERATION_TIMEOUT_MS || 120000,
+);
+const operationTimeoutMs = Number.isFinite(configuredOperationTimeout)
+  && configuredOperationTimeout > 0 ? configuredOperationTimeout : 120000;
+const configuredGitConcurrency = Number(
+  process.env.HITHUB_GIT_CONCURRENCY || 4,
+);
+const gitAdmission = createGitAdmission(configuredGitConcurrency);
 const rateLimit = Number(process.env.HITHUB_RATE_LIMIT || 300);
 const rateWindowMs = Number(process.env.HITHUB_RATE_WINDOW_MS || 60000);
 const requestCounts = new Map();
@@ -98,9 +110,95 @@ const contentSecurityPolicy = [
   "style-src 'self'",
 ].join("; ");
 
+app.use((req, res, next) => {
+  const supplied = req.get("x-request-id") || "";
+  const requestId = /^[A-Za-z0-9._-]{1,100}$/.test(supplied)
+    ? supplied : randomUUID();
+  req.hithubRequestId = requestId;
+  res.setHeader("X-Request-ID", requestId);
+  next();
+});
+
+app.use((req, res, next) => {
+  if (!req.path.includes(".git/")) {
+    next();
+    return;
+  }
+  if (!gitAdmission.acquire()) {
+    res.setHeader("Retry-After", "1");
+    res.status(503).type("application/problem+json").send(JSON.stringify({
+      type: "https://hithub.invalid/problems/git-backpressure",
+      title: "Service Unavailable",
+      status: 503,
+      detail: "Git operation capacity is currently exhausted.",
+      instance: req.path,
+    }));
+    return;
+  }
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    gitAdmission.release();
+  };
+  res.on("finish", release);
+  res.on("close", release);
+  next();
+});
+
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.setTimeout(operationTimeoutMs, () => {
+    if (res.headersSent) return;
+    logEvent("error", "http.timeout", {
+      method: req.method,
+      path: req.path,
+      request_id: req.hithubRequestId,
+      timeout_ms: operationTimeoutMs,
+    });
+    res.status(504).type("application/problem+json").send(JSON.stringify({
+      type: "https://hithub.invalid/problems/timeout",
+      title: "Gateway Timeout",
+      status: 504,
+      detail: "The operation exceeded its configured timeout.",
+      instance: req.path,
+    }));
+  });
+  res.on("finish", () => {
+    logEvent(res.statusCode >= 500 ? "error" : "info", "http.request", {
+      method: req.method,
+      path: req.path,
+      request_id: req.hithubRequestId,
+      status: res.statusCode,
+      duration_ms: Date.now() - startedAt,
+    });
+    observeRequest(res.statusCode, Date.now() - startedAt);
+  });
+  next();
+});
+
 app.use((_req, res, next) => {
   res.setHeader("Content-Security-Policy", contentSecurityPolicy);
   next();
+});
+
+app.get("/live", (_req, res) => {
+  res.type("application/json").send(JSON.stringify({status: "alive"}));
+});
+
+app.get("/ready", async (_req, res) => {
+  try {
+    await database.execute(["SELECT 1"]);
+    res.type("application/json").send(JSON.stringify({status: "ready"}));
+  } catch (_error) {
+    res.status(503).type("application/json").send(JSON.stringify({
+      status: "not-ready",
+    }));
+  }
+});
+
+app.get("/metrics", (_req, res) => {
+  res.type("application/json").send(JSON.stringify(metricsSnapshot()));
 });
 
 function cookieValue(request, name) {
@@ -122,7 +220,7 @@ app.use((req, res, next) => {
     res.setHeader("Vary", "Origin");
     res.setHeader(
       "Access-Control-Allow-Methods",
-      "GET,POST,PATCH,DELETE,OPTIONS",
+      "GET,POST,PATCH,PUT,DELETE,OPTIONS",
     );
     res.setHeader(
       "Access-Control-Allow-Headers",
@@ -209,11 +307,24 @@ app.all("*", async (req, res) => {
 
 app.use((error, req, res, next) => {
   if (res.headersSent) {
+    logEvent("error", "http.error", {
+      method: req.method,
+      path: req.path,
+      request_id: req.hithubRequestId,
+      error_type: error?.type || "internal",
+    });
     next(error);
     return;
   }
   const tooLarge = error?.type === "entity.too.large";
   const status = tooLarge ? 413 : 500;
+  logEvent("error", "http.error", {
+    method: req.method,
+    path: req.path,
+    request_id: req.hithubRequestId,
+    status,
+    error_type: tooLarge ? "request-too-large" : "internal",
+  });
   res.status(status).type("application/problem+json").send(JSON.stringify({
     type: tooLarge
       ? "https://hithub.invalid/problems/request-too-large"
@@ -227,6 +338,8 @@ app.use((error, req, res, next) => {
   }));
 });
 
-app.listen(port, "127.0.0.1", () => {
-  console.log(`HitHub listening on http://127.0.0.1:${port}`);
+const httpServer = app.listen(port, "127.0.0.1", () => {
+  logEvent("info", "server.started", {host: "127.0.0.1", port});
 });
+httpServer.requestTimeout = operationTimeoutMs;
+httpServer.headersTimeout = Math.min(operationTimeoutMs, 60000);

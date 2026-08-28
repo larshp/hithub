@@ -38,6 +38,75 @@ const expected = {
     },
     primaryKey: ["actor", "idempotency_key"],
   },
+  zhi_pull_request: {
+    columns: {
+      repository_id: "NCHAR(36)", id: "NCHAR(36)", state: "NCHAR(16)",
+      source_ref: "NCHAR(160)", target_ref: "NCHAR(160)",
+      base_oid: "NCHAR(64)", head_oid: "NCHAR(64)", version: "INT",
+    },
+    primaryKey: ["repository_id", "id"],
+  },
+  zhi_pr_comment: {
+    columns: {
+      repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
+      comment_id: "NCHAR(36)", actor: "NCHAR(100)",
+      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+    },
+    primaryKey: ["repository_id", "pull_request_id", "comment_id"],
+  },
+  zhi_pr_line_comment: {
+    columns: {
+      repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
+      comment_id: "NCHAR(36)", commit_oid: "NCHAR(64)",
+      path: "NCHAR(160)", line_number: "INT", actor: "NCHAR(100)",
+      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+    },
+    primaryKey: ["repository_id", "pull_request_id", "comment_id"],
+  },
+  zhi_pr_review: {
+    columns: {
+      repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
+      review_id: "NCHAR(36)", actor: "NCHAR(100)", state: "NCHAR(16)",
+      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+    },
+    primaryKey: ["repository_id", "pull_request_id", "review_id"],
+  },
+  zhi_pr_merge_result: {
+    columns: {
+      repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
+      merge_id: "NCHAR(36)", commit_oid: "NCHAR(64)",
+      created_at: "NCHAR(27)",
+    },
+    primaryKey: ["repository_id", "pull_request_id"],
+  },
+  zhi_issue: {
+    columns: {
+      repository_id: "NCHAR(36)", id: "NCHAR(36)", title: "NCHAR(255)",
+      body: "NCHAR(32000)", state: "NCHAR(16)", actor: "NCHAR(100)",
+      created_at: "NCHAR(27)", updated_at: "NCHAR(27)", version: "INT",
+    },
+    primaryKey: ["repository_id", "id"],
+  },
+  zhi_issue_comment: {
+    columns: {
+      repository_id: "NCHAR(36)", issue_id: "NCHAR(36)",
+      comment_id: "NCHAR(36)", actor: "NCHAR(100)",
+      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+    },
+    primaryKey: ["repository_id", "issue_id", "comment_id"],
+  },
+  zhi_issue_assignee: {
+    columns: {
+      repository_id: "NCHAR(36)", issue_id: "NCHAR(36)", actor: "NCHAR(100)",
+    },
+    primaryKey: ["repository_id", "issue_id", "actor"],
+  },
+  zhi_issue_label: {
+    columns: {
+      repository_id: "NCHAR(36)", issue_id: "NCHAR(36)", label: "NCHAR(100)",
+    },
+    primaryKey: ["repository_id", "issue_id", "label"],
+  },
 };
 
 const generated = readFileSync("build/transpiled/init.mjs", "utf8");

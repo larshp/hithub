@@ -3,10 +3,45 @@ CLASS zcl_hithub_local_object_store DEFINITION
 
   PUBLIC SECTION.
     INTERFACES zif_hithub_object_store.
+    INTERFACES zif_hithub_object_gc.
 
 ENDCLASS.
 
 CLASS zcl_hithub_local_object_store IMPLEMENTATION.
+
+  METHOD zif_hithub_object_gc~list.
+    DATA lt_rows TYPE STANDARD TABLE OF zhi_object.
+    DATA ls_row TYPE zhi_object.
+    DATA ls_key TYPE zif_hithub_object_store=>ty_object_key.
+
+    CLEAR rt_keys.
+    IF iv_repository_id IS INITIAL.
+      RETURN.
+    ENDIF.
+    SELECT * FROM zhi_object INTO TABLE @lt_rows
+      WHERE repository_id = @iv_repository_id.
+    LOOP AT lt_rows INTO ls_row.
+      CLEAR ls_key.
+      ls_key-repository_id = ls_row-repository_id.
+      ls_key-algorithm = ls_row-algorithm.
+      ls_key-oid = ls_row-oid.
+      APPEND ls_key TO rt_keys.
+    ENDLOOP.
+    SORT rt_keys BY algorithm oid.
+  ENDMETHOD.
+
+  METHOD zif_hithub_object_gc~delete.
+    CLEAR rv_deleted.
+    IF is_key-repository_id IS INITIAL OR is_key-algorithm IS INITIAL
+        OR is_key-oid IS INITIAL.
+      RETURN.
+    ENDIF.
+    DELETE FROM zhi_object
+      WHERE repository_id = @is_key-repository_id
+        AND algorithm = @is_key-algorithm
+        AND oid = @is_key-oid.
+    rv_deleted = xsdbool( sy-subrc = 0 ).
+  ENDMETHOD.
 
   METHOD zif_hithub_object_store~read.
     DATA ls_row TYPE zhi_object.
