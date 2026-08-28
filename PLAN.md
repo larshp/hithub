@@ -586,11 +586,11 @@ Completion checks:
 - [x] Publish upgrade documentation.
 - [x] Publish the supported Git capability matrix.
 - [x] Document the unversioned API compatibility policy.
-- [ ] Publish the changelog.
-- [ ] Publish known limitations.
-- [ ] Review unresolved `ANORMALIES.md` entries for release impact.
-- [ ] Include applicable unresolved anomalies in the release known limitations.
-- [ ] Update `SUGGESTIONS.md` with the abapGit revisions verified for the release.
+- [x] Publish the changelog.
+- [x] Publish known limitations.
+- [x] Review unresolved `ANORMALIES.md` entries for release impact.
+- [x] Include applicable unresolved anomalies in the release known limitations.
+- [x] Update `SUGGESTIONS.md` with the abapGit revisions verified for the release.
 
 Completion checks:
 

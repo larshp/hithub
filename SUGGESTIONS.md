@@ -5,6 +5,13 @@ HitHub. Add a suggestion before committing to a larger HitHub-specific
 adapter or copied implementation. Keep a local fallback regardless of
 upstream acceptance.
 
+## Release verification record
+
+- Review date: `2026-08-28`
+- Pinned abapGit revision verified for this release: `d01dc3e80dc9f04bb5cf26322ff0a14f97ecc8d6`
+- Result: both proposed simplifications remain open; no accepted upstream
+  change replaces a HitHub fallback in this release.
+
 ## Entry template
 
 Copy this template for each suggestion. Replace every placeholder and remove

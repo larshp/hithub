@@ -1,6 +1,8 @@
 # hithub
 HitHub
 
+[Changelog](CHANGELOG.md)
+
 Deployment guides:
 
 - [SAP ICF installation and access protection](docs/sap-icf-access.md)
@@ -14,3 +16,4 @@ Deployment guides:
 - [Backup runbook](docs/backup-runbook.md)
 - [Restore runbook](docs/restore-runbook.md)
 - [Upgrade runbook](docs/upgrade-runbook.md)
+- [Known limitations](docs/known-limitations.md)
