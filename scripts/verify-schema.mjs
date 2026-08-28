@@ -31,6 +31,13 @@ const expected = {
     },
     primaryKey: ["event_id"],
   },
+  zhi_idempotency: {
+    columns: {
+      actor: "NCHAR(100)", idempotency_key: "NCHAR(255)",
+      subject_id: "NCHAR(36)",
+    },
+    primaryKey: ["actor", "idempotency_key"],
+  },
 };
 
 const generated = readFileSync("build/transpiled/init.mjs", "utf8");

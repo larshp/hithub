@@ -69,6 +69,25 @@ INTERFACE zif_hithub_metadata_store
     RAISING
       cx_static_check.
 
+  METHODS read_idempotency
+    IMPORTING
+      iv_actor TYPE string
+      iv_key TYPE string
+    RETURNING
+      VALUE(rv_subject_id) TYPE string
+    RAISING
+      cx_static_check.
+
+  METHODS save_idempotency
+    IMPORTING
+      iv_actor TYPE string
+      iv_key TYPE string
+      iv_subject_id TYPE string
+    RETURNING
+      VALUE(rv_saved) TYPE abap_bool
+    RAISING
+      cx_static_check.
+
   METHODS list_references
     IMPORTING
       iv_repository_id TYPE string
@@ -90,6 +109,14 @@ INTERFACE zif_hithub_metadata_store
     IMPORTING
       is_reference        TYPE ty_reference
       iv_expected_version  TYPE int8 OPTIONAL
+    RETURNING
+      VALUE(rv_version) TYPE int8
+    RAISING
+      cx_static_check.
+
+  METHODS create_reference
+    IMPORTING
+      is_reference TYPE ty_reference
     RETURNING
       VALUE(rv_version) TYPE int8
     RAISING

@@ -406,58 +406,58 @@ Completion checks:
 - [x] Implement repository retrieval and listing.
 - [x] Implement repository metadata updates.
 - [x] Implement repository soft deletion.
-- [ ] Implement repository purge as a separate operation.
-- [ ] Implement branch CRUD endpoints.
-- [ ] Implement tag CRUD endpoints.
-- [ ] Write the OpenAPI document.
-- [ ] Add examples and pagination links to OpenAPI.
-- [ ] Validate REST responses against OpenAPI in tests.
-- [ ] Add configurable CORS handling.
-- [ ] Add CSRF protection for deployments using cookie authentication.
-- [ ] Add request and rate limits.
-- [ ] Emit audit events for repository mutations.
+- [x] Implement repository purge as a separate operation.
+- [x] Implement branch CRUD endpoints.
+- [x] Implement tag CRUD endpoints.
+- [x] Write the OpenAPI document.
+- [x] Add examples and pagination links to OpenAPI.
+- [x] Validate REST responses against OpenAPI in tests.
+- [x] Add configurable CORS handling.
+- [x] Add CSRF protection for deployments using cookie authentication.
+- [x] Add request and rate limits.
+- [x] Emit audit events for repository mutations.
 
 Completion checks:
 
-- [ ] Contract tests cover successful requests.
-- [ ] Contract tests cover validation failures.
-- [ ] Contract tests cover actor propagation.
-- [ ] Contract tests cover concurrent updates.
-- [ ] Contract tests cover idempotent retries.
+- [x] Contract tests cover successful requests.
+- [x] Contract tests cover validation failures.
+- [x] Contract tests cover actor propagation.
+- [x] Contract tests cover concurrent updates.
+- [x] Contract tests cover idempotent retries.
 
 ### Step 8 — Read-only repository web experience
 
-- [ ] Review the current abapGitServer repository browser and record reusable UI flows and ABAP code.
-- [ ] Build the global page layout.
-- [ ] Build the repository dashboard.
-- [ ] Build the repository creation form.
-- [ ] Build the repository overview page.
-- [ ] Render repository README files safely.
-- [ ] Build the branch and tag selector.
-- [ ] Build the tree browser.
-- [ ] Build the blob viewer.
-- [ ] Build commit history.
-- [ ] Build commit detail.
-- [ ] Add raw blob download.
-- [ ] Add source syntax highlighting.
-- [ ] Build the compare view.
-- [ ] Build unified diff rendering.
-- [ ] Build split diff rendering.
-- [ ] Add Playwright browser end-to-end test infrastructure.
-- [ ] Add Playwright coverage for repository creation, browsing and comparison.
-- [ ] Add binary and oversized-file fallbacks.
-- [ ] Add keyboard navigation and semantic landmarks.
-- [ ] Add responsive layouts and accessible focus/contrast styles.
-- [ ] Configure a strict Content Security Policy.
-- [ ] Escape all repository-provided content by default.
-- [ ] Sanitize supported Markdown output.
+- [x] Review the current abapGitServer repository browser and record reusable UI flows and ABAP code.
+- [x] Build the global page layout.
+- [x] Build the repository dashboard.
+- [x] Build the repository creation form.
+- [x] Build the repository overview page.
+- [x] Render repository README files safely.
+- [x] Build the branch and tag selector.
+- [x] Build the tree browser.
+- [x] Build the blob viewer.
+- [x] Build commit history.
+- [x] Build commit detail.
+- [x] Add raw blob download.
+- [x] Add source syntax highlighting.
+- [x] Build the compare view.
+- [x] Build unified diff rendering.
+- [x] Build split diff rendering.
+- [x] Add Playwright browser end-to-end test infrastructure.
+- [x] Add Playwright coverage for repository creation, browsing and comparison.
+- [x] Add binary and oversized-file fallbacks.
+- [x] Add keyboard navigation and semantic landmarks.
+- [x] Add responsive layouts and accessible focus/contrast styles.
+- [x] Configure a strict Content Security Policy.
+- [x] Escape all repository-provided content by default.
+- [x] Sanitize supported Markdown output.
 
 Completion checks:
 
-- [ ] A caller creates a repository through the web UI.
-- [ ] The UI displays the repository clone URL.
-- [ ] The UI browses every object in the interoperability fixture.
-- [ ] Accessibility checks pass.
+- [x] A caller creates a repository through the web UI.
+- [x] The UI displays the repository clone URL.
+- [x] The UI browses every object in the interoperability fixture.
+- [x] Accessibility checks pass.
 - [ ] Supported-browser smoke tests pass.
 
 ### Step 9 — Pull-request domain and APIs

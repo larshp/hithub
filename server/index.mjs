@@ -1,6 +1,7 @@
 import express from "express";
 import {createHash} from "node:crypto";
 import {readFileSync} from "node:fs";
+import {fileURLToPath} from "node:url";
 import {createLocalDatabase} from "../scripts/local-database.mjs";
 import {initializeABAP} from "../build/transpiled/init.mjs";
 import {cl_express_icf_shim} from "../build/transpiled/cl_express_icf_shim.clas.mjs";
@@ -73,8 +74,122 @@ if (fixtureRepository && /^[A-Za-z0-9._-]+$/.test(fixtureRepository)) {
 
 const app = express();
 const port = Number(process.env.HITHUB_PORT || 3000);
+const webRoot = fileURLToPath(new URL("../web", import.meta.url));
+const configuredCorsOrigins = (process.env.HITHUB_CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const cookieAuthentication = process.env.HITHUB_COOKIE_AUTH === "true";
+const csrfCookieName = process.env.HITHUB_CSRF_COOKIE || "hithub_csrf";
+const requestBodyLimit = process.env.HITHUB_BODY_LIMIT || "64mb";
+const rateLimit = Number(process.env.HITHUB_RATE_LIMIT || 300);
+const rateWindowMs = Number(process.env.HITHUB_RATE_WINDOW_MS || 60000);
+const requestCounts = new Map();
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "connect-src 'self'",
+  "font-src 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "img-src 'self' data:",
+  "object-src 'none'",
+  "script-src 'self'",
+  "style-src 'self'",
+].join("; ");
 
-app.use(express.raw({type: "*/*"}));
+app.use((_req, res, next) => {
+  res.setHeader("Content-Security-Policy", contentSecurityPolicy);
+  next();
+});
+
+function cookieValue(request, name) {
+  const cookies = request.get("cookie") || "";
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = cookies.match(new RegExp(`(?:^|;\\s*)${escapedName}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+app.use((req, res, next) => {
+  const requestOrigin = req.get("origin");
+  const allowed = configuredCorsOrigins.includes("*")
+    ? "*"
+    : configuredCorsOrigins.includes(requestOrigin)
+      ? requestOrigin
+      : "";
+  if (allowed) {
+    res.setHeader("Access-Control-Allow-Origin", allowed);
+    res.setHeader("Vary", "Origin");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PATCH,DELETE,OPTIONS",
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type,If-Match,Idempotency-Key,X-Request-ID",
+    );
+  }
+  if (req.method === "OPTIONS" && allowed) {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
+
+app.use((req, res, next) => {
+  if (!Number.isFinite(rateLimit) || rateLimit <= 0) {
+    next();
+    return;
+  }
+  const now = Date.now();
+  const key = req.socket.remoteAddress || "unknown";
+  const current = requestCounts.get(key);
+  if (!current || now >= current.resetAt) {
+    requestCounts.set(key, {count: 1, resetAt: now + rateWindowMs});
+    next();
+    return;
+  }
+  if (current.count >= rateLimit) {
+    res.setHeader("Retry-After", String(Math.ceil((current.resetAt - now) / 1000)));
+    res.status(429).type("application/problem+json").send(JSON.stringify({
+      type: "https://hithub.invalid/problems/rate-limit",
+      title: "Too Many Requests",
+      status: 429,
+      detail: "The request rate limit has been exceeded.",
+      instance: req.path,
+    }));
+    return;
+  }
+  current.count += 1;
+  next();
+});
+
+app.use((req, res, next) => {
+  const stateChanging = ["POST", "PATCH", "PUT", "DELETE"].includes(req.method);
+  if (!cookieAuthentication || !stateChanging || req.method === "OPTIONS") {
+    next();
+    return;
+  }
+  const cookieToken = cookieValue(req, csrfCookieName);
+  const headerToken = req.get("x-csrf-token") || "";
+  if (cookieToken && headerToken && cookieToken === headerToken) {
+    next();
+    return;
+  }
+  res.status(403).type("application/problem+json").send(JSON.stringify({
+    type: "https://hithub.invalid/problems/csrf",
+    title: "Forbidden",
+    status: 403,
+    detail: "A valid CSRF token is required for cookie-authenticated mutations.",
+    instance: req.path,
+  }));
+});
+
+app.use(express.raw({type: "*/*", limit: requestBodyLimit}));
+app.use(express.static(webRoot, {index: "index.html"}));
+app.get("/ui/*", (req, res) => {
+  res.sendFile(`${webRoot}/index.html`);
+});
 
 app.all(["/health", "/health/*"], async (req, res) => {
   await cl_express_icf_shim.run({
@@ -90,6 +205,26 @@ app.all("*", async (req, res) => {
     res,
     class: "ZCL_HITHUB_HTTP",
   });
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    next(error);
+    return;
+  }
+  const tooLarge = error?.type === "entity.too.large";
+  const status = tooLarge ? 413 : 500;
+  res.status(status).type("application/problem+json").send(JSON.stringify({
+    type: tooLarge
+      ? "https://hithub.invalid/problems/request-too-large"
+      : "https://hithub.invalid/problems/internal-error",
+    title: tooLarge ? "Payload Too Large" : "Internal Server Error",
+    status,
+    detail: tooLarge
+      ? "The request body exceeds the configured request limit."
+      : "The request could not be completed.",
+    instance: req.path,
+  }));
 });
 
 app.listen(port, "127.0.0.1", () => {

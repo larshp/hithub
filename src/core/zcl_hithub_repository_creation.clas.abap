@@ -21,6 +21,8 @@ CLASS zcl_hithub_repository_creation DEFINITION
         iv_name TYPE string
         iv_description TYPE string OPTIONAL
         iv_default_branch TYPE string OPTIONAL
+        iv_actor TYPE string OPTIONAL
+        iv_idempotency_key TYPE string OPTIONAL
       RETURNING
         VALUE(rs_result) TYPE ty_result
       RAISING
@@ -48,6 +50,7 @@ CLASS zcl_hithub_repository_creation IMPLEMENTATION.
     DATA lv_name TYPE string.
     DATA lv_existing_name TYPE string.
     DATA lv_default_branch TYPE string.
+    DATA lv_idempotent_id TYPE string.
 
     CLEAR rs_result.
     IF mo_metadata IS INITIAL OR mo_transaction IS INITIAL
@@ -66,6 +69,20 @@ CLASS zcl_hithub_repository_creation IMPLEMENTATION.
     ENDIF.
     lv_name = iv_name.
     TRANSLATE lv_name TO LOWER CASE.
+
+    IF iv_actor IS NOT INITIAL AND iv_idempotency_key IS NOT INITIAL.
+      lv_idempotent_id = mo_metadata->read_idempotency(
+        iv_actor = iv_actor iv_key = iv_idempotency_key ).
+      IF lv_idempotent_id IS NOT INITIAL.
+        rs_result-repository = mo_metadata->read_repository( lv_idempotent_id ).
+        IF rs_result-repository-id IS NOT INITIAL.
+          rs_result-success = abap_true.
+          RETURN.
+        ENDIF.
+        rs_result-reason = 'idempotency key is no longer valid'.
+        RETURN.
+      ENDIF.
+    ENDIF.
 
     lt_repositories = mo_metadata->list_repositories( ).
     LOOP AT lt_repositories INTO ls_existing.
@@ -102,6 +119,14 @@ CLASS zcl_hithub_repository_creation IMPLEMENTATION.
     TRY.
         mo_transaction->start( ).
         mo_metadata->save_repository( ls_repository ).
+        IF iv_actor IS NOT INITIAL AND iv_idempotency_key IS NOT INITIAL
+            AND mo_metadata->save_idempotency(
+              iv_actor = iv_actor iv_key = iv_idempotency_key
+              iv_subject_id = ls_repository-id ) = abap_false.
+          mo_transaction->rollback( ).
+          rs_result-reason = 'idempotency key is already in use'.
+          RETURN.
+        ENDIF.
         mo_transaction->commit( ).
       CATCH cx_root.
         mo_transaction->rollback( ).

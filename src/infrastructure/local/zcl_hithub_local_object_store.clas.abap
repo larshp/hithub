@@ -75,7 +75,7 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
     ENDIF.
     DELETE FROM zhi_object
       WHERE repository_id = @iv_repository_id.
-    rv_purged = xsdbool( sy-subrc = 0 ).
+    rv_purged = abap_true.
   ENDMETHOD.
 
 ENDCLASS.

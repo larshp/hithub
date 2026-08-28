@@ -130,6 +130,29 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
     rv_purged = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
+  METHOD zif_hithub_metadata_store~read_idempotency.
+    DATA ls_row TYPE zhi_idempotency.
+    CLEAR rv_subject_id.
+    SELECT SINGLE * FROM zhi_idempotency INTO @ls_row
+      WHERE actor = @iv_actor AND idempotency_key = @iv_key.
+    IF sy-subrc = 0.
+      rv_subject_id = ls_row-subject_id.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD zif_hithub_metadata_store~save_idempotency.
+    DATA ls_row TYPE zhi_idempotency.
+    CLEAR rv_saved.
+    IF iv_actor IS INITIAL OR iv_key IS INITIAL OR iv_subject_id IS INITIAL.
+      RETURN.
+    ENDIF.
+    ls_row-actor = iv_actor.
+    ls_row-idempotency_key = iv_key.
+    ls_row-subject_id = iv_subject_id.
+    INSERT zhi_idempotency FROM @ls_row.
+    rv_saved = xsdbool( sy-subrc = 0 ).
+  ENDMETHOD.
+
   METHOD zif_hithub_metadata_store~list_references.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_reference WITH DEFAULT KEY.
     DATA ls_row TYPE zhi_reference.
@@ -202,6 +225,35 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
       rv_version = ls_row-version.
     ELSE.
       CLEAR rv_version.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD zif_hithub_metadata_store~create_reference.
+    DATA ls_current TYPE zhi_reference.
+    DATA ls_row TYPE zhi_reference.
+
+    CLEAR rv_version.
+    IF is_reference-repository_id IS INITIAL
+        OR is_reference-name IS INITIAL
+        OR is_reference-algorithm IS INITIAL
+        OR is_reference-oid IS INITIAL.
+      RETURN.
+    ENDIF.
+    SELECT SINGLE * FROM zhi_reference INTO @ls_current
+      WHERE repository_id = @is_reference-repository_id
+        AND ref_name = @is_reference-name.
+    IF sy-subrc = 0.
+      RETURN.
+    ENDIF.
+    ls_row-repository_id = is_reference-repository_id.
+    ls_row-ref_name = is_reference-name.
+    ls_row-algorithm = is_reference-algorithm.
+    ls_row-oid = is_reference-oid.
+    ls_row-symbolic_target = is_reference-symbolic_target.
+    ls_row-version = 1.
+    INSERT zhi_reference FROM @ls_row.
+    IF sy-subrc = 0.
+      rv_version = 1.
     ENDIF.
   ENDMETHOD.
 

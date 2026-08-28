@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="HitHub repository browser">
+    <title>HitHub</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="app-shell">
+      <header class="site-header">
+        <div class="header-inner">
+          <a class="brand" href="/" aria-label="HitHub home">
+            <span class="brand-mark" aria-hidden="true">H</span>
+            <span>HitHub</span>
+          </a>
+          <nav class="primary-nav" aria-label="Primary navigation">
+            <a href="/">Repositories</a>
+            <a href="/api/repos">API</a>
+          </nav>
+          <div class="header-status" id="header-status" role="status" aria-live="polite">
+            Connecting…
+          </div>
+        </div>
+      </header>
+      <main id="main-content" class="site-main">
+        <section class="page-intro" aria-labelledby="page-title">
+          <p class="eyebrow">Repository workspace</p>
+          <h1 id="page-title">Your repositories</h1>
+          <p class="lede">Browse source, history, branches, and tags from one focused workspace.</p>
+          <a class="button" href="/ui/create">Create repository</a>
+        </section>
+        <section class="content-panel" aria-labelledby="panel-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Getting started</p>
+              <h2 id="panel-title">Repositories</h2>
+            </div>
+            <span class="status-pill" id="service-status">Checking service</span>
+          </div>
+          <div id="repository-dashboard" class="repository-grid" aria-live="polite">
+            <p class="muted-message">Loading repositories…</p>
+          </div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <span>HitHub</span>
+        <span>Git-compatible repository hosting on ABAP</span>
+      </footer>
+    </div>
+  </body>
+</html>
