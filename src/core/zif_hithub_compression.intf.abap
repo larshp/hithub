@@ -9,7 +9,7 @@ INTERFACE zif_hithub_compression
 
   METHODS compress
     IMPORTING
-      iv_data TYPE xstring
+      iv_data              TYPE xstring
     RETURNING
       VALUE(rv_compressed) TYPE xstring
     RAISING
@@ -17,7 +17,7 @@ INTERFACE zif_hithub_compression
 
   METHODS decompress
     IMPORTING
-      iv_data TYPE xstring
+      iv_data                TYPE xstring
     RETURNING
       VALUE(rv_decompressed) TYPE xstring
     RAISING
@@ -25,7 +25,7 @@ INTERFACE zif_hithub_compression
 
   METHODS decompress_stream
     IMPORTING
-      iv_data TYPE xstring
+      iv_data          TYPE xstring
     RETURNING
       VALUE(rs_result) TYPE ty_stream_result
     RAISING

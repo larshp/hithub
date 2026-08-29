@@ -4,23 +4,23 @@ CLASS zcl_hithub_quarantine_registry DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_entry,
-        id             TYPE string,
-        quarantine     TYPE REF TO zif_hithub_quarantine,
-        last_activity  TYPE timestampl,
+        id            TYPE string,
+        quarantine    TYPE REF TO zif_hithub_quarantine,
+        last_activity TYPE timestampl,
       END OF ty_entry,
       ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
 
     METHODS register
       IMPORTING
-        iv_id           TYPE string
-        io_quarantine   TYPE REF TO zif_hithub_quarantine
-        iv_last_activity TYPE timestampl
+        iv_id                TYPE string
+        io_quarantine        TYPE REF TO zif_hithub_quarantine
+        iv_last_activity     TYPE timestampl
       RETURNING
         VALUE(rv_registered) TYPE abap_bool.
 
     METHODS cleanup
       IMPORTING
-        iv_before TYPE timestampl
+        iv_before         TYPE timestampl
       RETURNING
         VALUE(rv_cleaned) TYPE i.
 

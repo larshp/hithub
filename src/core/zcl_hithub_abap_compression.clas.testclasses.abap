@@ -67,8 +67,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_message_digest=>calculate_hash_for_raw(
       EXPORTING
-        if_algorithm = 'sha1'
-        if_data = lv_expected_raw
+        if_algorithm   = 'sha1'
+        if_data        = lv_expected_raw
       IMPORTING
         ef_hashxstring = lv_digest ).
     ASSERT lv_digest = CONV xstring(

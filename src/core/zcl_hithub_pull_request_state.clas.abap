@@ -11,14 +11,14 @@ CLASS zcl_hithub_pull_request_state DEFINITION
 
     CLASS-METHODS is_valid
       IMPORTING
-        iv_state TYPE string
+        iv_state        TYPE string
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 
     CLASS-METHODS can_transition
       IMPORTING
-        iv_from TYPE string
-        iv_to   TYPE string
+        iv_from           TYPE string
+        iv_to             TYPE string
       RETURNING
         VALUE(rv_allowed) TYPE abap_bool.
 ENDCLASS.

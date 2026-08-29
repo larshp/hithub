@@ -4,7 +4,7 @@ CLASS zcl_hithub_receive_sideband DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
-        iv_status TYPE xstring
+        iv_status          TYPE xstring
       RETURNING
         VALUE(rv_response) TYPE xstring.
 

@@ -6,20 +6,20 @@ CLASS zcl_hithub_repository_purge DEFINITION
   PUBLIC SECTION.
     TYPES BEGIN OF ty_result.
     TYPES   success TYPE abap_bool.
-    TYPES   reason TYPE string.
+    TYPES   reason  TYPE string.
     TYPES END OF ty_result.
 
     METHODS constructor
       IMPORTING
-        io_metadata TYPE REF TO zif_hithub_metadata_store
-        io_objects TYPE REF TO zif_hithub_object_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
+        io_objects     TYPE REF TO zif_hithub_object_store
         io_transaction TYPE REF TO zif_hithub_transaction.
     METHODS purge
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id    TYPE string
         iv_expected_version TYPE int8
       RETURNING
-        VALUE(rs_result) TYPE ty_result
+        VALUE(rs_result)    TYPE ty_result
       RAISING
         cx_static_check.
 
@@ -66,7 +66,7 @@ CLASS zcl_hithub_repository_purge IMPLEMENTATION.
     TRY.
         mo_transaction->start( ).
         lv_purged = mo_metadata->purge_repository(
-          iv_repository_id = iv_repository_id
+          iv_repository_id    = iv_repository_id
           iv_expected_version = iv_expected_version ).
         IF lv_purged = abap_false.
           mo_transaction->rollback( ).

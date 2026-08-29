@@ -17,9 +17,9 @@ CLASS zcl_hithub_abap_compression IMPLEMENTATION.
     CLEAR rv_compressed.
     cl_abap_gzip=>compress_binary(
       EXPORTING
-        raw_in = iv_data
+        raw_in       = iv_data
       IMPORTING
-        gzip_out = lv_raw_compressed
+        gzip_out     = lv_raw_compressed
         gzip_out_len = lv_length ).
     lv_header = CONV xstring( '789C' ).
     lv_checksum = zcl_hithub_adler32=>calculate( iv_data ).
@@ -40,9 +40,9 @@ CLASS zcl_hithub_abap_compression IMPLEMENTATION.
     lv_raw_compressed = iv_data+2.
     cl_abap_gzip=>decompress_binary(
       EXPORTING
-        gzip_in = lv_raw_compressed
+        gzip_in     = lv_raw_compressed
       IMPORTING
-        raw_out = rv_decompressed
+        raw_out     = rv_decompressed
         raw_out_len = lv_length ).
   ENDMETHOD.
 
@@ -68,15 +68,15 @@ CLASS zcl_hithub_abap_compression IMPLEMENTATION.
     TRY.
         cl_abap_gzip=>decompress_binary(
           EXPORTING
-            gzip_in = lv_raw_compressed
+            gzip_in     = lv_raw_compressed
           IMPORTING
-            raw_out = rs_result-raw_data
+            raw_out     = rs_result-raw_data
             raw_out_len = lv_length ).
         cl_abap_gzip=>compress_binary(
           EXPORTING
-            raw_in = rs_result-raw_data
+            raw_in       = rs_result-raw_data
           IMPORTING
-            gzip_out = lv_compressed
+            gzip_out     = lv_compressed
             gzip_out_len = lv_length ).
       CATCH cx_root.
         CLEAR rs_result-raw_data.
@@ -104,9 +104,9 @@ CLASS zcl_hithub_abap_compression IMPLEMENTATION.
       TRY.
           cl_abap_gzip=>decompress_binary(
             EXPORTING
-              gzip_in = lv_candidate_data
+              gzip_in     = lv_candidate_data
             IMPORTING
-              raw_out = rs_result-raw_data
+              raw_out     = rs_result-raw_data
               raw_out_len = lv_length ).
         CATCH cx_root.
           CLEAR rs_result-raw_data.

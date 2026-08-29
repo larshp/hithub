@@ -20,7 +20,7 @@ CLASS zcl_hithub_line_comments DEFINITION
 
     CLASS-METHODS add
       IMPORTING
-        is_comment TYPE ty_comment
+        is_comment      TYPE ty_comment
       RETURNING
         VALUE(rv_saved) TYPE abap_bool.
 

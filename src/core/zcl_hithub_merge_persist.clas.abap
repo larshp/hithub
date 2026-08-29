@@ -6,17 +6,17 @@ CLASS zcl_hithub_merge_persist DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_store TYPE REF TO zif_hithub_object_store
-        io_metadata TYPE REF TO zif_hithub_metadata_store
+        io_store       TYPE REF TO zif_hithub_object_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
         io_transaction TYPE REF TO zif_hithub_transaction.
 
     METHODS apply
       IMPORTING
-        is_object TYPE zif_hithub_object_store=>ty_object
-        is_reference TYPE zif_hithub_metadata_store=>ty_reference
+        is_object           TYPE zif_hithub_object_store=>ty_object
+        is_reference        TYPE zif_hithub_metadata_store=>ty_reference
         iv_expected_version TYPE int8 OPTIONAL
       RETURNING
-        VALUE(rv_applied) TYPE abap_bool
+        VALUE(rv_applied)   TYPE abap_bool
       RAISING
         cx_static_check.
 

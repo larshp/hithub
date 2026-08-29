@@ -19,7 +19,7 @@ CLASS zcl_hithub_branch_protection DEFINITION
         iv_is_force_push    TYPE abap_bool
         iv_approved_reviews TYPE i
       RETURNING
-        VALUE(rv_allowed) TYPE abap_bool.
+        VALUE(rv_allowed)   TYPE abap_bool.
 
 ENDCLASS.
 

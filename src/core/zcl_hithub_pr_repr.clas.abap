@@ -6,7 +6,7 @@ CLASS zcl_hithub_pr_repr DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS members
       IMPORTING
-        is_pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot
+        is_pull_request   TYPE zcl_hithub_pr_snapshot=>ty_snapshot
       RETURNING
         VALUE(rt_members) TYPE zcl_hithub_json=>ty_members.
 
@@ -14,13 +14,13 @@ CLASS zcl_hithub_pr_repr DEFINITION
       IMPORTING
         is_pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot
       RETURNING
-        VALUE(rv_body) TYPE xstring.
+        VALUE(rv_body)  TYPE xstring.
 
     CLASS-METHODS list
       IMPORTING
         it_pull_requests TYPE zcl_hithub_pr_snapshot=>ty_snapshots
       RETURNING
-        VALUE(rv_body) TYPE xstring.
+        VALUE(rv_body)   TYPE xstring.
 ENDCLASS.
 
 CLASS zcl_hithub_pr_repr IMPLEMENTATION.

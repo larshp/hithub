@@ -3,7 +3,7 @@ INTERFACE zif_hithub_pack_input
 
   METHODS read
     IMPORTING
-      iv_max_bytes TYPE i
+      iv_max_bytes   TYPE i
     RETURNING
       VALUE(rv_data) TYPE xstring.
 

@@ -23,6 +23,6 @@ INTERFACE zif_hithub_repository_lock
       iv_repository_id TYPE string
       iv_owner         TYPE string
     RETURNING
-      VALUE(rv_held) TYPE abap_bool.
+      VALUE(rv_held)   TYPE abap_bool.
 
 ENDINTERFACE.

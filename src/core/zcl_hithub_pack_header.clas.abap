@@ -11,7 +11,7 @@ CLASS zcl_hithub_pack_header DEFINITION
 
     CLASS-METHODS parse
       IMPORTING
-        iv_data TYPE xstring
+        iv_data          TYPE xstring
       RETURNING
         VALUE(rs_header) TYPE ty_header.
 
@@ -19,7 +19,7 @@ CLASS zcl_hithub_pack_header DEFINITION
       IMPORTING
         iv_object_count TYPE i
       RETURNING
-        VALUE(rv_data) TYPE xstring.
+        VALUE(rv_data)  TYPE xstring.
 
 ENDCLASS.
 

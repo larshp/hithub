@@ -14,7 +14,7 @@ CLASS zcl_hithub_commit_codec DEFINITION
 
     CLASS-METHODS encode
       IMPORTING
-        is_commit TYPE ty_commit
+        is_commit         TYPE ty_commit
       RETURNING
         VALUE(rv_payload) TYPE xstring
       RAISING
@@ -22,7 +22,7 @@ CLASS zcl_hithub_commit_codec DEFINITION
 
     CLASS-METHODS decode
       IMPORTING
-        iv_payload TYPE xstring
+        iv_payload       TYPE xstring
       RETURNING
         VALUE(rs_commit) TYPE ty_commit
       RAISING

@@ -5,54 +5,54 @@ CLASS zcl_hithub_json DEFINITION
 
   PUBLIC SECTION.
     TYPES BEGIN OF ty_member.
-    TYPES   name TYPE string.
-    TYPES   kind TYPE string.
+    TYPES   name  TYPE string.
+    TYPES   kind  TYPE string.
     TYPES   value TYPE string.
     TYPES END OF ty_member.
     TYPES ty_members TYPE STANDARD TABLE OF ty_member WITH DEFAULT KEY.
 
     TYPES BEGIN OF ty_document.
-    TYPES   valid TYPE abap_bool.
+    TYPES   valid   TYPE abap_bool.
     TYPES   members TYPE ty_members.
     TYPES END OF ty_document.
 
     CLASS-METHODS parse
       IMPORTING
-        iv_json TYPE string
+        iv_json            TYPE string
       RETURNING
         VALUE(rs_document) TYPE ty_document.
     CLASS-METHODS parse_data
       IMPORTING
-        iv_json TYPE xstring
+        iv_json            TYPE xstring
       RETURNING
         VALUE(rs_document) TYPE ty_document.
     CLASS-METHODS serialize
       IMPORTING
-        it_members TYPE ty_members
+        it_members     TYPE ty_members
       RETURNING
         VALUE(rv_json) TYPE string.
     CLASS-METHODS serialize_data
       IMPORTING
-        it_members TYPE ty_members
+        it_members     TYPE ty_members
       RETURNING
         VALUE(rv_json) TYPE xstring.
 
   PRIVATE SECTION.
     CLASS-METHODS skip_whitespace
       IMPORTING
-        iv_json TYPE string
+        iv_json   TYPE string
       CHANGING
         cv_offset TYPE i.
     CLASS-METHODS read_string
       IMPORTING
-        iv_json TYPE string
+        iv_json   TYPE string
       CHANGING
         cv_offset TYPE i
-        cv_valid TYPE abap_bool
-        cv_value TYPE string.
+        cv_valid  TYPE abap_bool
+        cv_value  TYPE string.
     CLASS-METHODS escape
       IMPORTING
-        iv_value TYPE string
+        iv_value        TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
 ENDCLASS.

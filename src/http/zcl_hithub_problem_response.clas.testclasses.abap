@@ -13,8 +13,8 @@ CLASS ltcl_hithub_problem_response IMPLEMENTATION.
 
   METHOD builds_problem_document.
     DATA(ls_response) = zcl_hithub_problem_response=>build(
-      iv_status = 422
-      iv_detail = 'The repository name is invalid.'
+      iv_status   = 422
+      iv_detail   = 'The repository name is invalid.'
       iv_instance = '/api/repos' ).
     DATA(ls_document) = zcl_hithub_json=>parse_data( ls_response-body ).
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
@@ -36,8 +36,8 @@ CLASS ltcl_hithub_problem_response IMPLEMENTATION.
   METHOD uses_explicit_title_and_type.
     DATA(ls_response) = zcl_hithub_problem_response=>build(
       iv_status = 409
-      iv_title = 'Repository already exists'
-      iv_type = 'https://hithub.example/problems/repository-exists' ).
+      iv_title  = 'Repository already exists'
+      iv_type   = 'https://hithub.example/problems/repository-exists' ).
     DATA(ls_document) = zcl_hithub_json=>parse_data( ls_response-body ).
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
 

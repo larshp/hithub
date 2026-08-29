@@ -26,7 +26,7 @@ CLASS ltcl_http_router IMPLEMENTATION.
     ASSERT ls_route-service = 'git-receive-pack'.
 
     ls_route = zcl_hithub_http_router=>resolve(
-      iv_path = '/demo.git/info/refs'
+      iv_path    = '/demo.git/info/refs'
       iv_service = 'git-upload-pack' ).
     ASSERT ls_route-kind = 'git-discovery'.
     ASSERT ls_route-repository_name = 'demo'.

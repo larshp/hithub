@@ -6,16 +6,16 @@ CLASS zcl_hithub_merge_target DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_lock TYPE REF TO zif_hithub_repository_lock
-        io_metadata TYPE REF TO zif_hithub_metadata_store
+        io_lock          TYPE REF TO zif_hithub_repository_lock
+        io_metadata      TYPE REF TO zif_hithub_metadata_store
         iv_repository_id TYPE string
-        iv_owner TYPE string.
+        iv_owner         TYPE string.
 
     METHODS check
       IMPORTING
-        iv_ref_name TYPE string
-        iv_algorithm TYPE string
-        iv_expected_oid TYPE string
+        iv_ref_name       TYPE string
+        iv_algorithm      TYPE string
+        iv_expected_oid   TYPE string
       RETURNING
         VALUE(rv_matches) TYPE abap_bool
       RAISING

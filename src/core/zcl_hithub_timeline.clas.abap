@@ -21,14 +21,14 @@ CLASS zcl_hithub_timeline DEFINITION
 
     CLASS-METHODS list
       IMPORTING
-        iv_subject_type TYPE string
-        iv_subject_id   TYPE string
+        iv_subject_type   TYPE string
+        iv_subject_id     TYPE string
       RETURNING
         VALUE(rt_entries) TYPE ty_entries.
 
     CLASS-METHODS list_repository
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id  TYPE string
       RETURNING
         VALUE(rt_entries) TYPE ty_entries.
 ENDCLASS.

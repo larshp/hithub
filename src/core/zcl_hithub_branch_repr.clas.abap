@@ -6,16 +6,16 @@ CLASS zcl_hithub_branch_repr DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS one
       IMPORTING
-        is_reference TYPE zif_hithub_metadata_store=>ty_reference
+        is_reference           TYPE zif_hithub_metadata_store=>ty_reference
       RETURNING VALUE(rv_body) TYPE xstring.
     CLASS-METHODS list
       IMPORTING
-        it_references TYPE zif_hithub_metadata_store=>ty_references
+        it_references          TYPE zif_hithub_metadata_store=>ty_references
       RETURNING VALUE(rv_body) TYPE xstring.
   PRIVATE SECTION.
     CLASS-METHODS members
       IMPORTING
-        is_reference TYPE zif_hithub_metadata_store=>ty_reference
+        is_reference              TYPE zif_hithub_metadata_store=>ty_reference
       RETURNING VALUE(rt_members) TYPE zcl_hithub_json=>ty_members.
 ENDCLASS.
 

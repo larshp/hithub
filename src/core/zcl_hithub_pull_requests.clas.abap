@@ -6,38 +6,38 @@ CLASS zcl_hithub_pull_requests DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_result,
-        success TYPE abap_bool,
-        reason  TYPE string,
+        success      TYPE abap_bool,
+        reason       TYPE string,
         pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot,
       END OF ty_result.
 
     CLASS-METHODS create
       IMPORTING
-        is_pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot
+        is_pull_request  TYPE zcl_hithub_pr_snapshot=>ty_snapshot
       RETURNING
         VALUE(rs_result) TYPE ty_result.
 
     CLASS-METHODS find
       IMPORTING
-        iv_repository_id TYPE string
-        iv_id            TYPE string
+        iv_repository_id       TYPE string
+        iv_id                  TYPE string
       RETURNING
         VALUE(rs_pull_request) TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
 
     CLASS-METHODS list
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id        TYPE string
       RETURNING
         VALUE(rt_pull_requests) TYPE zcl_hithub_pr_snapshot=>ty_snapshots.
 
     CLASS-METHODS transition
       IMPORTING
-        iv_repository_id TYPE string
-        iv_id            TYPE string
-        iv_state         TYPE string
+        iv_repository_id    TYPE string
+        iv_id               TYPE string
+        iv_state            TYPE string
         iv_expected_version TYPE int8
       RETURNING
-        VALUE(rs_result) TYPE ty_result.
+        VALUE(rs_result)    TYPE ty_result.
 ENDCLASS.
 
 CLASS zcl_hithub_pull_requests IMPLEMENTATION.

@@ -4,9 +4,9 @@ CLASS zcl_hithub_push_lock DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_lock           TYPE REF TO zif_hithub_repository_lock
-        iv_repository_id  TYPE string
-        iv_owner          TYPE string
+        io_lock            TYPE REF TO zif_hithub_repository_lock
+        iv_repository_id   TYPE string
+        iv_owner           TYPE string
         iv_timeout_seconds TYPE i DEFAULT 10.
 
     METHODS acquire

@@ -11,14 +11,14 @@ CLASS zcl_hithub_pack_index DEFINITION
 
     METHODS add
       IMPORTING
-        iv_oid    TYPE string
-        iv_offset TYPE i
+        iv_oid          TYPE string
+        iv_offset       TYPE i
       RETURNING
         VALUE(rv_added) TYPE abap_bool.
 
     METHODS find
       IMPORTING
-        iv_oid TYPE string
+        iv_oid           TYPE string
       RETURNING
         VALUE(rv_offset) TYPE i.
 

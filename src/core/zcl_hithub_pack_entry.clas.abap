@@ -4,25 +4,25 @@ CLASS zcl_hithub_pack_entry DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_entry,
-        type           TYPE string,
-        size           TYPE int8,
-        data_offset    TYPE i,
-        base_oid       TYPE xstring,
-        base_distance  TYPE int8,
-        is_delta       TYPE abap_bool,
+        type          TYPE string,
+        size          TYPE int8,
+        data_offset   TYPE i,
+        base_oid      TYPE xstring,
+        base_distance TYPE int8,
+        is_delta      TYPE abap_bool,
       END OF ty_entry.
 
     CLASS-METHODS parse
       IMPORTING
-        iv_data      TYPE xstring
-        iv_oid_length TYPE i DEFAULT 20
+        iv_data         TYPE xstring
+        iv_oid_length   TYPE i DEFAULT 20
       RETURNING
         VALUE(rs_entry) TYPE ty_entry.
 
     CLASS-METHODS build
       IMPORTING
-        iv_type TYPE string
-        iv_size TYPE int8
+        iv_type        TYPE string
+        iv_size        TYPE int8
       RETURNING
         VALUE(rv_data) TYPE xstring.
 

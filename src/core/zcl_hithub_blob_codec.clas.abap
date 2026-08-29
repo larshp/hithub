@@ -4,13 +4,13 @@ CLASS zcl_hithub_blob_codec DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS encode
       IMPORTING
-        iv_payload TYPE xstring
+        iv_payload        TYPE xstring
       RETURNING
         VALUE(rv_payload) TYPE xstring.
 
     CLASS-METHODS decode
       IMPORTING
-        iv_payload TYPE xstring
+        iv_payload        TYPE xstring
       RETURNING
         VALUE(rv_payload) TYPE xstring.
 

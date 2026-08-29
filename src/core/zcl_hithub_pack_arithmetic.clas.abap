@@ -10,15 +10,15 @@ CLASS zcl_hithub_pack_arithmetic DEFINITION
 
     CLASS-METHODS add
       IMPORTING
-        iv_left  TYPE int8
-        iv_right TYPE int8
+        iv_left          TYPE int8
+        iv_right         TYPE int8
       RETURNING
         VALUE(rs_result) TYPE ty_result.
 
     CLASS-METHODS multiply
       IMPORTING
-        iv_left  TYPE int8
-        iv_right TYPE int8
+        iv_left          TYPE int8
+        iv_right         TYPE int8
       RETURNING
         VALUE(rs_result) TYPE ty_result.
 

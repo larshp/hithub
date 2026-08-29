@@ -6,17 +6,17 @@ CLASS zcl_hithub_merge_cleanup DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_metadata TYPE REF TO zif_hithub_metadata_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
         io_transaction TYPE REF TO zif_hithub_transaction.
 
     METHODS cleanup_source
       IMPORTING
-        iv_enabled TYPE abap_bool
-        iv_repository_id TYPE string
-        iv_source_ref TYPE string
+        iv_enabled          TYPE abap_bool
+        iv_repository_id    TYPE string
+        iv_source_ref       TYPE string
         iv_expected_version TYPE int8 OPTIONAL
       RETURNING
-        VALUE(rv_success) TYPE abap_bool
+        VALUE(rv_success)   TYPE abap_bool
       RAISING
         cx_static_check.
 

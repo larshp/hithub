@@ -4,7 +4,7 @@ CLASS zcl_hithub_pack_trailer DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS is_valid
       IMPORTING
-        iv_data TYPE xstring
+        iv_data         TYPE xstring
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 
@@ -27,8 +27,8 @@ CLASS zcl_hithub_pack_trailer IMPLEMENTATION.
     lv_expected = iv_data+lv_body_length(20).
     cl_abap_message_digest=>calculate_hash_for_raw(
       EXPORTING
-        if_algorithm = 'sha1'
-        if_data = lv_body
+        if_algorithm   = 'sha1'
+        if_data        = lv_body
       IMPORTING
         ef_hashxstring = lv_actual ).
     IF lv_actual = lv_expected.

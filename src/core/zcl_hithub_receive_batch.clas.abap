@@ -4,11 +4,11 @@ CLASS zcl_hithub_receive_batch DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_store      TYPE REF TO zif_hithub_object_store
-        io_metadata   TYPE REF TO zif_hithub_metadata_store
-        io_codec      TYPE REF TO zcl_hithub_pack_codec
+        io_store       TYPE REF TO zif_hithub_object_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
+        io_codec       TYPE REF TO zcl_hithub_pack_codec
         io_transaction TYPE REF TO zif_hithub_transaction
-        io_quarantine TYPE REF TO zif_hithub_quarantine OPTIONAL.
+        io_quarantine  TYPE REF TO zif_hithub_quarantine OPTIONAL.
 
     METHODS apply
       IMPORTING
@@ -80,7 +80,7 @@ CLASS zcl_hithub_receive_batch IMPLEMENTATION.
       ls_current-reference =
         mo_metadata->read_reference(
           iv_repository_id = iv_repository_id
-          iv_name = ls_command-ref_name ).
+          iv_name          = ls_command-ref_name ).
       ls_result-ref_name = ls_command-ref_name.
       IF zcl_hithub_ref_update_policy=>old_oid_matches(
           io_metadata = mo_metadata iv_repository_id = iv_repository_id
@@ -166,8 +166,8 @@ CLASS zcl_hithub_receive_batch IMPLEMENTATION.
           READ TABLE et_results ASSIGNING <ls_rejected> INDEX sy-tabix.
           IF ls_current-command-new_oid = lc_zero_oid.
             mo_metadata->delete_reference(
-              iv_repository_id = iv_repository_id
-              iv_name = ls_current-command-ref_name
+              iv_repository_id    = iv_repository_id
+              iv_name             = ls_current-command-ref_name
               iv_expected_version = ls_current-reference-version ).
             <ls_rejected>-ok = abap_true.
           ELSE.
@@ -177,7 +177,7 @@ CLASS zcl_hithub_receive_batch IMPLEMENTATION.
             ls_reference-algorithm = 'sha1'.
             ls_reference-oid = ls_current-command-new_oid.
             lv_saved_version = mo_metadata->save_reference(
-              is_reference = ls_reference
+              is_reference        = ls_reference
               iv_expected_version = ls_current-reference-version ).
             IF lv_saved_version IS INITIAL.
               mo_quarantine->discard( ).

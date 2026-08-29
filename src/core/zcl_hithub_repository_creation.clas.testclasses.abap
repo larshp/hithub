@@ -63,8 +63,8 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       io_identity = lo_identity ).
 
     DATA(ls_result) = lo_service->create(
-      iv_name = 'Demo-Repo'
-      iv_description = 'created by contract'
+      iv_name           = 'Demo-Repo'
+      iv_description    = 'created by contract'
       iv_default_branch = 'main' ).
 
     ASSERT ls_result-success = abap_true.
@@ -78,7 +78,7 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
     ASSERT ls_read-name = 'demo-repo'.
     DATA(ls_reference) = lo_metadata->zif_hithub_metadata_store~read_reference(
       iv_repository_id = ls_result-repository-id
-      iv_name = 'refs/heads/main' ).
+      iv_name          = 'refs/heads/main' ).
     ASSERT ls_reference-oid IS NOT INITIAL.
     DATA(ls_commit_key) = VALUE zif_hithub_object_store=>ty_object_key(
       repository_id = ls_result-repository-id

@@ -27,7 +27,7 @@ CLASS zcl_hithub_issues DEFINITION
 
     CLASS-METHODS create
       IMPORTING
-        is_issue TYPE ty_issue
+        is_issue         TYPE ty_issue
       RETURNING
         VALUE(rs_result) TYPE ty_result.
 
@@ -36,7 +36,7 @@ CLASS zcl_hithub_issues DEFINITION
         iv_repository_id TYPE string
         iv_id            TYPE string
       RETURNING
-        VALUE(rs_issue) TYPE ty_issue.
+        VALUE(rs_issue)  TYPE ty_issue.
 
     CLASS-METHODS list
       IMPORTING
@@ -46,13 +46,13 @@ CLASS zcl_hithub_issues DEFINITION
 
     CLASS-METHODS update
       IMPORTING
-        iv_repository_id   TYPE string
-        iv_id              TYPE string
-        iv_title           TYPE string
-        iv_body            TYPE string
+        iv_repository_id    TYPE string
+        iv_id               TYPE string
+        iv_title            TYPE string
+        iv_body             TYPE string
         iv_expected_version TYPE int8
       RETURNING
-        VALUE(rs_result) TYPE ty_result.
+        VALUE(rs_result)    TYPE ty_result.
 
     CLASS-METHODS transition
       IMPORTING
@@ -61,7 +61,7 @@ CLASS zcl_hithub_issues DEFINITION
         iv_state            TYPE string
         iv_expected_version TYPE int8
       RETURNING
-        VALUE(rs_result) TYPE ty_result.
+        VALUE(rs_result)    TYPE ty_result.
 ENDCLASS.
 
 CLASS zcl_hithub_issues IMPLEMENTATION.

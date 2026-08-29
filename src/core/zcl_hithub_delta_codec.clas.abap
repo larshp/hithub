@@ -4,13 +4,13 @@ CLASS zcl_hithub_delta_codec DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS apply
       IMPORTING
-        iv_base             TYPE xstring
-        iv_delta            TYPE xstring
-        iv_max_result_size  TYPE int8 DEFAULT 524288000
-        iv_delta_depth      TYPE i DEFAULT 0
-        iv_max_delta_depth  TYPE i DEFAULT 50
+        iv_base            TYPE xstring
+        iv_delta           TYPE xstring
+        iv_max_result_size TYPE int8 DEFAULT 524288000
+        iv_delta_depth     TYPE i DEFAULT 0
+        iv_max_delta_depth TYPE i DEFAULT 50
       RETURNING
-        VALUE(rv_result) TYPE xstring.
+        VALUE(rv_result)   TYPE xstring.
 
 ENDCLASS.
 

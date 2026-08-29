@@ -6,24 +6,24 @@ CLASS zcl_hithub_garbage_collector DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_store TYPE REF TO zif_hithub_object_store
-        io_metadata TYPE REF TO zif_hithub_metadata_store
-        io_gc TYPE REF TO zif_hithub_object_gc
-        io_roots TYPE REF TO zif_hithub_gc_roots OPTIONAL
-        io_clock TYPE REF TO zif_hithub_clock OPTIONAL
+        io_store                TYPE REF TO zif_hithub_object_store
+        io_metadata             TYPE REF TO zif_hithub_metadata_store
+        io_gc                   TYPE REF TO zif_hithub_object_gc
+        io_roots                TYPE REF TO zif_hithub_gc_roots OPTIONAL
+        io_clock                TYPE REF TO zif_hithub_clock OPTIONAL
         iv_grace_period_seconds TYPE int8 DEFAULT 86400.
 
     METHODS collect
       IMPORTING
-        iv_repository_id TYPE string
-        iv_dry_run TYPE abap_bool OPTIONAL
+        iv_repository_id  TYPE string
+        iv_dry_run        TYPE abap_bool OPTIONAL
       RETURNING
         VALUE(rv_deleted) TYPE i
       RAISING cx_static_check.
 
     METHODS report
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id     TYPE string
       RETURNING
         VALUE(rt_candidates) TYPE zif_hithub_object_gc=>ty_candidates
       RAISING cx_static_check.
@@ -38,7 +38,7 @@ CLASS zcl_hithub_garbage_collector DEFINITION
 
     METHODS find_candidates
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id     TYPE string
       RETURNING
         VALUE(rt_candidates) TYPE zif_hithub_object_gc=>ty_candidates
       RAISING cx_static_check.

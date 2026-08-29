@@ -8,7 +8,7 @@ CLASS zcl_hithub_object_writer DEFINITION
 
     METHODS write
       IMPORTING
-        is_object TYPE zif_hithub_object_store=>ty_object
+        is_object         TYPE zif_hithub_object_store=>ty_object
       RETURNING
         VALUE(rv_created) TYPE abap_bool
       RAISING
@@ -42,13 +42,13 @@ CLASS zcl_hithub_object_writer IMPLEMENTATION.
     ENDIF.
     IF zcl_hithub_oid_validator=>is_valid(
         iv_algorithm = is_object-key-algorithm
-        iv_oid = is_object-key-oid ) = abap_false.
+        iv_oid       = is_object-key-oid ) = abap_false.
       RETURN.
     ENDIF.
     lv_expected_oid = zcl_hithub_object_id=>calculate(
       iv_algorithm = is_object-key-algorithm
-      iv_type = is_object-type
-      iv_payload = is_object-payload ).
+      iv_type      = is_object-type
+      iv_payload   = is_object-payload ).
     IF lv_expected_oid <> is_object-key-oid.
       RETURN.
     ENDIF.

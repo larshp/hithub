@@ -15,13 +15,13 @@ CLASS zcl_hithub_sap_enqueue IMPLEMENTATION.
     ENDIF.
     CALL FUNCTION 'ENQUEUE_EZHI_REPO'
       EXPORTING
-        repository_id = iv_repository_id
-        _scope = '2'
-        _wait = ' '
+        repository_id  = iv_repository_id
+        _scope         = '2'
+        _wait          = ' '
       EXCEPTIONS
-        foreign_lock = 1
+        foreign_lock   = 1
         system_failure = 2
-        OTHERS = 3.
+        OTHERS         = 3.
     rv_acquired = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
@@ -32,7 +32,7 @@ CLASS zcl_hithub_sap_enqueue IMPLEMENTATION.
     CALL FUNCTION 'DEQUEUE_EZHI_REPO'
       EXPORTING
         repository_id = iv_repository_id
-        _scope = '2'.
+        _scope        = '2'.
   ENDMETHOD.
 
 ENDCLASS.

@@ -25,19 +25,19 @@ CLASS ltcl_repository_update IMPLEMENTATION.
       io_metadata = lo_metadata io_transaction = lo_transaction ).
 
     DATA(ls_result) = lo_service->update(
-      iv_repository_id = ls_repository-id
-      iv_description = 'new'
+      iv_repository_id        = ls_repository-id
+      iv_description          = 'new'
       iv_description_provided = abap_true
-      iv_expected_version = 1 ).
+      iv_expected_version     = 1 ).
     ASSERT ls_result-success = abap_true.
     ASSERT ls_result-repository-description = 'new'.
     ASSERT ls_result-repository-version = 2.
 
     ls_result = lo_service->update(
-      iv_repository_id = ls_repository-id
-      iv_description = 'stale'
+      iv_repository_id        = ls_repository-id
+      iv_description          = 'stale'
       iv_description_provided = abap_true
-      iv_expected_version = 1 ).
+      iv_expected_version     = 1 ).
     ASSERT ls_result-success = abap_false.
     ASSERT ls_result-reason = 'repository version is stale'.
   ENDMETHOD.
@@ -55,10 +55,10 @@ CLASS ltcl_repository_update IMPLEMENTATION.
       io_metadata = lo_metadata io_transaction = lo_transaction ).
 
     DATA(ls_result) = lo_service->update(
-      iv_repository_id = ls_repository-id
-      iv_default_branch = 'bad branch'
+      iv_repository_id           = ls_repository-id
+      iv_default_branch          = 'bad branch'
       iv_default_branch_provided = abap_true
-      iv_expected_version = 1 ).
+      iv_expected_version        = 1 ).
     ASSERT ls_result-success = abap_false.
     ASSERT ls_result-reason = 'default branch is invalid'.
 

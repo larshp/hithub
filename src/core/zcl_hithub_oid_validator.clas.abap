@@ -4,8 +4,8 @@ CLASS zcl_hithub_oid_validator DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS is_valid
       IMPORTING
-        iv_algorithm TYPE string
-        iv_oid       TYPE string
+        iv_algorithm    TYPE string
+        iv_oid          TYPE string
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 

@@ -92,7 +92,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             DATA(lo_batch_compression) =
               NEW zcl_hithub_abap_compression( ).
             DATA(lo_batch_codec) = NEW zcl_hithub_pack_codec(
-              io_compression = lo_batch_compression
+              io_compression   = lo_batch_compression
               io_base_resolver = lo_batch_base ).
             DATA(lo_batch_transaction) = NEW zcl_hithub_local_unit_work( ).
             DATA(lo_batch) = NEW zcl_hithub_receive_batch(
@@ -101,11 +101,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lo_batch->apply(
               EXPORTING
                 iv_repository_id = ls_upload_repository-id
-                iv_pack = ls_receive_request-pack
-                it_commands = ls_receive_request-commands
+                iv_pack          = ls_receive_request-pack
+                it_commands      = ls_receive_request-commands
               IMPORTING
-                et_results = lt_receive_results
-                rv_success = lv_receive_ok ).
+                et_results       = lt_receive_results
+                rv_success       = lv_receive_ok ).
           ELSE.
           LOOP AT ls_receive_request-commands INTO ls_receive_command.
             CLEAR ls_receive_result.
@@ -113,13 +113,13 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ls_receive_current =
               lo_upload_metadata->zif_hithub_metadata_store~read_reference(
                 iv_repository_id = ls_upload_repository-id
-                iv_name = ls_receive_command-ref_name ).
+                iv_name          = ls_receive_command-ref_name ).
             IF zcl_hithub_ref_update_policy=>old_oid_matches(
-                io_metadata = lo_upload_metadata
+                io_metadata      = lo_upload_metadata
                 iv_repository_id = ls_upload_repository-id
-                iv_ref_name = ls_receive_command-ref_name
-                iv_algorithm = 'sha1'
-                iv_old_oid = ls_receive_command-old_oid ) = abap_false.
+                iv_ref_name      = ls_receive_command-ref_name
+                iv_algorithm     = 'sha1'
+                iv_old_oid       = ls_receive_command-old_oid ) = abap_false.
               ls_receive_result-reason = 'stale info'.
               lv_receive_ok = abap_false.
             ELSEIF ls_receive_command-new_oid =
@@ -131,8 +131,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 DATA(lo_delete_transaction) = NEW zcl_hithub_local_unit_work( ).
                 lo_delete_transaction->zif_hithub_transaction~start( ).
                 lo_upload_metadata->zif_hithub_metadata_store~delete_reference(
-                  iv_repository_id = ls_upload_repository-id
-                  iv_name = ls_receive_command-ref_name
+                  iv_repository_id    = ls_upload_repository-id
+                  iv_name             = ls_receive_command-ref_name
                   iv_expected_version = ls_receive_current-version ).
                 lo_delete_transaction->zif_hithub_transaction~commit( ).
                 ls_receive_result-ok = abap_true.
@@ -162,7 +162,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 ls_receive_reference-oid = ls_receive_command-new_oid.
                 lv_receive_version =
                   lo_upload_metadata->zif_hithub_metadata_store~save_reference(
-                    is_reference = ls_receive_reference
+                    is_reference        = ls_receive_reference
                     iv_expected_version = ls_receive_current-version ).
                 IF lv_receive_version IS INITIAL.
                   lo_existing_transaction->zif_hithub_transaction~rollback( ).
@@ -180,7 +180,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 DATA(lo_receive_compression) =
                   NEW zcl_hithub_abap_compression( ).
                 DATA(lo_receive_codec) = NEW zcl_hithub_pack_codec(
-                  io_compression = lo_receive_compression
+                  io_compression   = lo_receive_compression
                   io_base_resolver = lo_receive_base ).
                 DATA(lo_receive_transaction) = NEW zcl_hithub_local_unit_work( ).
                 DATA(lo_receive_receiver) = NEW zcl_hithub_pack_receiver(
@@ -188,10 +188,10 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   io_metadata = lo_upload_metadata
                   io_transaction = lo_receive_transaction ).
                 IF lo_receive_receiver->receive(
-                    iv_pack = ls_receive_request-pack
-                    iv_repository_id = ls_upload_repository-id
-                    iv_ref_name = ls_receive_command-ref_name
-                    iv_target_oid = ls_receive_command-new_oid
+                    iv_pack             = ls_receive_request-pack
+                    iv_repository_id    = ls_upload_repository-id
+                    iv_ref_name         = ls_receive_command-ref_name
+                    iv_target_oid       = ls_receive_command-new_oid
                     iv_expected_version = ls_receive_current-version ) =
                     abap_true.
                   ls_receive_result-ok = abap_true.
@@ -206,7 +206,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           ENDIF.
           lv_receive_response = zcl_hithub_receive_status=>build(
             iv_unpack_ok = lv_receive_ok
-            it_results = lt_receive_results ).
+            it_results   = lt_receive_results ).
           READ TABLE ls_receive_request-capabilities
             WITH KEY table_line = 'side-band-64k' TRANSPORTING NO FIELDS.
           IF sy-subrc = 0.
@@ -259,7 +259,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ENDIF.
         ls_upload_head = lo_upload_metadata->zif_hithub_metadata_store~read_reference(
           iv_repository_id = ls_upload_repository-id
-          iv_name = lv_upload_head_ref ).
+          iv_name          = lv_upload_head_ref ).
         IF ls_upload_head-oid IS NOT INITIAL.
           ls_upload_head-name = 'HEAD'.
           ls_upload_head-symbolic_target = lv_upload_head_ref.
@@ -267,8 +267,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ENDIF.
         lv_upload_body = zcl_hithub_v2_ls_refs=>build(
           iv_repository_id = ls_upload_repository-id
-          it_references = lt_upload_references
-          iv_symrefs = abap_true ).
+          it_references    = lt_upload_references
+          iv_symrefs       = abap_true ).
         server->response->set_status(
           code = 200 reason = 'OK' ).
         server->response->set_content_type(
@@ -389,7 +389,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
 
           lv_legacy_negotiation = zcl_hithub_upload_negotiation=>build(
             is_request = ls_legacy_request
-            it_common = lt_legacy_common ).
+            it_common  = lt_legacy_common ).
           lv_upload_body = lo_legacy_codec->repack( lt_legacy_objects ).
           READ TABLE ls_legacy_request-capabilities
             WITH KEY table_line = 'side-band-64k'
@@ -480,11 +480,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         lt_references = lo_metadata->zif_hithub_metadata_store~list_references(
           ls_repository-id ).
         lv_body = zcl_hithub_upload_discovery=>build(
-          iv_service = lv_service
-          iv_head_oid = ls_head-oid
-          iv_head_ref = lv_head_ref
+          iv_service       = lv_service
+          iv_head_oid      = ls_head-oid
+          iv_head_ref      = lv_head_ref
           iv_repository_id = ls_repository-id
-          it_references = lt_references ).
+          it_references    = lt_references ).
       ENDIF.
       IF lv_body IS NOT INITIAL.
         server->response->set_status(
@@ -588,8 +588,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             IF lv_merge_valid = abap_false.
               ls_merge_problem = zcl_hithub_problem_response=>build(
-                iv_status = 400
-                iv_detail = 'Merge body must contain expected_head_oid and clean.'
+                iv_status   = 400
+                iv_detail   = 'Merge body must contain expected_head_oid and clean.'
                 iv_instance = lv_path ).
               server->response->set_status( code = 400 reason = 'Bad Request' ).
               server->response->set_content_type(
@@ -684,7 +684,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           ELSE.
             DATA(ls_pr_get_request) = zcl_hithub_pull_requests=>find(
               iv_repository_id = ls_pr_get_repository-id
-              iv_id = lv_pr_get_id ).
+              iv_id            = lv_pr_get_id ).
             IF ls_pr_get_request-id IS INITIAL.
               ls_pr_get_problem = zcl_hithub_problem_response=>build(
                 iv_status = 404 iv_detail = 'Pull request was not found.'
@@ -813,7 +813,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           ELSEIF lv_issue_get_comments = abap_true.
             DATA(lt_issue_get_comments) = zcl_hithub_issue_comments=>list(
               iv_repository_id = ls_issue_get_repository-id
-              iv_issue_id = lv_issue_get_id ).
+              iv_issue_id      = lv_issue_get_id ).
             DATA lv_issue_get_comments_json TYPE string.
             DATA ls_issue_get_comment TYPE zcl_hithub_issue_comments=>ty_comment.
             DATA lt_issue_get_comment_members TYPE zcl_hithub_json=>ty_members.
@@ -846,7 +846,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           ELSE.
             DATA(ls_issue_get_issue) = zcl_hithub_issues=>read(
               iv_repository_id = ls_issue_get_repository-id
-              iv_id = lv_issue_get_id ).
+              iv_id            = lv_issue_get_id ).
             IF ls_issue_get_issue-id IS INITIAL.
               ls_issue_get_problem = zcl_hithub_problem_response=>build(
                 iv_status = 404 iv_detail = 'Issue was not found.'
@@ -884,8 +884,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ENDIF.
         IF lv_branch_get_repo_name IS INITIAL.
           DATA(ls_branch_get_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Branch route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Branch route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -897,8 +897,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_branch_get_repo_name ).
           IF ls_branch_get_repository-id IS INITIAL.
             ls_branch_get_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Repository was not found.'
+              iv_status   = 404
+              iv_detail   = 'Repository was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -907,7 +907,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_branch_get_problem-body ).
           ELSE.
             DATA(lo_branch_get_service) = NEW zcl_hithub_branch_service(
-              io_metadata = NEW zcl_hithub_local_meta_store( )
+              io_metadata    = NEW zcl_hithub_local_meta_store( )
               io_transaction = NEW zcl_hithub_local_unit_work( ) ).
             IF lv_branch_get_collection = abap_true.
               DATA(lt_branch_get_references) = lo_branch_get_service->list(
@@ -920,11 +920,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               DATA(ls_branch_get_reference) = lo_branch_get_service->find(
                 iv_repository_id = ls_branch_get_repository-id
-                iv_name = lv_branch_get_name ).
+                iv_name          = lv_branch_get_name ).
               IF ls_branch_get_reference-name IS INITIAL.
                 ls_branch_get_problem = zcl_hithub_problem_response=>build(
-                  iv_status = 404
-                  iv_detail = 'Branch was not found.'
+                  iv_status   = 404
+                  iv_detail   = 'Branch was not found.'
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = 404 reason = 'Not Found' ).
@@ -974,7 +974,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_tag_get_problem-body ).
           ELSE.
             DATA(lo_tag_get_service) = NEW zcl_hithub_tag_service(
-              io_metadata = NEW zcl_hithub_local_meta_store( )
+              io_metadata    = NEW zcl_hithub_local_meta_store( )
               io_transaction = NEW zcl_hithub_local_unit_work( ) ).
             IF lv_tag_get_collection = abap_true.
               DATA(lt_tag_get_references) = lo_tag_get_service->list(
@@ -986,7 +986,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               DATA(ls_tag_get_reference) = lo_tag_get_service->find(
                 iv_repository_id = ls_tag_get_repository-id
-                iv_name = lv_tag_get_name ).
+                iv_name          = lv_tag_get_name ).
               IF ls_tag_get_reference-name IS INITIAL.
                 ls_tag_get_problem = zcl_hithub_problem_response=>build(
                   iv_status = 404 iv_detail = 'Tag was not found.'
@@ -1036,7 +1036,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             DATA(lo_contents_service) = NEW zcl_hithub_contents_service(
               io_metadata = NEW zcl_hithub_local_meta_store( )
-              io_objects = NEW zcl_hithub_local_object_store( ) ).
+              io_objects  = NEW zcl_hithub_local_object_store( ) ).
             IF server->request->get_form_field( 'format' ) = 'raw'.
               DATA(ls_contents_object) = lo_contents_service->read(
                 iv_repository_id = ls_contents_repository-id
@@ -1072,8 +1072,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           SUBMATCHES lv_rest_repository_name.
         IF sy-subrc <> 0 OR lv_rest_repository_name IS INITIAL.
           DATA(ls_rest_query_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Repository route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Repository route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -1085,8 +1085,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_rest_repository_name ).
           IF ls_rest_repository-id IS INITIAL.
             ls_rest_query_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Repository was not found.'
+              iv_status   = 404
+              iv_detail   = 'Repository was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -1100,8 +1100,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data(
               zcl_hithub_repo_representation=>one_with_readme(
                 is_repository = ls_rest_repository
-                io_metadata = NEW zcl_hithub_local_meta_store( )
-                io_objects = NEW zcl_hithub_local_object_store( ) ) ).
+                io_metadata   = NEW zcl_hithub_local_meta_store( )
+                io_objects    = NEW zcl_hithub_local_object_store( ) ) ).
           ENDIF.
         ENDIF.
       ELSEIF lv_rest_method = 'PATCH' AND lv_path CS '/pulls/'.
@@ -1138,8 +1138,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_pr_patch_if_match IS INITIAL
                 OR lv_pr_patch_if_match CN '0123456789'.
               ls_pr_patch_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current pull-request version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current pull-request version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1170,8 +1170,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               ENDIF.
               IF lv_pr_patch_valid = abap_false.
                 ls_pr_patch_problem = zcl_hithub_problem_response=>build(
-                  iv_status = 400
-                  iv_detail = 'Pull-request patch must contain a string state.'
+                  iv_status   = 400
+                  iv_detail   = 'Pull-request patch must contain a string state.'
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = 400 reason = 'Bad Request' ).
@@ -1194,8 +1194,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                     lv_pr_patch_status = 422.
                   ENDIF.
                   ls_pr_patch_problem = zcl_hithub_problem_response=>build(
-                    iv_status = lv_pr_patch_status
-                    iv_detail = ls_pr_patch_result-reason
+                    iv_status   = lv_pr_patch_status
+                    iv_detail   = ls_pr_patch_result-reason
                     iv_instance = lv_path ).
                   server->response->set_status(
                     code = lv_pr_patch_status reason = 'Pull-Request Update Failed' ).
@@ -1247,8 +1247,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_issue_patch_if_match IS INITIAL
                 OR lv_issue_patch_if_match CN '0123456789'.
               ls_issue_patch_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current issue version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current issue version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1259,7 +1259,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               lv_issue_patch_expected = lv_issue_patch_if_match.
               DATA(ls_issue_patch_current) = zcl_hithub_issues=>read(
                 iv_repository_id = ls_issue_patch_repository-id
-                iv_id = lv_issue_patch_id ).
+                iv_id            = lv_issue_patch_id ).
               IF ls_issue_patch_current-id IS INITIAL.
                 ls_issue_patch_problem = zcl_hithub_problem_response=>build(
                   iv_status = 404 iv_detail = 'Issue was not found.'
@@ -1324,8 +1324,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 ENDIF.
                 IF lv_issue_patch_valid = abap_false.
                   ls_issue_patch_problem = zcl_hithub_problem_response=>build(
-                    iv_status = 400
-                    iv_detail = 'Issue patch contains invalid fields.'
+                    iv_status   = 400
+                    iv_detail   = 'Issue patch contains invalid fields.'
                     iv_instance = lv_path ).
                   server->response->set_status(
                     code = 400 reason = 'Bad Request' ).
@@ -1336,9 +1336,9 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   DATA ls_issue_patch_result TYPE zcl_hithub_issues=>ty_result.
                   IF lv_issue_patch_state_seen = abap_true.
                     ls_issue_patch_result = zcl_hithub_issues=>transition(
-                      iv_repository_id = ls_issue_patch_repository-id
-                      iv_id = lv_issue_patch_id
-                      iv_state = lv_issue_patch_state
+                      iv_repository_id    = ls_issue_patch_repository-id
+                      iv_id               = lv_issue_patch_id
+                      iv_state            = lv_issue_patch_state
                       iv_expected_version = lv_issue_patch_expected ).
                   ELSE.
                     IF lv_issue_patch_title_seen = abap_false.
@@ -1348,10 +1348,10 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                       lv_issue_patch_body = ls_issue_patch_current-body.
                     ENDIF.
                     ls_issue_patch_result = zcl_hithub_issues=>update(
-                      iv_repository_id = ls_issue_patch_repository-id
-                      iv_id = lv_issue_patch_id
-                      iv_title = lv_issue_patch_title
-                      iv_body = lv_issue_patch_body
+                      iv_repository_id    = ls_issue_patch_repository-id
+                      iv_id               = lv_issue_patch_id
+                      iv_title            = lv_issue_patch_title
+                      iv_body             = lv_issue_patch_body
                       iv_expected_version = lv_issue_patch_expected ).
                   ENDIF.
                   IF ls_issue_patch_result-success = abap_false.
@@ -1365,8 +1365,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                       lv_issue_patch_status = 422.
                     ENDIF.
                     ls_issue_patch_problem = zcl_hithub_problem_response=>build(
-                      iv_status = lv_issue_patch_status
-                      iv_detail = ls_issue_patch_result-reason
+                      iv_status   = lv_issue_patch_status
+                      iv_detail   = ls_issue_patch_result-reason
                       iv_instance = lv_path ).
                     server->response->set_status(
                       code = lv_issue_patch_status reason = 'Issue Update Failed' ).
@@ -1406,8 +1406,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         IF sy-subrc <> 0 OR lv_branch_patch_repo_name IS INITIAL
             OR lv_branch_patch_name IS INITIAL.
           DATA(ls_branch_patch_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Branch route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Branch route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -1418,16 +1418,16 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_branch_patch_repository) = lo_rest_query->find(
             lv_branch_patch_repo_name ).
           DATA(lo_branch_patch_service) = NEW zcl_hithub_branch_service(
-            io_metadata = NEW zcl_hithub_local_meta_store( )
+            io_metadata    = NEW zcl_hithub_local_meta_store( )
             io_transaction = NEW zcl_hithub_local_unit_work( ) ).
           DATA(ls_branch_patch_reference) = lo_branch_patch_service->find(
             iv_repository_id = ls_branch_patch_repository-id
-            iv_name = lv_branch_patch_name ).
+            iv_name          = lv_branch_patch_name ).
           IF ls_branch_patch_repository-id IS INITIAL
               OR ls_branch_patch_reference-name IS INITIAL.
             ls_branch_patch_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Branch was not found.'
+              iv_status   = 404
+              iv_detail   = 'Branch was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -1436,14 +1436,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_branch_patch_problem-body ).
           ELSE.
             DATA(ls_branch_patch_context) = zcl_hithub_rest_context=>for_local(
-              iv_method = lv_rest_method
-              iv_path = lv_path
-              iv_body = server->request->get_data( )
-              iv_correlation_id = server->request->get_header_field(
+              iv_method          = lv_rest_method
+              iv_path            = lv_path
+              iv_body            = server->request->get_data( )
+              iv_correlation_id  = server->request->get_header_field(
                 'X-Request-ID' )
               iv_idempotency_key = server->request->get_header_field(
                 'Idempotency-Key' )
-              iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+              iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
             DATA lv_branch_patch_if_match TYPE string.
             DATA lv_branch_patch_expected TYPE int8.
             lv_branch_patch_if_match = ls_branch_patch_context->if_match( ).
@@ -1451,8 +1451,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_branch_patch_if_match IS INITIAL
                 OR lv_branch_patch_if_match CN '0123456789'.
               ls_branch_patch_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current branch version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current branch version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1483,8 +1483,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               ENDIF.
               IF lv_branch_patch_valid = abap_false.
                 ls_branch_patch_problem = zcl_hithub_problem_response=>build(
-                  iv_status = 400
-                  iv_detail = 'Request body must contain a string oid.'
+                  iv_status   = 400
+                  iv_detail   = 'Request body must contain a string oid.'
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = 400 reason = 'Bad Request' ).
@@ -1493,9 +1493,9 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 server->response->set_data( ls_branch_patch_problem-body ).
               ELSE.
                 DATA(ls_branch_patch_result) = lo_branch_patch_service->update(
-                  iv_repository_id = ls_branch_patch_repository-id
-                  iv_name = lv_branch_patch_name
-                  iv_oid = lv_branch_patch_oid
+                  iv_repository_id    = ls_branch_patch_repository-id
+                  iv_name             = lv_branch_patch_name
+                  iv_oid              = lv_branch_patch_oid
                   iv_expected_version = lv_branch_patch_expected ).
                 IF ls_branch_patch_result-success = abap_false.
                   DATA lv_branch_patch_status TYPE i.
@@ -1505,8 +1505,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                     lv_branch_patch_status = 422.
                   ENDIF.
                   ls_branch_patch_problem = zcl_hithub_problem_response=>build(
-                    iv_status = lv_branch_patch_status
-                    iv_detail = ls_branch_patch_result-reason
+                    iv_status   = lv_branch_patch_status
+                    iv_detail   = ls_branch_patch_result-reason
                     iv_instance = lv_path ).
                   server->response->set_status(
                     code = lv_branch_patch_status reason = 'Branch Update Failed' ).
@@ -1548,11 +1548,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_tag_patch_repository) = lo_rest_query->find(
             lv_tag_patch_repo_name ).
           DATA(lo_tag_patch_service) = NEW zcl_hithub_tag_service(
-            io_metadata = NEW zcl_hithub_local_meta_store( )
+            io_metadata    = NEW zcl_hithub_local_meta_store( )
             io_transaction = NEW zcl_hithub_local_unit_work( ) ).
           DATA(ls_tag_patch_reference) = lo_tag_patch_service->find(
             iv_repository_id = ls_tag_patch_repository-id
-            iv_name = lv_tag_patch_name ).
+            iv_name          = lv_tag_patch_name ).
           IF ls_tag_patch_repository-id IS INITIAL
               OR ls_tag_patch_reference-name IS INITIAL.
             ls_tag_patch_problem = zcl_hithub_problem_response=>build(
@@ -1578,8 +1578,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_tag_patch_if_match IS INITIAL
                 OR lv_tag_patch_if_match CN '0123456789'.
               ls_tag_patch_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current tag version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current tag version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1657,8 +1657,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           SUBMATCHES lv_patch_repository_name.
         IF sy-subrc <> 0 OR lv_patch_repository_name IS INITIAL.
           DATA(ls_patch_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Repository route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Repository route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -1670,8 +1670,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_patch_repository_name ).
           IF ls_patch_repository-id IS INITIAL.
             ls_patch_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Repository was not found.'
+              iv_status   = 404
+              iv_detail   = 'Repository was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -1680,14 +1680,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_patch_problem-body ).
           ELSE.
             DATA(lo_patch_context) = zcl_hithub_rest_context=>for_local(
-              iv_method = lv_rest_method
-              iv_path = lv_path
-              iv_body = server->request->get_data( )
-              iv_correlation_id = server->request->get_header_field(
+              iv_method          = lv_rest_method
+              iv_path            = lv_path
+              iv_body            = server->request->get_data( )
+              iv_correlation_id  = server->request->get_header_field(
                 'X-Request-ID' )
               iv_idempotency_key = server->request->get_header_field(
                 'Idempotency-Key' )
-              iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+              iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
             DATA lv_patch_if_match TYPE string.
             DATA lv_patch_expected TYPE int8.
             lv_patch_if_match = lo_patch_context->if_match( ).
@@ -1695,8 +1695,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_patch_if_match IS INITIAL
                 OR lv_patch_if_match CN '0123456789'.
               ls_patch_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current repository version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current repository version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1742,8 +1742,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               ENDIF.
               IF lv_patch_valid = abap_false.
                 ls_patch_problem = zcl_hithub_problem_response=>build(
-                  iv_status = 400
-                  iv_detail = 'Patch body contains invalid or unsupported fields.'
+                  iv_status   = 400
+                  iv_detail   = 'Patch body contains invalid or unsupported fields.'
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = 400 reason = 'Bad Request' ).
@@ -1752,15 +1752,15 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 server->response->set_data( ls_patch_problem-body ).
               ELSE.
                 DATA(lo_patch_update) = NEW zcl_hithub_repository_update(
-                  io_metadata = NEW zcl_hithub_local_meta_store( )
+                  io_metadata    = NEW zcl_hithub_local_meta_store( )
                   io_transaction = NEW zcl_hithub_local_unit_work( ) ).
                 DATA(ls_patch_result) = lo_patch_update->update(
-                  iv_repository_id = ls_patch_repository-id
-                  iv_description = lv_patch_description
-                  iv_description_provided = lv_patch_description_seen
-                  iv_default_branch = lv_patch_branch
+                  iv_repository_id           = ls_patch_repository-id
+                  iv_description             = lv_patch_description
+                  iv_description_provided    = lv_patch_description_seen
+                  iv_default_branch          = lv_patch_branch
                   iv_default_branch_provided = lv_patch_branch_seen
-                  iv_expected_version = lv_patch_expected ).
+                  iv_expected_version        = lv_patch_expected ).
                 IF ls_patch_result-success = abap_false.
                   DATA lv_patch_status TYPE i.
                   IF ls_patch_result-reason = 'repository was not found'.
@@ -1771,8 +1771,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                     lv_patch_status = 422.
                   ENDIF.
                   ls_patch_problem = zcl_hithub_problem_response=>build(
-                    iv_status = lv_patch_status
-                    iv_detail = ls_patch_result-reason
+                    iv_status   = lv_patch_status
+                    iv_detail   = ls_patch_result-reason
                     iv_instance = lv_path ).
                   server->response->set_status(
                     code = lv_patch_status reason = 'Update Failed' ).
@@ -1803,8 +1803,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         IF sy-subrc <> 0 OR lv_branch_delete_repo_name IS INITIAL
             OR lv_branch_delete_name IS INITIAL.
           DATA(ls_branch_delete_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Branch route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Branch route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -1815,16 +1815,16 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_branch_delete_repository) = lo_rest_query->find(
             lv_branch_delete_repo_name ).
           DATA(lo_branch_delete_service) = NEW zcl_hithub_branch_service(
-            io_metadata = NEW zcl_hithub_local_meta_store( )
+            io_metadata    = NEW zcl_hithub_local_meta_store( )
             io_transaction = NEW zcl_hithub_local_unit_work( ) ).
           DATA(ls_branch_delete_reference) = lo_branch_delete_service->find(
             iv_repository_id = ls_branch_delete_repository-id
-            iv_name = lv_branch_delete_name ).
+            iv_name          = lv_branch_delete_name ).
           IF ls_branch_delete_repository-id IS INITIAL
               OR ls_branch_delete_reference-name IS INITIAL.
             ls_branch_delete_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Branch was not found.'
+              iv_status   = 404
+              iv_detail   = 'Branch was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -1833,14 +1833,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_branch_delete_problem-body ).
           ELSE.
             DATA(ls_branch_delete_context) = zcl_hithub_rest_context=>for_local(
-              iv_method = lv_rest_method
-              iv_path = lv_path
-              iv_body = server->request->get_data( )
-              iv_correlation_id = server->request->get_header_field(
+              iv_method          = lv_rest_method
+              iv_path            = lv_path
+              iv_body            = server->request->get_data( )
+              iv_correlation_id  = server->request->get_header_field(
                 'X-Request-ID' )
               iv_idempotency_key = server->request->get_header_field(
                 'Idempotency-Key' )
-              iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+              iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
             DATA lv_branch_delete_if_match TYPE string.
             DATA lv_branch_delete_expected TYPE int8.
             lv_branch_delete_if_match = ls_branch_delete_context->if_match( ).
@@ -1848,8 +1848,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_branch_delete_if_match IS INITIAL
                 OR lv_branch_delete_if_match CN '0123456789'.
               ls_branch_delete_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current branch version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current branch version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1859,8 +1859,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               lv_branch_delete_expected = lv_branch_delete_if_match.
               DATA(ls_branch_delete_result) = lo_branch_delete_service->delete(
-                iv_repository_id = ls_branch_delete_repository-id
-                iv_name = lv_branch_delete_name
+                iv_repository_id    = ls_branch_delete_repository-id
+                iv_name             = lv_branch_delete_name
                 iv_expected_version = lv_branch_delete_expected ).
               IF ls_branch_delete_result-success = abap_false.
                 DATA lv_branch_delete_status TYPE i.
@@ -1873,8 +1873,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_branch_delete_status = 422.
                 ENDIF.
                 ls_branch_delete_problem = zcl_hithub_problem_response=>build(
-                  iv_status = lv_branch_delete_status
-                  iv_detail = ls_branch_delete_result-reason
+                  iv_status   = lv_branch_delete_status
+                  iv_detail   = ls_branch_delete_result-reason
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = lv_branch_delete_status reason = 'Branch Delete Failed' ).
@@ -1911,11 +1911,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_tag_delete_repository) = lo_rest_query->find(
             lv_tag_delete_repo_name ).
           DATA(lo_tag_delete_service) = NEW zcl_hithub_tag_service(
-            io_metadata = NEW zcl_hithub_local_meta_store( )
+            io_metadata    = NEW zcl_hithub_local_meta_store( )
             io_transaction = NEW zcl_hithub_local_unit_work( ) ).
           DATA(ls_tag_delete_reference) = lo_tag_delete_service->find(
             iv_repository_id = ls_tag_delete_repository-id
-            iv_name = lv_tag_delete_name ).
+            iv_name          = lv_tag_delete_name ).
           IF ls_tag_delete_repository-id IS INITIAL
               OR ls_tag_delete_reference-name IS INITIAL.
             ls_tag_delete_problem = zcl_hithub_problem_response=>build(
@@ -1941,8 +1941,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_tag_delete_if_match IS INITIAL
                 OR lv_tag_delete_if_match CN '0123456789'.
               ls_tag_delete_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current tag version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current tag version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -1952,8 +1952,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               lv_tag_delete_expected = lv_tag_delete_if_match.
               DATA(ls_tag_delete_result) = lo_tag_delete_service->delete(
-                iv_repository_id = ls_tag_delete_repository-id
-                iv_name = lv_tag_delete_name
+                iv_repository_id    = ls_tag_delete_repository-id
+                iv_name             = lv_tag_delete_name
                 iv_expected_version = lv_tag_delete_expected ).
               IF ls_tag_delete_result-success = abap_false.
                 DATA lv_tag_delete_status TYPE i.
@@ -1989,8 +1989,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           SUBMATCHES lv_delete_repository_name.
         IF sy-subrc <> 0 OR lv_delete_repository_name IS INITIAL.
           DATA(ls_delete_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Repository route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Repository route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -2002,8 +2002,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_delete_repository_name ).
           IF ls_delete_repository-id IS INITIAL.
             ls_delete_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Repository was not found.'
+              iv_status   = 404
+              iv_detail   = 'Repository was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -2012,14 +2012,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_delete_problem-body ).
           ELSE.
             DATA(lo_delete_context) = zcl_hithub_rest_context=>for_local(
-              iv_method = lv_rest_method
-              iv_path = lv_path
-              iv_body = server->request->get_data( )
-              iv_correlation_id = server->request->get_header_field(
+              iv_method          = lv_rest_method
+              iv_path            = lv_path
+              iv_body            = server->request->get_data( )
+              iv_correlation_id  = server->request->get_header_field(
                 'X-Request-ID' )
               iv_idempotency_key = server->request->get_header_field(
                 'Idempotency-Key' )
-              iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+              iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
             DATA lv_delete_if_match TYPE string.
             DATA lv_delete_expected TYPE int8.
             lv_delete_if_match = lo_delete_context->if_match( ).
@@ -2027,8 +2027,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_delete_if_match IS INITIAL
                 OR lv_delete_if_match CN '0123456789'.
               ls_delete_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current repository version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current repository version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -2038,10 +2038,10 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               lv_delete_expected = lv_delete_if_match.
               DATA(lo_delete_service) = NEW zcl_hithub_repository_deletion(
-                io_metadata = NEW zcl_hithub_local_meta_store( )
+                io_metadata    = NEW zcl_hithub_local_meta_store( )
                 io_transaction = NEW zcl_hithub_local_unit_work( ) ).
               DATA(ls_delete_result) = lo_delete_service->delete(
-                iv_repository_id = ls_delete_repository-id
+                iv_repository_id    = ls_delete_repository-id
                 iv_expected_version = lv_delete_expected ).
               IF ls_delete_result-success = abap_false.
                 DATA lv_delete_status TYPE i.
@@ -2053,8 +2053,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_delete_status = 422.
                 ENDIF.
                 ls_delete_problem = zcl_hithub_problem_response=>build(
-                  iv_status = lv_delete_status
-                  iv_detail = ls_delete_result-reason
+                  iv_status   = lv_delete_status
+                  iv_detail   = ls_delete_result-reason
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = lv_delete_status reason = 'Deletion Failed' ).
@@ -2147,8 +2147,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             IF lv_tag_post_valid = abap_false.
               ls_tag_post_problem = zcl_hithub_problem_response=>build(
-                iv_status = 400
-                iv_detail = 'Request body must contain string name and oid.'
+                iv_status   = 400
+                iv_detail   = 'Request body must contain string name and oid.'
                 iv_instance = lv_path ).
               server->response->set_status( code = 400 reason = 'Bad Request' ).
               server->response->set_content_type(
@@ -2156,7 +2156,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               server->response->set_data( ls_tag_post_problem-body ).
             ELSE.
               DATA(lo_tag_post_service) = NEW zcl_hithub_tag_service(
-                io_metadata = NEW zcl_hithub_local_meta_store( )
+                io_metadata    = NEW zcl_hithub_local_meta_store( )
                 io_transaction = NEW zcl_hithub_local_unit_work( ) ).
               DATA(ls_tag_post_result) = lo_tag_post_service->create(
                 iv_repository_id = ls_tag_post_repository-id
@@ -2199,8 +2199,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           SUBMATCHES lv_branch_post_repo_name.
         IF sy-subrc <> 0 OR lv_branch_post_repo_name IS INITIAL.
           DATA(ls_branch_post_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Branch route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Branch route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -2212,8 +2212,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_branch_post_repo_name ).
           IF ls_branch_post_repository-id IS INITIAL.
             ls_branch_post_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Repository was not found.'
+              iv_status   = 404
+              iv_detail   = 'Repository was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -2222,14 +2222,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_branch_post_problem-body ).
           ELSE.
             DATA(ls_branch_post_context) = zcl_hithub_rest_context=>for_local(
-              iv_method = lv_rest_method
-              iv_path = lv_path
-              iv_body = server->request->get_data( )
-              iv_correlation_id = server->request->get_header_field(
+              iv_method          = lv_rest_method
+              iv_path            = lv_path
+              iv_body            = server->request->get_data( )
+              iv_correlation_id  = server->request->get_header_field(
                 'X-Request-ID' )
               iv_idempotency_key = server->request->get_header_field(
                 'Idempotency-Key' )
-              iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+              iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
             DATA(ls_branch_post_document) = zcl_hithub_json=>parse_data(
               ls_branch_post_context->body( ) ).
             DATA lv_branch_post_name TYPE string.
@@ -2273,8 +2273,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             IF lv_branch_post_valid = abap_false.
               ls_branch_post_problem = zcl_hithub_problem_response=>build(
-                iv_status = 400
-                iv_detail = 'Request body must contain string name and oid.'
+                iv_status   = 400
+                iv_detail   = 'Request body must contain string name and oid.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 400 reason = 'Bad Request' ).
@@ -2283,13 +2283,13 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               server->response->set_data( ls_branch_post_problem-body ).
             ELSE.
               DATA(lo_branch_post_service) = NEW zcl_hithub_branch_service(
-                io_metadata = NEW zcl_hithub_local_meta_store( )
+                io_metadata    = NEW zcl_hithub_local_meta_store( )
                 io_transaction = NEW zcl_hithub_local_unit_work( ) ).
               DATA(ls_branch_post_result) = lo_branch_post_service->create(
                 iv_repository_id = ls_branch_post_repository-id
-                iv_name = lv_branch_post_name
-                iv_oid = lv_branch_post_oid
-                iv_algorithm = lv_branch_post_algorithm ).
+                iv_name          = lv_branch_post_name
+                iv_oid           = lv_branch_post_oid
+                iv_algorithm     = lv_branch_post_algorithm ).
               IF ls_branch_post_result-success = abap_false.
                 DATA lv_branch_post_status TYPE i.
                 IF ls_branch_post_result-reason = 'branch already exists'.
@@ -2298,8 +2298,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_branch_post_status = 422.
                 ENDIF.
                 ls_branch_post_problem = zcl_hithub_problem_response=>build(
-                  iv_status = lv_branch_post_status
-                  iv_detail = ls_branch_post_result-reason
+                  iv_status   = lv_branch_post_status
+                  iv_detail   = ls_branch_post_result-reason
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = lv_branch_post_status reason = 'Branch Create Failed' ).
@@ -2315,7 +2315,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 server->response->set_status(
                   code = 201 reason = 'Created' ).
                 server->response->set_header_field(
-                  name = 'Location'
+                  name  = 'Location'
                   value = |{ lv_path }/{ lv_branch_post_name }| ).
                 server->response->set_content_type( 'application/json' ).
                 server->response->set_data(
@@ -2406,8 +2406,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             IF lv_issue_comment_valid = abap_false.
               ls_issue_post_problem = zcl_hithub_problem_response=>build(
-                iv_status = 400
-                iv_detail = 'Comment body must contain string id and body.'
+                iv_status   = 400
+                iv_detail   = 'Comment body must contain string id and body.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 400 reason = 'Bad Request' ).
@@ -2497,8 +2497,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             IF lv_issue_post_valid = abap_false.
               ls_issue_post_problem = zcl_hithub_problem_response=>build(
-                iv_status = 400
-                iv_detail = 'Issue body must contain string id and title.'
+                iv_status   = 400
+                iv_detail   = 'Issue body must contain string id and title.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 400 reason = 'Bad Request' ).
@@ -2516,8 +2516,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_issue_post_status = 422.
                 ENDIF.
                 ls_issue_post_problem = zcl_hithub_problem_response=>build(
-                  iv_status = lv_issue_post_status
-                  iv_detail = ls_issue_post_result-reason
+                  iv_status   = lv_issue_post_status
+                  iv_detail   = ls_issue_post_result-reason
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = lv_issue_post_status reason = 'Issue Create Failed' ).
@@ -2614,8 +2614,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
             IF lv_pr_post_valid = abap_false.
               ls_pr_post_problem = zcl_hithub_problem_response=>build(
-                iv_status = 400
-                iv_detail = 'Pull-request body contains invalid fields.'
+                iv_status   = 400
+                iv_detail   = 'Pull-request body contains invalid fields.'
                 iv_instance = lv_path ).
               server->response->set_status( code = 400 reason = 'Bad Request' ).
               server->response->set_content_type(
@@ -2635,7 +2635,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               ELSE.
                 server->response->set_status( code = 201 reason = 'Created' ).
                 server->response->set_header_field(
-                  name = 'Location'
+                  name  = 'Location'
                   value = |/api/repos/{ lv_pr_post_repo_name }/pulls/{ ls_pr_post_request-id }| ).
                 server->response->set_content_type( 'application/json' ).
                 server->response->set_data(
@@ -2650,8 +2650,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           SUBMATCHES lv_purge_repository_name.
         IF sy-subrc <> 0 OR lv_purge_repository_name IS INITIAL.
           DATA(ls_purge_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 404
-            iv_detail = 'Repository purge route was not found.'
+            iv_status   = 404
+            iv_detail   = 'Repository purge route was not found.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = 404 reason = 'Not Found' ).
@@ -2660,12 +2660,12 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           server->response->set_data( ls_purge_problem-body ).
         ELSE.
           DATA(ls_purge_repository) = lo_rest_query->find(
-            iv_name = lv_purge_repository_name
+            iv_name            = lv_purge_repository_name
             iv_include_deleted = abap_true ).
           IF ls_purge_repository-id IS INITIAL.
             ls_purge_problem = zcl_hithub_problem_response=>build(
-              iv_status = 404
-              iv_detail = 'Repository was not found.'
+              iv_status   = 404
+              iv_detail   = 'Repository was not found.'
               iv_instance = lv_path ).
             server->response->set_status(
               code = 404 reason = 'Not Found' ).
@@ -2674,14 +2674,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_purge_problem-body ).
           ELSE.
             DATA(lo_purge_context) = zcl_hithub_rest_context=>for_local(
-              iv_method = lv_rest_method
-              iv_path = lv_path
-              iv_body = server->request->get_data( )
-              iv_correlation_id = server->request->get_header_field(
+              iv_method          = lv_rest_method
+              iv_path            = lv_path
+              iv_body            = server->request->get_data( )
+              iv_correlation_id  = server->request->get_header_field(
                 'X-Request-ID' )
               iv_idempotency_key = server->request->get_header_field(
                 'Idempotency-Key' )
-              iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+              iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
             DATA lv_purge_if_match TYPE string.
             DATA lv_purge_expected TYPE int8.
             lv_purge_if_match = lo_purge_context->if_match( ).
@@ -2689,8 +2689,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_purge_if_match IS INITIAL
                 OR lv_purge_if_match CN '0123456789'.
               ls_purge_problem = zcl_hithub_problem_response=>build(
-                iv_status = 428
-                iv_detail = 'If-Match must contain the current repository version.'
+                iv_status   = 428
+                iv_detail   = 'If-Match must contain the current repository version.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 428 reason = 'Precondition Required' ).
@@ -2700,11 +2700,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               lv_purge_expected = lv_purge_if_match.
               DATA(lo_purge_service) = NEW zcl_hithub_repository_purge(
-                io_metadata = NEW zcl_hithub_local_meta_store( )
-                io_objects = NEW zcl_hithub_local_object_store( )
+                io_metadata    = NEW zcl_hithub_local_meta_store( )
+                io_objects     = NEW zcl_hithub_local_object_store( )
                 io_transaction = NEW zcl_hithub_local_unit_work( ) ).
               DATA(ls_purge_result) = lo_purge_service->purge(
-                iv_repository_id = ls_purge_repository-id
+                iv_repository_id    = ls_purge_repository-id
                 iv_expected_version = lv_purge_expected ).
               IF ls_purge_result-success = abap_false.
                 DATA lv_purge_status TYPE i.
@@ -2719,8 +2719,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_purge_status = 422.
                 ENDIF.
                 ls_purge_problem = zcl_hithub_problem_response=>build(
-                  iv_status = lv_purge_status
-                  iv_detail = ls_purge_result-reason
+                  iv_status   = lv_purge_status
+                  iv_detail   = ls_purge_result-reason
                   iv_instance = lv_path ).
                 server->response->set_status(
                   code = lv_purge_status reason = 'Purge Failed' ).
@@ -2740,14 +2740,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ENDIF.
       ELSEIF lv_path = '/api/repos' AND lv_rest_method = 'POST'.
         DATA(lo_rest_context) = zcl_hithub_rest_context=>for_local(
-          iv_method = lv_rest_method
-          iv_path = lv_path
-          iv_body = server->request->get_data( )
-          iv_correlation_id = server->request->get_header_field(
+          iv_method          = lv_rest_method
+          iv_path            = lv_path
+          iv_body            = server->request->get_data( )
+          iv_correlation_id  = server->request->get_header_field(
             'X-Request-ID' )
           iv_idempotency_key = server->request->get_header_field(
             'Idempotency-Key' )
-          iv_if_match = server->request->get_header_field( 'If-Match' ) ).
+          iv_if_match        = server->request->get_header_field( 'If-Match' ) ).
         DATA(ls_rest_document) = zcl_hithub_json=>parse_data(
           lo_rest_context->body( ) ).
         DATA lv_rest_name TYPE string.
@@ -2788,21 +2788,21 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(lo_rest_transaction) = NEW zcl_hithub_local_unit_work( ).
           DATA(lo_rest_identity) = NEW zcl_hithub_system_identity( ).
           DATA(lo_rest_creation) = NEW zcl_hithub_repository_creation(
-            io_metadata = lo_rest_metadata
-            io_objects = NEW zcl_hithub_local_object_store( )
+            io_metadata    = lo_rest_metadata
+            io_objects     = NEW zcl_hithub_local_object_store( )
             io_transaction = lo_rest_transaction
-            io_identity = lo_rest_identity ).
+            io_identity    = lo_rest_identity ).
           DATA(ls_rest_result) = lo_rest_creation->create(
-            iv_name = lv_rest_name
-            iv_description = lv_rest_description
-            iv_default_branch = lv_rest_default_branch
-            iv_actor = lo_rest_context->actor_label( )
+            iv_name            = lv_rest_name
+            iv_description     = lv_rest_description
+            iv_default_branch  = lv_rest_default_branch
+            iv_actor           = lo_rest_context->actor_label( )
             iv_idempotency_key = lo_rest_context->idempotency_key( ) ).
         ENDIF.
         IF lv_rest_body_valid = abap_false.
           DATA(ls_rest_problem) = zcl_hithub_problem_response=>build(
-            iv_status = 400
-            iv_detail = 'Request body must be a JSON object with a string name.'
+            iv_status   = 400
+            iv_detail   = 'Request body must be a JSON object with a string name.'
             iv_instance = lv_path ).
           server->response->set_status(
             code = ls_rest_problem-status reason = 'Bad Request' ).
@@ -2817,8 +2817,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_rest_status = 422.
           ENDIF.
           ls_rest_problem = zcl_hithub_problem_response=>build(
-            iv_status = lv_rest_status
-            iv_detail = ls_rest_result-reason
+            iv_status   = lv_rest_status
+            iv_detail   = ls_rest_result-reason
             iv_instance = lv_path ).
           server->response->set_status(
             code = ls_rest_problem-status reason = 'Request Failed' ).
@@ -2863,7 +2863,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           server->response->set_status(
             code = 201 reason = 'Created' ).
           server->response->set_header_field(
-            name = 'Location'
+            name  = 'Location'
             value = |/api/repos/{ ls_rest_result-repository-name }| ).
           server->response->set_content_type( 'application/json' ).
           server->response->set_data(
@@ -2871,8 +2871,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ENDIF.
       ELSE.
         DATA(ls_method_problem) = zcl_hithub_problem_response=>build(
-          iv_status = 501
-          iv_detail = 'This REST route is not implemented yet.'
+          iv_status   = 501
+          iv_detail   = 'This REST route is not implemented yet.'
           iv_instance = lv_path ).
         server->response->set_status(
           code = ls_method_problem-status reason = 'Not Implemented' ).

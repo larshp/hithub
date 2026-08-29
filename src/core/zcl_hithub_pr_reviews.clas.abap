@@ -21,13 +21,13 @@ CLASS zcl_hithub_pr_reviews DEFINITION
 
     CLASS-METHODS is_valid_state
       IMPORTING
-        iv_state TYPE string
+        iv_state        TYPE string
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 
     CLASS-METHODS add
       IMPORTING
-        is_review TYPE ty_review
+        is_review       TYPE ty_review
       RETURNING
         VALUE(rv_saved) TYPE abap_bool.
 
@@ -36,7 +36,7 @@ CLASS zcl_hithub_pr_reviews DEFINITION
         iv_repository_id   TYPE string
         iv_pull_request_id TYPE string
       RETURNING
-        VALUE(rt_reviews) TYPE ty_reviews.
+        VALUE(rt_reviews)  TYPE ty_reviews.
 ENDCLASS.
 
 CLASS zcl_hithub_pr_reviews IMPLEMENTATION.

@@ -21,19 +21,19 @@ CLASS zcl_hithub_tree_merge DEFINITION
 
     CLASS-METHODS merge
       IMPORTING
-        it_base   TYPE zcl_hithub_changed_files=>ty_files
-        it_ours   TYPE zcl_hithub_changed_files=>ty_files
-        it_theirs TYPE zcl_hithub_changed_files=>ty_files
+        it_base          TYPE zcl_hithub_changed_files=>ty_files
+        it_ours          TYPE zcl_hithub_changed_files=>ty_files
+        it_theirs        TYPE zcl_hithub_changed_files=>ty_files
       RETURNING
         VALUE(rs_result) TYPE ty_result.
 
   PRIVATE SECTION.
     CLASS-METHODS equal
       IMPORTING
-        iv_exists_a TYPE abap_bool
-        is_a        TYPE zcl_hithub_changed_files=>ty_file
-        iv_exists_b TYPE abap_bool
-        is_b        TYPE zcl_hithub_changed_files=>ty_file
+        iv_exists_a     TYPE abap_bool
+        is_a            TYPE zcl_hithub_changed_files=>ty_file
+        iv_exists_b     TYPE abap_bool
+        is_b            TYPE zcl_hithub_changed_files=>ty_file
       RETURNING
         VALUE(rv_equal) TYPE abap_bool.
 ENDCLASS.

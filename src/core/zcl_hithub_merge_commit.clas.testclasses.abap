@@ -16,15 +16,15 @@ CLASS ltcl_merge_commit IMPLEMENTATION.
     DATA ls_result TYPE zcl_hithub_merge_commit=>ty_result.
     DATA ls_decoded TYPE zcl_hithub_commit_codec=>ty_commit.
     ls_result = zcl_hithub_merge_commit=>create(
-      iv_tree_oid = 'tree-oid'
-      iv_target_oid = 'target-oid'
-      iv_source_oid = 'source-oid'
+      iv_tree_oid          = 'tree-oid'
+      iv_target_oid        = 'target-oid'
+      iv_source_oid        = 'source-oid'
       iv_expected_head_oid = 'source-oid'
-      iv_current_head_oid = 'source-oid'
-      iv_author = 'Maintainer <maintainer@example.test> 0 +0000'
-      iv_committer = 'Maintainer <maintainer@example.test> 0 +0000'
-      iv_message = 'Merge pull request'
-      iv_clean = abap_true ).
+      iv_current_head_oid  = 'source-oid'
+      iv_author            = 'Maintainer <maintainer@example.test> 0 +0000'
+      iv_committer         = 'Maintainer <maintainer@example.test> 0 +0000'
+      iv_message           = 'Merge pull request'
+      iv_clean             = abap_true ).
     ASSERT ls_result-success = abap_true.
     ASSERT lines( ls_result-commit-parents ) = 2.
     ASSERT ls_result-commit-parents[ 1 ] = 'target-oid'.

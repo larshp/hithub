@@ -12,17 +12,17 @@ CLASS zcl_hithub_ref_distance DEFINITION
 
     CLASS-METHODS calculate
       IMPORTING
-        it_commits TYPE zcl_hithub_merge_base=>ty_commits
-        iv_head_a  TYPE string
-        iv_head_b  TYPE string
+        it_commits         TYPE zcl_hithub_merge_base=>ty_commits
+        iv_head_a          TYPE string
+        iv_head_b          TYPE string
       RETURNING
         VALUE(rs_distance) TYPE ty_distance.
 
   PRIVATE SECTION.
     CLASS-METHODS collect
       IMPORTING
-        it_commits TYPE zcl_hithub_merge_base=>ty_commits
-        iv_head    TYPE string
+        it_commits          TYPE zcl_hithub_merge_base=>ty_commits
+        iv_head             TYPE string
       RETURNING
         VALUE(rt_reachable) TYPE zcl_hithub_merge_base=>ty_commits.
 ENDCLASS.

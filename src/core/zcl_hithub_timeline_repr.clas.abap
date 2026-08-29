@@ -6,7 +6,7 @@ CLASS zcl_hithub_timeline_repr DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS list
       IMPORTING
-        it_entries TYPE zcl_hithub_timeline=>ty_entries
+        it_entries     TYPE zcl_hithub_timeline=>ty_entries
       RETURNING
         VALUE(rv_body) TYPE xstring.
 ENDCLASS.

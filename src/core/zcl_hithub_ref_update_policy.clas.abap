@@ -5,10 +5,10 @@ CLASS zcl_hithub_ref_update_policy DEFINITION
     CLASS-METHODS old_oid_matches
       IMPORTING
         io_metadata       TYPE REF TO zif_hithub_metadata_store
-        iv_repository_id TYPE string
-        iv_ref_name      TYPE string
-        iv_algorithm     TYPE string
-        iv_old_oid       TYPE string
+        iv_repository_id  TYPE string
+        iv_ref_name       TYPE string
+        iv_algorithm      TYPE string
+        iv_old_oid        TYPE string
       RETURNING
         VALUE(rv_matches) TYPE abap_bool.
 

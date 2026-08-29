@@ -27,34 +27,34 @@ CLASS ltcl_pull_request_state IMPLEMENTATION.
   METHOD draft_can_be_ready.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_draft
-      iv_to = zcl_hithub_pull_request_state=>c_open ) = abap_true.
+      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_true.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_draft
-      iv_to = zcl_hithub_pull_request_state=>c_merged ) = abap_false.
+      iv_to   = zcl_hithub_pull_request_state=>c_merged ) = abap_false.
   ENDMETHOD.
 
   METHOD valid_transitions.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_open
-      iv_to = zcl_hithub_pull_request_state=>c_closed ) = abap_true.
+      iv_to   = zcl_hithub_pull_request_state=>c_closed ) = abap_true.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_open
-      iv_to = zcl_hithub_pull_request_state=>c_merged ) = abap_true.
+      iv_to   = zcl_hithub_pull_request_state=>c_merged ) = abap_true.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_closed
-      iv_to = zcl_hithub_pull_request_state=>c_open ) = abap_true.
+      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_true.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_open
-      iv_to = zcl_hithub_pull_request_state=>c_open ) = abap_true.
+      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_true.
   ENDMETHOD.
 
   METHOD merged_is_terminal.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_merged
-      iv_to = zcl_hithub_pull_request_state=>c_open ) = abap_false.
+      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_false.
     ASSERT zcl_hithub_pull_request_state=>can_transition(
       iv_from = zcl_hithub_pull_request_state=>c_merged
-      iv_to = zcl_hithub_pull_request_state=>c_closed ) = abap_false.
+      iv_to   = zcl_hithub_pull_request_state=>c_closed ) = abap_false.
   ENDMETHOD.
 
   METHOD invalid_states_rejected.

@@ -44,7 +44,7 @@ CLASS ltcl_merge_persist IMPLEMENTATION.
     ASSERT lo_store->contains( ls_object-key ) = abap_true.
     ASSERT lo_metadata->read_reference(
       iv_repository_id = ls_reference-repository_id
-      iv_name = ls_reference-name )-oid = lv_oid.
+      iv_name          = ls_reference-name )-oid = lv_oid.
   ENDMETHOD.
 
   METHOD rolls_back_on_ref_failure.

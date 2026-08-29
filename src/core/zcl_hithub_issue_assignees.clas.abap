@@ -12,20 +12,20 @@ CLASS zcl_hithub_issue_assignees DEFINITION
         iv_issue_id      TYPE string
         iv_actor         TYPE string
       RETURNING
-        VALUE(rv_saved) TYPE abap_bool.
+        VALUE(rv_saved)  TYPE abap_bool.
 
     CLASS-METHODS remove
       IMPORTING
-        iv_repository_id TYPE string
-        iv_issue_id      TYPE string
-        iv_actor         TYPE string
+        iv_repository_id  TYPE string
+        iv_issue_id       TYPE string
+        iv_actor          TYPE string
       RETURNING
         VALUE(rv_removed) TYPE abap_bool.
 
     CLASS-METHODS list
       IMPORTING
-        iv_repository_id TYPE string
-        iv_issue_id      TYPE string
+        iv_repository_id    TYPE string
+        iv_issue_id         TYPE string
       RETURNING
         VALUE(rt_assignees) TYPE ty_assignees.
 ENDCLASS.

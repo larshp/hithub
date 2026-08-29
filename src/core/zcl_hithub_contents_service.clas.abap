@@ -6,13 +6,13 @@ CLASS zcl_hithub_contents_service DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_entry,
-        name      TYPE string,
-        type      TYPE string,
-        mode      TYPE string,
-        algorithm TYPE string,
-        oid       TYPE string,
-        size      TYPE int8,
-        last_commit TYPE string,
+        name           TYPE string,
+        type           TYPE string,
+        mode           TYPE string,
+        algorithm      TYPE string,
+        oid            TYPE string,
+        size           TYPE int8,
+        last_commit    TYPE string,
         last_commit_at TYPE string,
       END OF ty_entry,
       ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
@@ -20,13 +20,13 @@ CLASS zcl_hithub_contents_service DEFINITION
     METHODS constructor
       IMPORTING
         io_metadata TYPE REF TO zif_hithub_metadata_store
-        io_objects TYPE REF TO zif_hithub_object_store.
+        io_objects  TYPE REF TO zif_hithub_object_store.
 
     METHODS list
       IMPORTING
-        iv_repository_id TYPE string
-        iv_ref           TYPE string
-        iv_path          TYPE string OPTIONAL
+        iv_repository_id  TYPE string
+        iv_ref            TYPE string
+        iv_path           TYPE string OPTIONAL
       RETURNING
         VALUE(rt_entries) TYPE ty_entries
       RAISING
@@ -51,7 +51,7 @@ CLASS zcl_hithub_contents_service DEFINITION
         iv_repository_id TYPE string
         iv_ref           TYPE string
       RETURNING
-        VALUE(rs_key) TYPE zif_hithub_object_store=>ty_object_key
+        VALUE(rs_key)    TYPE zif_hithub_object_store=>ty_object_key
       RAISING
         cx_static_check.
 
@@ -60,7 +60,7 @@ CLASS zcl_hithub_contents_service DEFINITION
         iv_repository_id TYPE string
         iv_ref           TYPE string
       RETURNING
-        VALUE(rs_key) TYPE zif_hithub_object_store=>ty_object_key
+        VALUE(rs_key)    TYPE zif_hithub_object_store=>ty_object_key
       RAISING
         cx_static_check.
 
@@ -70,7 +70,7 @@ CLASS zcl_hithub_contents_service DEFINITION
         iv_ref           TYPE string
         iv_path          TYPE string
       RETURNING
-        VALUE(rs_entry) TYPE ty_entry
+        VALUE(rs_entry)  TYPE ty_entry
       RAISING
         cx_static_check.
 

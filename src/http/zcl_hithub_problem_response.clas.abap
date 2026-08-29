@@ -5,25 +5,25 @@ CLASS zcl_hithub_problem_response DEFINITION
 
   PUBLIC SECTION.
     TYPES BEGIN OF ty_response.
-    TYPES   status TYPE i.
+    TYPES   status       TYPE i.
     TYPES   content_type TYPE string.
-    TYPES   body TYPE xstring.
+    TYPES   body         TYPE xstring.
     TYPES END OF ty_response.
 
     CLASS-METHODS build
       IMPORTING
-        iv_status TYPE i
-        iv_detail TYPE string OPTIONAL
-        iv_type TYPE string OPTIONAL
-        iv_title TYPE string OPTIONAL
-        iv_instance TYPE string OPTIONAL
+        iv_status          TYPE i
+        iv_detail          TYPE string OPTIONAL
+        iv_type            TYPE string OPTIONAL
+        iv_title           TYPE string OPTIONAL
+        iv_instance        TYPE string OPTIONAL
       RETURNING
         VALUE(rs_response) TYPE ty_response.
 
   PRIVATE SECTION.
     CLASS-METHODS title_for_status
       IMPORTING
-        iv_status TYPE i
+        iv_status       TYPE i
       RETURNING
         VALUE(rv_title) TYPE string.
 ENDCLASS.

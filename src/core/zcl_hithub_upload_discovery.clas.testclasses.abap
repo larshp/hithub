@@ -23,9 +23,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_reference-oid = lv_head_oid.
     APPEND ls_reference TO lt_references.
     lv_body = zcl_hithub_upload_discovery=>build(
-      iv_service = 'git-upload-pack'
-      iv_head_oid = lv_head_oid
-      iv_head_ref = 'refs/heads/main'
+      iv_service    = 'git-upload-pack'
+      iv_head_oid   = lv_head_oid
+      iv_head_ref   = 'refs/heads/main'
       it_references = lt_references ).
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_body ).
@@ -64,9 +64,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_reference-oid = lv_oid.
     APPEND ls_reference TO lt_references.
     lv_body = zcl_hithub_upload_discovery=>build(
-      iv_service = 'git-receive-pack'
-      iv_head_oid = lv_oid
-      iv_head_ref = 'refs/heads/main'
+      iv_service    = 'git-receive-pack'
+      iv_head_oid   = lv_oid
+      iv_head_ref   = 'refs/heads/main'
       it_references = lt_references ).
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_body ).
@@ -87,9 +87,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_references TYPE zif_hithub_metadata_store=>ty_references.
 
     ASSERT zcl_hithub_upload_discovery=>build(
-      iv_service = 'git-upload-archive'
-      iv_head_oid = '1111111111111111111111111111111111111111'
-      iv_head_ref = 'refs/heads/main'
+      iv_service    = 'git-upload-archive'
+      iv_head_oid   = '1111111111111111111111111111111111111111'
+      iv_head_ref   = 'refs/heads/main'
       it_references = lt_references ) IS INITIAL.
   ENDMETHOD.
 

@@ -9,7 +9,7 @@ INTERFACE zif_hithub_identity
 
   METHODS random_bytes
     IMPORTING
-      iv_length TYPE i
+      iv_length       TYPE i
     RETURNING
       VALUE(rv_bytes) TYPE xstring
     RAISING

@@ -9,8 +9,8 @@ CLASS zcl_hithub_pack_limits DEFINITION
 
     METHODS is_allowed
       IMPORTING
-        iv_pack_size TYPE int8
-        iv_objects   TYPE i
+        iv_pack_size      TYPE int8
+        iv_objects        TYPE i
       RETURNING
         VALUE(rv_allowed) TYPE abap_bool.
 

@@ -4,7 +4,7 @@ CLASS zcl_hithub_adler32 DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS calculate
       IMPORTING
-        iv_data TYPE xstring
+        iv_data            TYPE xstring
       RETURNING
         VALUE(rv_checksum) TYPE xstring.
 

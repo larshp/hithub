@@ -4,7 +4,7 @@ CLASS zcl_hithub_ref_validator DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS is_valid
       IMPORTING
-        iv_ref_name TYPE string
+        iv_ref_name     TYPE string
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 

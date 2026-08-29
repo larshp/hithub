@@ -3,12 +3,12 @@ CLASS zcl_hithub_audit_log DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS record
       IMPORTING
-        io_sink TYPE REF TO zif_hithub_event_sink
-        io_context TYPE REF TO zif_hithub_rest_context
-        iv_action TYPE string
+        io_sink         TYPE REF TO zif_hithub_event_sink
+        io_context      TYPE REF TO zif_hithub_rest_context
+        iv_action       TYPE string
         iv_subject_type TYPE string
-        iv_subject_id TYPE string
-        iv_details TYPE string OPTIONAL
+        iv_subject_id   TYPE string
+        iv_details      TYPE string OPTIONAL
       RAISING cx_static_check.
 ENDCLASS.
 

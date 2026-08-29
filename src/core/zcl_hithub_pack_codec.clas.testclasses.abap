@@ -215,7 +215,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_pack = lo_codec->repack( lt_objects ).
     lt_unpacked = lo_codec->unpack(
-      iv_pack = lv_pack
+      iv_pack          = lv_pack
       iv_repository_id = 'pack-roundtrip-repository-000000' ).
 
     ASSERT lines( lt_unpacked ) = 2.
@@ -282,8 +282,8 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_commit_object-size = xstrlen( ls_commit_object-payload ).
     ls_commit_object-key-oid = zcl_hithub_object_id=>calculate(
       iv_algorithm = 'sha1'
-      iv_type = ls_commit_object-type
-      iv_payload = ls_commit_object-payload ).
+      iv_type      = ls_commit_object-type
+      iv_payload   = ls_commit_object-payload ).
 
     APPEND ls_commit_object TO lt_objects.
     APPEND ls_tree TO lt_objects.
@@ -408,10 +408,10 @@ CLASS ltcl_test IMPLEMENTATION.
     CONCATENATE lv_body lv_byte INTO lv_pack IN BYTE MODE.
 
     ASSERT lo_receiver->receive(
-      iv_pack = lv_pack
+      iv_pack          = lv_pack
       iv_repository_id = lv_repository_id
-      iv_ref_name = ls_reference-name
-      iv_target_oid = lv_target_oid ) = abap_false.
+      iv_ref_name      = ls_reference-name
+      iv_target_oid    = lv_target_oid ) = abap_false.
     ls_read = lo_metadata->zif_hithub_metadata_store~read_reference(
       iv_repository_id = lv_repository_id iv_name = ls_reference-name ).
     ASSERT ls_read-oid = ls_reference-oid.
@@ -433,10 +433,10 @@ CLASS ltcl_test IMPLEMENTATION.
       io_transaction = lo_transaction io_limits = lo_limits ).
 
     ASSERT lo_receiver->receive(
-      iv_pack = CONV xstring( '5041434B0000000200000000' )
+      iv_pack          = CONV xstring( '5041434B0000000200000000' )
       iv_repository_id = 'pack-limit-repository-000000000'
-      iv_ref_name = 'refs/heads/main'
-      iv_target_oid = '1111111111111111111111111111111111111111' ) =
+      iv_ref_name      = 'refs/heads/main'
+      iv_target_oid    = '1111111111111111111111111111111111111111' ) =
       abap_false.
     ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
   ENDMETHOD.

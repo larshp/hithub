@@ -16,8 +16,8 @@ CLASS ltcl_text_merge IMPLEMENTATION.
     lv_newline = cl_abap_char_utilities=>newline.
 
     ls_result = zcl_hithub_text_merge=>merge(
-      iv_base = |a{ lv_newline }b{ lv_newline }c|
-      iv_ours = |A{ lv_newline }b{ lv_newline }c|
+      iv_base   = |a{ lv_newline }b{ lv_newline }c|
+      iv_ours   = |A{ lv_newline }b{ lv_newline }c|
       iv_theirs = |a{ lv_newline }b{ lv_newline }C| ).
     ASSERT ls_result-clean = abap_true.
     ASSERT ls_result-text = |A{ lv_newline }b{ lv_newline }C|.

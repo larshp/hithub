@@ -42,7 +42,7 @@ CLASS ltcl_timeline IMPLEMENTATION.
 
     lt_entries = zcl_hithub_timeline=>list(
       iv_subject_type = zcl_hithub_timeline=>c_issue
-      iv_subject_id = 'timeline-issue-1' ).
+      iv_subject_id   = 'timeline-issue-1' ).
     ASSERT lines( lt_entries ) = 2.
     READ TABLE lt_entries INDEX 1 INTO DATA(ls_first).
     ASSERT ls_first-action = 'issue.create'.
@@ -54,7 +54,7 @@ CLASS ltcl_timeline IMPLEMENTATION.
 
     lt_entries = zcl_hithub_timeline=>list(
       iv_subject_type = zcl_hithub_timeline=>c_pull_request
-      iv_subject_id = 'timeline-pr-1' ).
+      iv_subject_id   = 'timeline-pr-1' ).
     ASSERT lines( lt_entries ) = 1.
     READ TABLE lt_entries INDEX 1 INTO DATA(ls_pr_entry).
     ASSERT ls_pr_entry-action = 'merge'.
@@ -64,7 +64,7 @@ CLASS ltcl_timeline IMPLEMENTATION.
   METHOD rejects_other_subject_types.
     DATA(lt_entries) = zcl_hithub_timeline=>list(
       iv_subject_type = 'repository'
-      iv_subject_id = 'timeline-repository-1' ).
+      iv_subject_id   = 'timeline-repository-1' ).
     ASSERT lt_entries IS INITIAL.
   ENDMETHOD.
 

@@ -19,14 +19,14 @@ CLASS zcl_hithub_pr_snapshot DEFINITION
 
     CLASS-METHODS open
       IMPORTING
-        is_snapshot TYPE ty_snapshot
+        is_snapshot     TYPE ty_snapshot
       RETURNING
         VALUE(rv_saved) TYPE abap_bool.
 
     CLASS-METHODS read
       IMPORTING
-        iv_repository_id TYPE string
-        iv_id            TYPE string
+        iv_repository_id   TYPE string
+        iv_id              TYPE string
       RETURNING
         VALUE(rs_snapshot) TYPE ty_snapshot.
 ENDCLASS.

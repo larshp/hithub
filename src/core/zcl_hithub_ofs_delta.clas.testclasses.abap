@@ -45,8 +45,8 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_base = lv_base iv_delta = CONV xstring( '060390' ) ).
     ASSERT lv_result IS INITIAL.
     lv_result = zcl_hithub_delta_codec=>apply(
-      iv_base = lv_base
-      iv_delta = CONV xstring( '060990030358595A910303' )
+      iv_base            = lv_base
+      iv_delta           = CONV xstring( '060990030358595A910303' )
       iv_max_result_size = 8 ).
     ASSERT lv_result IS INITIAL.
     lv_result = zcl_hithub_delta_codec=>apply(

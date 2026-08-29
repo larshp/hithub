@@ -6,7 +6,7 @@ CLASS zcl_hithub_identity DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS is_valid
       IMPORTING
-        iv_identity TYPE string
+        iv_identity     TYPE string
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 ENDCLASS.

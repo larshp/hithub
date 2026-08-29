@@ -5,15 +5,15 @@ CLASS zcl_hithub_http_router DEFINITION
 
   PUBLIC SECTION.
     TYPES BEGIN OF ty_route.
-    TYPES   kind TYPE string.
+    TYPES   kind            TYPE string.
     TYPES   repository_name TYPE string.
-    TYPES   service TYPE string.
+    TYPES   service         TYPE string.
     TYPES END OF ty_route.
 
     CLASS-METHODS resolve
       IMPORTING
-        iv_path TYPE string
-        iv_service TYPE string
+        iv_path         TYPE string
+        iv_service      TYPE string
       RETURNING
         VALUE(rs_route) TYPE ty_route.
 ENDCLASS.

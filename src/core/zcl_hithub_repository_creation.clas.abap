@@ -5,27 +5,27 @@ CLASS zcl_hithub_repository_creation DEFINITION
 
   PUBLIC SECTION.
     TYPES BEGIN OF ty_result.
-    TYPES   success TYPE abap_bool.
-    TYPES   reason TYPE string.
+    TYPES   success    TYPE abap_bool.
+    TYPES   reason     TYPE string.
     TYPES   repository TYPE zif_hithub_metadata_store=>ty_repository.
     TYPES END OF ty_result.
 
     METHODS constructor
       IMPORTING
-        io_metadata TYPE REF TO zif_hithub_metadata_store
-        io_objects TYPE REF TO zif_hithub_object_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
+        io_objects     TYPE REF TO zif_hithub_object_store
         io_transaction TYPE REF TO zif_hithub_transaction
-        io_identity TYPE REF TO zif_hithub_identity.
+        io_identity    TYPE REF TO zif_hithub_identity.
 
     METHODS create
       IMPORTING
-        iv_name TYPE string
-        iv_description TYPE string OPTIONAL
-        iv_default_branch TYPE string OPTIONAL
-        iv_actor TYPE string OPTIONAL
+        iv_name            TYPE string
+        iv_description     TYPE string OPTIONAL
+        iv_default_branch  TYPE string OPTIONAL
+        iv_actor           TYPE string OPTIONAL
         iv_idempotency_key TYPE string OPTIONAL
       RETURNING
-        VALUE(rs_result) TYPE ty_result
+        VALUE(rs_result)   TYPE ty_result
       RAISING
         cx_static_check.
 

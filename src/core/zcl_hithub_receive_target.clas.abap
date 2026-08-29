@@ -4,9 +4,9 @@ CLASS zcl_hithub_receive_target DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS is_valid_target
       IMPORTING
-        io_store    TYPE REF TO zif_hithub_object_store
-        is_key      TYPE zif_hithub_object_store=>ty_object_key
-        iv_ref_name TYPE string
+        io_store        TYPE REF TO zif_hithub_object_store
+        is_key          TYPE zif_hithub_object_store=>ty_object_key
+        iv_ref_name     TYPE string
       RETURNING
         VALUE(rv_valid) TYPE abap_bool.
 

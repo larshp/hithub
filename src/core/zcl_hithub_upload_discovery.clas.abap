@@ -4,14 +4,14 @@ CLASS zcl_hithub_upload_discovery DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
-        iv_service    TYPE string
-        iv_head_oid   TYPE string
-        iv_head_ref   TYPE string
+        iv_service       TYPE string
+        iv_head_oid      TYPE string
+        iv_head_ref      TYPE string
         iv_repository_id TYPE string OPTIONAL
-        it_references TYPE zif_hithub_metadata_store=>ty_references
-        it_capabilities TYPE zcl_hithub_git_capabilities=>ty_capabilities OPTIONAL
+        it_references    TYPE zif_hithub_metadata_store=>ty_references
+        it_capabilities  TYPE zcl_hithub_git_capabilities=>ty_capabilities OPTIONAL
       RETURNING
-        VALUE(rv_body) TYPE xstring.
+        VALUE(rv_body)   TYPE xstring.
 
 ENDCLASS.
 
@@ -76,8 +76,8 @@ CLASS zcl_hithub_upload_discovery IMPLEMENTATION.
     IF iv_repository_id IS NOT INITIAL.
       lt_references = zcl_hithub_ref_visibility=>filter(
         iv_repository_id = iv_repository_id
-        iv_algorithm = 'sha1'
-        it_references = it_references ).
+        iv_algorithm     = 'sha1'
+        it_references    = it_references ).
     ENDIF.
     LOOP AT lt_references INTO ls_reference.
       IF zcl_hithub_oid_validator=>is_valid(

@@ -20,8 +20,8 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     DATA(lv_oid) = '1111111111111111111111111111111111111111'.
     DATA(ls_result) = lo_service->create(
       iv_repository_id = lv_repository_id
-      iv_name = 'feature/test'
-      iv_oid = lv_oid ).
+      iv_name          = 'feature/test'
+      iv_oid           = lv_oid ).
     ASSERT ls_result-success = abap_true.
     ASSERT ls_result-reference-name = 'refs/heads/feature/test'.
     ASSERT ls_result-reference-version = 1.
@@ -33,16 +33,16 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     ASSERT ls_found-oid = lv_oid.
 
     DATA(ls_update) = lo_service->update(
-      iv_repository_id = lv_repository_id
-      iv_name = 'feature/test'
-      iv_oid = '2222222222222222222222222222222222222222'
+      iv_repository_id    = lv_repository_id
+      iv_name             = 'feature/test'
+      iv_oid              = '2222222222222222222222222222222222222222'
       iv_expected_version = 1 ).
     ASSERT ls_update-success = abap_true.
     ASSERT ls_update-reference-version = 2.
 
     DATA(ls_delete) = lo_service->delete(
-      iv_repository_id = lv_repository_id
-      iv_name = 'refs/heads/feature/test'
+      iv_repository_id    = lv_repository_id
+      iv_name             = 'refs/heads/feature/test'
       iv_expected_version = 2 ).
     ASSERT ls_delete-success = abap_true.
     DATA(ls_after_delete) = lo_service->find(
@@ -58,13 +58,13 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     DATA(lv_repository_id) = 'branch-stale-00000000000000000000'.
     DATA(ls_created) = lo_service->create(
       iv_repository_id = lv_repository_id
-      iv_name = 'main'
-      iv_oid = '3333333333333333333333333333333333333333' ).
+      iv_name          = 'main'
+      iv_oid           = '3333333333333333333333333333333333333333' ).
     ASSERT ls_created-success = abap_true.
     DATA(ls_result) = lo_service->update(
-      iv_repository_id = lv_repository_id
-      iv_name = 'main'
-      iv_oid = '4444444444444444444444444444444444444444'
+      iv_repository_id    = lv_repository_id
+      iv_name             = 'main'
+      iv_oid              = '4444444444444444444444444444444444444444'
       iv_expected_version = 0 ).
     ASSERT ls_result-success = abap_false.
     ASSERT ls_result-reason = 'branch input is invalid'.

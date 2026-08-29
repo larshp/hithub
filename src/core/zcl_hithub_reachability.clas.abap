@@ -11,7 +11,7 @@ CLASS zcl_hithub_reachability DEFINITION
 
     METHODS walk
       IMPORTING
-        is_start TYPE zif_hithub_object_store=>ty_object_key
+        is_start       TYPE zif_hithub_object_store=>ty_object_key
       RETURNING
         VALUE(rt_keys) TYPE ty_keys
       RAISING

@@ -4,9 +4,9 @@ CLASS zcl_hithub_sideband_output DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
-        iv_data       TYPE xstring
-        iv_channel    TYPE i DEFAULT 1
-        iv_large_band TYPE abap_bool DEFAULT abap_true
+        iv_data            TYPE xstring
+        iv_channel         TYPE i DEFAULT 1
+        iv_large_band      TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(rv_response) TYPE xstring.
 

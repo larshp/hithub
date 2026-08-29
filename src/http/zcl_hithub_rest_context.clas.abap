@@ -8,24 +8,24 @@ CLASS zcl_hithub_rest_context DEFINITION
 
     CLASS-METHODS for_local
       IMPORTING
-        iv_method TYPE string
-        iv_path TYPE string
-        iv_body TYPE xstring OPTIONAL
-        iv_correlation_id TYPE string OPTIONAL
+        iv_method          TYPE string
+        iv_path            TYPE string
+        iv_body            TYPE xstring OPTIONAL
+        iv_correlation_id  TYPE string OPTIONAL
         iv_idempotency_key TYPE string OPTIONAL
-        iv_if_match TYPE string OPTIONAL
+        iv_if_match        TYPE string OPTIONAL
       RETURNING
-        VALUE(ro_context) TYPE REF TO zif_hithub_rest_context.
+        VALUE(ro_context)  TYPE REF TO zif_hithub_rest_context.
 
     METHODS constructor
       IMPORTING
-        iv_method TYPE string
-        iv_path TYPE string
-        iv_body TYPE xstring OPTIONAL
-        iv_actor_label TYPE string OPTIONAL
-        iv_correlation_id TYPE string OPTIONAL
+        iv_method          TYPE string
+        iv_path            TYPE string
+        iv_body            TYPE xstring OPTIONAL
+        iv_actor_label     TYPE string OPTIONAL
+        iv_correlation_id  TYPE string OPTIONAL
         iv_idempotency_key TYPE string OPTIONAL
-        iv_if_match TYPE string OPTIONAL.
+        iv_if_match        TYPE string OPTIONAL.
 
   PRIVATE SECTION.
     DATA mv_method TYPE string.
@@ -42,13 +42,13 @@ CLASS zcl_hithub_rest_context IMPLEMENTATION.
 
   METHOD for_local.
     ro_context = NEW zcl_hithub_rest_context(
-      iv_method = iv_method
-      iv_path = iv_path
-      iv_body = iv_body
-      iv_actor_label = 'local-development'
-      iv_correlation_id = iv_correlation_id
+      iv_method          = iv_method
+      iv_path            = iv_path
+      iv_body            = iv_body
+      iv_actor_label     = 'local-development'
+      iv_correlation_id  = iv_correlation_id
       iv_idempotency_key = iv_idempotency_key
-      iv_if_match = iv_if_match ).
+      iv_if_match        = iv_if_match ).
   ENDMETHOD.
 
   METHOD constructor.

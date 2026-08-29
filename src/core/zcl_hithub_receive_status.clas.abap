@@ -12,9 +12,9 @@ CLASS zcl_hithub_receive_status DEFINITION
 
     CLASS-METHODS build
       IMPORTING
-        iv_unpack_ok TYPE abap_bool
-        iv_unpack_error TYPE string OPTIONAL
-        it_results TYPE ty_results
+        iv_unpack_ok       TYPE abap_bool
+        iv_unpack_error    TYPE string OPTIONAL
+        it_results         TYPE ty_results
       RETURNING
         VALUE(rv_response) TYPE xstring.
 

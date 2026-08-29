@@ -14,24 +14,24 @@ CLASS zcl_hithub_merge_service DEFINITION
 
     METHODS constructor
       IMPORTING
-        io_store TYPE REF TO zif_hithub_object_store
-        io_metadata TYPE REF TO zif_hithub_metadata_store
+        io_store       TYPE REF TO zif_hithub_object_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
         io_transaction TYPE REF TO zif_hithub_transaction
-        io_lock TYPE REF TO zif_hithub_repository_lock
-        io_event_sink TYPE REF TO zif_hithub_event_sink OPTIONAL.
+        io_lock        TYPE REF TO zif_hithub_repository_lock
+        io_event_sink  TYPE REF TO zif_hithub_event_sink OPTIONAL.
 
     METHODS execute
       IMPORTING
-        iv_repository_id TYPE string
-        iv_pull_request_id TYPE string
+        iv_repository_id     TYPE string
+        iv_pull_request_id   TYPE string
         iv_expected_head_oid TYPE string
-        iv_author TYPE string
-        iv_committer TYPE string
-        iv_message TYPE string
-        iv_owner TYPE string
-        iv_clean TYPE abap_bool
+        iv_author            TYPE string
+        iv_committer         TYPE string
+        iv_message           TYPE string
+        iv_owner             TYPE string
+        iv_clean             TYPE abap_bool
       RETURNING
-        VALUE(rs_result) TYPE ty_result
+        VALUE(rs_result)     TYPE ty_result
       RAISING
         cx_static_check.
 
@@ -77,7 +77,7 @@ CLASS zcl_hithub_merge_service IMPLEMENTATION.
       RETURN.
     ENDIF.
     ls_merge_result = zcl_hithub_merge_result=>read(
-      iv_repository_id = iv_repository_id
+      iv_repository_id   = iv_repository_id
       iv_pull_request_id = iv_pull_request_id ).
     IF ls_merge_result-commit_oid IS NOT INITIAL.
       rs_result-success = abap_true.

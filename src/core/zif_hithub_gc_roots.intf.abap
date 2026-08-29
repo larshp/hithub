@@ -8,6 +8,6 @@ INTERFACE zif_hithub_gc_roots
     IMPORTING
       iv_repository_id TYPE string
     RETURNING
-      VALUE(rt_keys) TYPE ty_keys.
+      VALUE(rt_keys)   TYPE ty_keys.
 
 ENDINTERFACE.

@@ -4,8 +4,8 @@ CLASS zcl_hithub_upload_negotiation DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
-        is_request TYPE zcl_hithub_upload_request=>ty_request
-        it_common  TYPE zcl_hithub_upload_request=>ty_lines
+        is_request         TYPE zcl_hithub_upload_request=>ty_request
+        it_common          TYPE zcl_hithub_upload_request=>ty_lines
       RETURNING
         VALUE(rv_response) TYPE xstring.
 

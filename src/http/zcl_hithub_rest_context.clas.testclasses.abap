@@ -13,13 +13,13 @@ CLASS ltcl_hithub_rest_context IMPLEMENTATION.
 
   METHOD preserves_request_values.
     DATA(lo_context) = NEW zcl_hithub_rest_context(
-      iv_method = 'patch'
-      iv_path = '/api/repos/demo'
-      iv_body = CONV xstring( '7B226E616D65223A2264656D6F227D' )
-      iv_actor_label = 'trusted-actor'
-      iv_correlation_id = 'request-123'
+      iv_method          = 'patch'
+      iv_path            = '/api/repos/demo'
+      iv_body            = CONV xstring( '7B226E616D65223A2264656D6F227D' )
+      iv_actor_label     = 'trusted-actor'
+      iv_correlation_id  = 'request-123'
       iv_idempotency_key = 'retry-123'
-      iv_if_match = '"7"' ).
+      iv_if_match        = '"7"' ).
 
     ASSERT lo_context->zif_hithub_rest_context~request_method( ) = 'PATCH'.
     ASSERT lo_context->zif_hithub_rest_context~path( ) = '/api/repos/demo'.

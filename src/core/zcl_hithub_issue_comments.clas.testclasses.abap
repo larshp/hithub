@@ -23,7 +23,7 @@ CLASS ltcl_issue_comments IMPLEMENTATION.
     ASSERT zcl_hithub_issue_comments=>add( ls_comment ) = abap_true.
     DATA(lt_comments) = zcl_hithub_issue_comments=>list(
       iv_repository_id = ls_comment-repository_id
-      iv_issue_id = ls_comment-issue_id ).
+      iv_issue_id      = ls_comment-issue_id ).
     ASSERT lines( lt_comments ) = 2.
     ASSERT lt_comments[ 1 ]-comment_id = 'comment-1'.
   ENDMETHOD.

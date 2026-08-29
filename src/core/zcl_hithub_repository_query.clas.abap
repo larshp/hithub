@@ -14,8 +14,8 @@ CLASS zcl_hithub_repository_query DEFINITION
         cx_static_check.
     METHODS find
       IMPORTING
-        iv_name            TYPE string
-        iv_include_deleted TYPE abap_bool OPTIONAL
+        iv_name              TYPE string
+        iv_include_deleted   TYPE abap_bool OPTIONAL
       RETURNING
         VALUE(rs_repository) TYPE zif_hithub_metadata_store=>ty_repository
       RAISING

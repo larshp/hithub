@@ -6,26 +6,26 @@ CLASS zcl_hithub_repo_representation DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS members
       IMPORTING
-        is_repository TYPE zif_hithub_metadata_store=>ty_repository
+        is_repository     TYPE zif_hithub_metadata_store=>ty_repository
       RETURNING
         VALUE(rt_members) TYPE zcl_hithub_json=>ty_members.
     CLASS-METHODS one
       IMPORTING
-        is_repository TYPE zif_hithub_metadata_store=>ty_repository
+        is_repository  TYPE zif_hithub_metadata_store=>ty_repository
       RETURNING
         VALUE(rv_body) TYPE xstring.
     CLASS-METHODS one_with_readme
       IMPORTING
-        is_repository TYPE zif_hithub_metadata_store=>ty_repository
-        io_metadata TYPE REF TO zif_hithub_metadata_store
-        io_objects TYPE REF TO zif_hithub_object_store
+        is_repository  TYPE zif_hithub_metadata_store=>ty_repository
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
+        io_objects     TYPE REF TO zif_hithub_object_store
       RETURNING
         VALUE(rv_body) TYPE xstring.
     CLASS-METHODS list
       IMPORTING
         it_repositories TYPE zif_hithub_metadata_store=>ty_repositories
       RETURNING
-        VALUE(rv_body) TYPE xstring.
+        VALUE(rv_body)  TYPE xstring.
 
 ENDCLASS.
 
@@ -92,7 +92,7 @@ CLASS zcl_hithub_repo_representation IMPLEMENTATION.
         ENDIF.
         ls_reference = io_metadata->read_reference(
           iv_repository_id = is_repository-id
-          iv_name = is_repository-default_branch ).
+          iv_name          = is_repository-default_branch ).
         IF ls_reference-oid IS INITIAL.
           rv_body = zcl_hithub_json=>serialize_data( lt_members ).
           RETURN.

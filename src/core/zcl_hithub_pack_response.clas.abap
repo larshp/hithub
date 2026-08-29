@@ -8,8 +8,8 @@ CLASS zcl_hithub_pack_response DEFINITION
 
     METHODS stream_pack
       IMPORTING
-        iv_pack       TYPE xstring
-        iv_large_band TYPE abap_bool DEFAULT abap_true
+        iv_pack           TYPE xstring
+        iv_large_band     TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(rv_packets) TYPE i.
 

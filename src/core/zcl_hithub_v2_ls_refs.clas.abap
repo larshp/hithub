@@ -4,11 +4,11 @@ CLASS zcl_hithub_v2_ls_refs DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
-        iv_repository_id TYPE string OPTIONAL
-        iv_algorithm     TYPE string DEFAULT 'sha1'
-        it_references    TYPE zif_hithub_metadata_store=>ty_references
-        it_ref_prefixes  TYPE zcl_hithub_upload_request=>ty_lines OPTIONAL
-        iv_symrefs       TYPE abap_bool DEFAULT abap_false
+        iv_repository_id   TYPE string OPTIONAL
+        iv_algorithm       TYPE string DEFAULT 'sha1'
+        it_references      TYPE zif_hithub_metadata_store=>ty_references
+        it_ref_prefixes    TYPE zcl_hithub_upload_request=>ty_lines OPTIONAL
+        iv_symrefs         TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_response) TYPE xstring.
 
@@ -31,8 +31,8 @@ CLASS zcl_hithub_v2_ls_refs IMPLEMENTATION.
     IF iv_repository_id IS NOT INITIAL.
       lt_references = zcl_hithub_ref_visibility=>filter(
         iv_repository_id = iv_repository_id
-        iv_algorithm = iv_algorithm
-        it_references = it_references ).
+        iv_algorithm     = iv_algorithm
+        it_references    = it_references ).
     ENDIF.
 
     LOOP AT lt_references INTO ls_reference.

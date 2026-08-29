@@ -6,18 +6,18 @@ CLASS zcl_hithub_pr_comments DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_comment,
-        repository_id  TYPE string,
+        repository_id   TYPE string,
         pull_request_id TYPE string,
-        comment_id     TYPE string,
-        actor          TYPE string,
-        body           TYPE string,
-        created_at     TYPE string,
+        comment_id      TYPE string,
+        actor           TYPE string,
+        body            TYPE string,
+        created_at      TYPE string,
       END OF ty_comment,
       ty_comments TYPE STANDARD TABLE OF ty_comment WITH DEFAULT KEY.
 
     CLASS-METHODS add
       IMPORTING
-        is_comment TYPE ty_comment
+        is_comment      TYPE ty_comment
       RETURNING
         VALUE(rv_saved) TYPE abap_bool.
 

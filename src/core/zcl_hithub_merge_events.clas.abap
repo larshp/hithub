@@ -6,14 +6,14 @@ CLASS zcl_hithub_merge_events DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-        io_sink TYPE REF TO zif_hithub_event_sink
+        io_sink     TYPE REF TO zif_hithub_event_sink
         io_metadata TYPE REF TO zif_hithub_metadata_store.
 
     METHODS emit_once
       IMPORTING
-        iv_actor TYPE string
-        iv_key TYPE string
-        is_event TYPE zif_hithub_event_sink=>ty_event
+        iv_actor          TYPE string
+        iv_key            TYPE string
+        is_event          TYPE zif_hithub_event_sink=>ty_event
       RETURNING
         VALUE(rv_emitted) TYPE abap_bool
       RAISING

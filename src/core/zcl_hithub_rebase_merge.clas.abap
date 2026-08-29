@@ -14,16 +14,16 @@ CLASS zcl_hithub_rebase_merge DEFINITION
 
     CLASS-METHODS create
       IMPORTING
-        iv_tree_oid TYPE string
+        iv_tree_oid           TYPE string
         iv_rebased_parent_oid TYPE string
-        iv_expected_head_oid TYPE string
-        iv_current_head_oid TYPE string
-        iv_author TYPE string
-        iv_committer TYPE string
-        iv_message TYPE string
-        iv_clean TYPE abap_bool
+        iv_expected_head_oid  TYPE string
+        iv_current_head_oid   TYPE string
+        iv_author             TYPE string
+        iv_committer          TYPE string
+        iv_message            TYPE string
+        iv_clean              TYPE abap_bool
       RETURNING
-        VALUE(rs_result) TYPE ty_result
+        VALUE(rs_result)      TYPE ty_result
       RAISING
         cx_static_check.
 ENDCLASS.

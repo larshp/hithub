@@ -17,7 +17,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD carries_actor_and_correlation.
     DATA(lo_context) = NEW zcl_hithub_request_context(
-      iv_actor_label = 'gateway/build-bot'
+      iv_actor_label    = 'gateway/build-bot'
       iv_correlation_id = 'request-123' ).
 
     ASSERT lo_context->zif_hithub_request_context~actor_label( ) =

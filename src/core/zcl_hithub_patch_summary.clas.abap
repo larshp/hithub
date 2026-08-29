@@ -14,7 +14,7 @@ CLASS zcl_hithub_patch_summary DEFINITION
 
     CLASS-METHODS generate
       IMPORTING
-        it_changes TYPE zcl_hithub_changed_files=>ty_changes
+        it_changes        TYPE zcl_hithub_changed_files=>ty_changes
       RETURNING
         VALUE(rs_summary) TYPE ty_summary.
 ENDCLASS.

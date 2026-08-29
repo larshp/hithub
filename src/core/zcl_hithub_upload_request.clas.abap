@@ -16,7 +16,7 @@ CLASS zcl_hithub_upload_request DEFINITION
 
     CLASS-METHODS parse
       IMPORTING
-        iv_data TYPE xstring
+        iv_data           TYPE xstring
       RETURNING
         VALUE(rs_request) TYPE ty_request.
 

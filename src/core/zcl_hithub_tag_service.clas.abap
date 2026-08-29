@@ -3,15 +3,15 @@ CLASS zcl_hithub_tag_service DEFINITION
 
   PUBLIC SECTION.
     TYPES BEGIN OF ty_result.
-    TYPES   success TYPE abap_bool.
-    TYPES   reason TYPE string.
+    TYPES   success   TYPE abap_bool.
+    TYPES   reason    TYPE string.
     TYPES   reference TYPE zif_hithub_metadata_store=>ty_reference.
     TYPES END OF ty_result.
     METHODS constructor
-      IMPORTING io_metadata TYPE REF TO zif_hithub_metadata_store
+      IMPORTING io_metadata    TYPE REF TO zif_hithub_metadata_store
                 io_transaction TYPE REF TO zif_hithub_transaction.
     METHODS list IMPORTING iv_repository_id TYPE string
-      RETURNING VALUE(rt_references) TYPE zif_hithub_metadata_store=>ty_references
+      RETURNING VALUE(rt_references)        TYPE zif_hithub_metadata_store=>ty_references
       RAISING cx_static_check.
     METHODS find IMPORTING iv_repository_id TYPE string iv_name TYPE string
       RETURNING VALUE(rs_reference) TYPE zif_hithub_metadata_store=>ty_reference
@@ -32,7 +32,7 @@ CLASS zcl_hithub_tag_service DEFINITION
     DATA mo_metadata TYPE REF TO zif_hithub_metadata_store.
     DATA mo_transaction TYPE REF TO zif_hithub_transaction.
     CLASS-METHODS normalize IMPORTING iv_name TYPE string
-      RETURNING VALUE(rv_name) TYPE string.
+      RETURNING VALUE(rv_name)                TYPE string.
 ENDCLASS.
 
 CLASS zcl_hithub_tag_service IMPLEMENTATION.
@@ -145,7 +145,7 @@ CLASS zcl_hithub_tag_service IMPLEMENTATION.
     TRY.
         mo_transaction->start( ).
         lv_version = mo_metadata->save_reference(
-          is_reference = ls_reference
+          is_reference        = ls_reference
           iv_expected_version = iv_expected_version ).
         IF lv_version IS INITIAL.
           mo_transaction->rollback( ).

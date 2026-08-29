@@ -17,7 +17,7 @@ CLASS zcl_hithub_tree_codec DEFINITION
 
     CLASS-METHODS encode
       IMPORTING
-        it_entries TYPE ty_entries
+        it_entries        TYPE ty_entries
       RETURNING
         VALUE(rv_payload) TYPE xstring
       RAISING
@@ -25,8 +25,8 @@ CLASS zcl_hithub_tree_codec DEFINITION
 
     CLASS-METHODS decode
       IMPORTING
-        iv_payload TYPE xstring
-        iv_oid_length TYPE i DEFAULT 20
+        iv_payload        TYPE xstring
+        iv_oid_length     TYPE i DEFAULT 20
       RETURNING
         VALUE(rt_entries) TYPE ty_entries
       RAISING

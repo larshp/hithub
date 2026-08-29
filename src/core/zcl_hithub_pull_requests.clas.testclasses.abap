@@ -64,9 +64,9 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
     ASSERT ls_result-success = abap_true.
     ls_result = zcl_hithub_pull_requests=>transition(
-      iv_repository_id = ls_request-repository_id
-      iv_id = ls_request-id
-      iv_state = zcl_hithub_pull_request_state=>c_open
+      iv_repository_id    = ls_request-repository_id
+      iv_id               = ls_request-id
+      iv_state            = zcl_hithub_pull_request_state=>c_open
       iv_expected_version = 1 ).
     ASSERT ls_result-success = abap_true.
     ASSERT ls_result-pull_request-state = zcl_hithub_pull_request_state=>c_open.
@@ -97,13 +97,13 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ASSERT zcl_hithub_pr_reviews=>add( ls_review ) = abap_true.
 
     ls_result = zcl_hithub_pull_requests=>transition(
-      iv_repository_id = ls_request-repository_id
-      iv_id = ls_request-id
-      iv_state = zcl_hithub_pull_request_state=>c_closed
+      iv_repository_id    = ls_request-repository_id
+      iv_id               = ls_request-id
+      iv_state            = zcl_hithub_pull_request_state=>c_closed
       iv_expected_version = 1 ).
     ASSERT ls_result-success = abap_true.
     lt_reviews = zcl_hithub_pr_reviews=>list(
-      iv_repository_id = ls_request-repository_id
+      iv_repository_id   = ls_request-repository_id
       iv_pull_request_id = ls_request-id ).
     ASSERT lines( lt_reviews ) = 1.
     ASSERT lt_reviews[ 1 ]-state = zcl_hithub_pr_reviews=>c_approved.

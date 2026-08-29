@@ -6,19 +6,19 @@ CLASS zcl_hithub_issue_repr DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS members
       IMPORTING
-        is_issue TYPE zcl_hithub_issues=>ty_issue
+        is_issue          TYPE zcl_hithub_issues=>ty_issue
       RETURNING
         VALUE(rt_members) TYPE zcl_hithub_json=>ty_members.
 
     CLASS-METHODS one
       IMPORTING
-        is_issue TYPE zcl_hithub_issues=>ty_issue
+        is_issue       TYPE zcl_hithub_issues=>ty_issue
       RETURNING
         VALUE(rv_body) TYPE xstring.
 
     CLASS-METHODS list
       IMPORTING
-        it_issues TYPE zcl_hithub_issues=>ty_issues
+        it_issues      TYPE zcl_hithub_issues=>ty_issues
       RETURNING
         VALUE(rv_body) TYPE xstring.
 ENDCLASS.

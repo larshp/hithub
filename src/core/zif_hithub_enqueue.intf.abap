@@ -3,7 +3,7 @@ INTERFACE zif_hithub_enqueue
 
   METHODS acquire
     IMPORTING
-      iv_repository_id TYPE string
+      iv_repository_id   TYPE string
     RETURNING
       VALUE(rv_acquired) TYPE abap_bool.
 

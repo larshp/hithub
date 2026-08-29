@@ -12,9 +12,9 @@ CLASS zcl_hithub_text_merge DEFINITION
 
     CLASS-METHODS merge
       IMPORTING
-        iv_base   TYPE string
-        iv_ours   TYPE string
-        iv_theirs TYPE string
+        iv_base          TYPE string
+        iv_ours          TYPE string
+        iv_theirs        TYPE string
       RETURNING
         VALUE(rs_result) TYPE ty_result.
 
@@ -23,13 +23,13 @@ CLASS zcl_hithub_text_merge DEFINITION
 
     CLASS-METHODS split
       IMPORTING
-        iv_text TYPE string
+        iv_text         TYPE string
       RETURNING
         VALUE(rt_lines) TYPE ty_lines.
 
     CLASS-METHODS join
       IMPORTING
-        it_lines TYPE ty_lines
+        it_lines       TYPE ty_lines
       RETURNING
         VALUE(rv_text) TYPE string.
 ENDCLASS.

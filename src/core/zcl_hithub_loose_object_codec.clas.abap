@@ -15,8 +15,8 @@ CLASS zcl_hithub_loose_object_codec DEFINITION
 
     METHODS compress
       IMPORTING
-        iv_type    TYPE string
-        iv_payload TYPE xstring
+        iv_type        TYPE string
+        iv_payload     TYPE xstring
       RETURNING
         VALUE(rv_data) TYPE xstring
       RAISING
@@ -24,8 +24,8 @@ CLASS zcl_hithub_loose_object_codec DEFINITION
 
     METHODS decompress
       IMPORTING
-        iv_data     TYPE xstring
-        iv_max_size TYPE int8 DEFAULT 524288000
+        iv_data          TYPE xstring
+        iv_max_size      TYPE int8 DEFAULT 524288000
       RETURNING
         VALUE(rs_object) TYPE ty_object
       RAISING

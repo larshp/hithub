@@ -28,7 +28,7 @@ CLASS ltcl_issue_labels IMPLEMENTATION.
       iv_issue_id = 'issue-1' iv_label = 'bug' ) = abap_true.
     ASSERT lines( zcl_hithub_issue_labels=>list(
       iv_repository_id = 'issue-label-repository'
-      iv_issue_id = 'issue-1' ) ) = 1.
+      iv_issue_id      = 'issue-1' ) ) = 1.
   ENDMETHOD.
 
 ENDCLASS.

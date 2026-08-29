@@ -12,13 +12,13 @@ CLASS zcl_hithub_merge_policy DEFINITION
 
     CLASS-METHODS evaluate
       IMPORTING
-        it_rules            TYPE zcl_hithub_branch_protection=>ty_rules
-        iv_target_ref       TYPE string
+        it_rules              TYPE zcl_hithub_branch_protection=>ty_rules
+        iv_target_ref         TYPE string
         iv_pull_request_state TYPE string
-        iv_mergeability     TYPE string
-        iv_approved_reviews TYPE i
+        iv_mergeability       TYPE string
+        iv_approved_reviews   TYPE i
       RETURNING
-        VALUE(rs_result) TYPE ty_result.
+        VALUE(rs_result)      TYPE ty_result.
 ENDCLASS.
 
 CLASS zcl_hithub_merge_policy IMPLEMENTATION.

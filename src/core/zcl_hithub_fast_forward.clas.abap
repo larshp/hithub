@@ -4,9 +4,9 @@ CLASS zcl_hithub_fast_forward DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS allows_update
       IMPORTING
-        io_reachability TYPE REF TO zcl_hithub_reachability
-        is_old          TYPE zif_hithub_object_store=>ty_object_key
-        is_new          TYPE zif_hithub_object_store=>ty_object_key
+        io_reachability   TYPE REF TO zcl_hithub_reachability
+        is_old            TYPE zif_hithub_object_store=>ty_object_key
+        is_new            TYPE zif_hithub_object_store=>ty_object_key
       RETURNING
         VALUE(rv_allowed) TYPE abap_bool.
 

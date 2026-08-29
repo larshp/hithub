@@ -7,23 +7,23 @@ CLASS zcl_hithub_pack_codec DEFINITION
 
     METHODS constructor
       IMPORTING
-        io_compression  TYPE REF TO zif_hithub_compression
+        io_compression   TYPE REF TO zif_hithub_compression
         io_base_resolver TYPE REF TO zcl_hithub_pack_base_resolver OPTIONAL.
 
     METHODS unpack
       IMPORTING
-        iv_pack          TYPE xstring
-        iv_repository_id TYPE string
-        iv_algorithm     TYPE string DEFAULT 'sha1'
+        iv_pack            TYPE xstring
+        iv_repository_id   TYPE string
+        iv_algorithm       TYPE string DEFAULT 'sha1'
         iv_max_delta_depth TYPE i DEFAULT 50
-        iv_max_pack_size  TYPE int8 DEFAULT 524288000
-        iv_max_objects    TYPE i DEFAULT 100000
+        iv_max_pack_size   TYPE int8 DEFAULT 524288000
+        iv_max_objects     TYPE i DEFAULT 100000
       RETURNING
-        VALUE(rt_objects) TYPE ty_objects.
+        VALUE(rt_objects)  TYPE ty_objects.
 
     METHODS repack
       IMPORTING
-        it_objects TYPE ty_objects
+        it_objects     TYPE ty_objects
       RETURNING
         VALUE(rv_pack) TYPE xstring
       RAISING
@@ -35,9 +35,9 @@ CLASS zcl_hithub_pack_codec DEFINITION
 
     TYPES:
       BEGIN OF ty_decoded,
-        object       TYPE zif_hithub_object_store=>ty_object,
-        pack_offset  TYPE i,
-        delta_depth  TYPE i,
+        object      TYPE zif_hithub_object_store=>ty_object,
+        pack_offset TYPE i,
+        delta_depth TYPE i,
       END OF ty_decoded,
       ty_decoded_objects TYPE STANDARD TABLE OF ty_decoded WITH DEFAULT KEY.
 
@@ -86,7 +86,7 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
       iv_max_pack_size = iv_max_pack_size iv_max_objects = iv_max_objects ).
     IF lo_limits->is_allowed(
         iv_pack_size = xstrlen( iv_pack )
-        iv_objects = ls_header-object_count ) = abap_false.
+        iv_objects   = ls_header-object_count ) = abap_false.
       RETURN.
     ENDIF.
     lv_body_length = xstrlen( iv_pack ) - 20.
@@ -165,16 +165,16 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
         ENDIF.
         ls_object-type = ls_base-type.
         ls_object-payload = zcl_hithub_delta_codec=>apply(
-          iv_base = ls_base-payload
-          iv_delta = ls_stream-raw_data
-          iv_delta_depth = lv_delta_depth
+          iv_base            = ls_base-payload
+          iv_delta           = ls_stream-raw_data
+          iv_delta_depth     = lv_delta_depth
           iv_max_delta_depth = iv_max_delta_depth ).
         ls_object-size = xstrlen( ls_object-payload ).
       ENDIF.
       lv_oid = zcl_hithub_object_id=>calculate(
         iv_algorithm = iv_algorithm
-        iv_type = ls_object-type
-        iv_payload = ls_object-payload ).
+        iv_type      = ls_object-type
+        iv_payload   = ls_object-payload ).
       ls_object-key-oid = lv_oid.
       APPEND ls_object TO rt_objects.
       CLEAR ls_decoded.
@@ -228,8 +228,8 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
     CONCATENATE lv_header lv_body INTO rv_pack IN BYTE MODE.
     cl_abap_message_digest=>calculate_hash_for_raw(
       EXPORTING
-        if_algorithm = 'sha1'
-        if_data = rv_pack
+        if_algorithm   = 'sha1'
+        if_data        = rv_pack
       IMPORTING
         ef_hashxstring = lv_digest ).
     CONCATENATE rv_pack lv_digest INTO rv_pack IN BYTE MODE.

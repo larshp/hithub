@@ -11,9 +11,9 @@ CLASS zcl_hithub_shallow_negotiation DEFINITION
 
     CLASS-METHODS build
       IMPORTING
-        it_start_oids TYPE zcl_hithub_upload_request=>ty_lines
-        it_commits    TYPE ty_commits
-        iv_depth      TYPE i
+        it_start_oids      TYPE zcl_hithub_upload_request=>ty_lines
+        it_commits         TYPE ty_commits
+        iv_depth           TYPE i
       RETURNING
         VALUE(rv_response) TYPE xstring.
 

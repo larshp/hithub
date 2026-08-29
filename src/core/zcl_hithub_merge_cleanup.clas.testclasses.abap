@@ -29,13 +29,13 @@ CLASS ltcl_merge_cleanup IMPLEMENTATION.
       iv_source_ref = ls_reference-name ) = abap_true.
     ASSERT lo_metadata->read_reference(
       iv_repository_id = ls_reference-repository_id
-      iv_name = ls_reference-name )-name IS NOT INITIAL.
+      iv_name          = ls_reference-name )-name IS NOT INITIAL.
     ASSERT lo_cleanup->cleanup_source(
       iv_enabled = abap_true iv_repository_id = ls_reference-repository_id
       iv_source_ref = ls_reference-name iv_expected_version = 1 ) = abap_true.
     ASSERT lo_metadata->read_reference(
       iv_repository_id = ls_reference-repository_id
-      iv_name = ls_reference-name )-name IS INITIAL.
+      iv_name          = ls_reference-name )-name IS INITIAL.
   ENDMETHOD.
 
 ENDCLASS.

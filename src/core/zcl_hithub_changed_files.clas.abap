@@ -23,8 +23,8 @@ CLASS zcl_hithub_changed_files DEFINITION
 
     CLASS-METHODS calculate
       IMPORTING
-        it_base TYPE ty_files
-        it_head TYPE ty_files
+        it_base           TYPE ty_files
+        it_head           TYPE ty_files
       RETURNING
         VALUE(rt_changes) TYPE ty_changes.
 ENDCLASS.

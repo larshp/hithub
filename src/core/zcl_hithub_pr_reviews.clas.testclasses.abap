@@ -23,7 +23,7 @@ CLASS ltcl_pr_reviews IMPLEMENTATION.
 
     ASSERT zcl_hithub_pr_reviews=>add( ls_review ) = abap_true.
     lt_reviews = zcl_hithub_pr_reviews=>list(
-      iv_repository_id = ls_review-repository_id
+      iv_repository_id   = ls_review-repository_id
       iv_pull_request_id = ls_review-pull_request_id ).
     ASSERT lines( lt_reviews ) = 1.
     ASSERT lt_reviews[ 1 ]-state = zcl_hithub_pr_reviews=>c_approved.

@@ -6,17 +6,17 @@ CLASS zcl_hithub_merge_base DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_commit,
-        oid    TYPE string,
-        parent TYPE string,
+        oid     TYPE string,
+        parent  TYPE string,
         parent2 TYPE string,
       END OF ty_commit,
       ty_commits TYPE STANDARD TABLE OF ty_commit WITH DEFAULT KEY.
 
     CLASS-METHODS find
       IMPORTING
-        it_commits TYPE ty_commits
-        iv_head_a  TYPE string
-        iv_head_b  TYPE string
+        it_commits    TYPE ty_commits
+        iv_head_a     TYPE string
+        iv_head_b     TYPE string
       RETURNING
         VALUE(rv_oid) TYPE string.
 ENDCLASS.

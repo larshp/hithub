@@ -4,9 +4,9 @@ CLASS zcl_hithub_object_id DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS calculate
       IMPORTING
-        iv_algorithm TYPE string DEFAULT 'sha1'
-        iv_type      TYPE string
-        iv_payload   TYPE xstring
+        iv_algorithm  TYPE string DEFAULT 'sha1'
+        iv_type       TYPE string
+        iv_payload    TYPE xstring
       RETURNING
         VALUE(rv_oid) TYPE string
       RAISING
@@ -26,8 +26,8 @@ CLASS zcl_hithub_object_id IMPLEMENTATION.
     CONCATENATE lv_header iv_payload INTO lv_input IN BYTE MODE.
     cl_abap_message_digest=>calculate_hash_for_raw(
       EXPORTING
-        if_algorithm = iv_algorithm
-        if_data = lv_input
+        if_algorithm   = iv_algorithm
+        if_data        = lv_input
       IMPORTING
         ef_hashxstring = lv_hash ).
     rv_oid = lv_hash.

@@ -6,7 +6,7 @@ CLASS zcl_hithub_git_capabilities DEFINITION
 
     CLASS-METHODS advertised
       IMPORTING
-        iv_head_ref TYPE string DEFAULT 'refs/heads/main'
+        iv_head_ref            TYPE string DEFAULT 'refs/heads/main'
       RETURNING
         VALUE(rt_capabilities) TYPE ty_capabilities.
 
@@ -18,7 +18,7 @@ CLASS zcl_hithub_git_capabilities DEFINITION
       IMPORTING
         it_capabilities TYPE ty_capabilities
       RETURNING
-        VALUE(rv_text) TYPE string.
+        VALUE(rv_text)  TYPE string.
 
 ENDCLASS.
 

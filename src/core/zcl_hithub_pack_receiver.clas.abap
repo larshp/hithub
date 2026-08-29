@@ -4,26 +4,26 @@ CLASS zcl_hithub_pack_receiver DEFINITION
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
-      io_codec      TYPE REF TO zcl_hithub_pack_codec
-      io_store      TYPE REF TO zif_hithub_object_store
-      io_metadata   TYPE REF TO zif_hithub_metadata_store
-      io_transaction TYPE REF TO zif_hithub_transaction
-      io_limits     TYPE REF TO zcl_hithub_pack_limits OPTIONAL
-      io_quarantine TYPE REF TO zif_hithub_quarantine OPTIONAL
-      io_event_sink TYPE REF TO zif_hithub_event_sink OPTIONAL
+      io_codec           TYPE REF TO zcl_hithub_pack_codec
+      io_store           TYPE REF TO zif_hithub_object_store
+      io_metadata        TYPE REF TO zif_hithub_metadata_store
+      io_transaction     TYPE REF TO zif_hithub_transaction
+      io_limits          TYPE REF TO zcl_hithub_pack_limits OPTIONAL
+      io_quarantine      TYPE REF TO zif_hithub_quarantine OPTIONAL
+      io_event_sink      TYPE REF TO zif_hithub_event_sink OPTIONAL
       io_request_context TYPE REF TO zif_hithub_request_context OPTIONAL
-      io_clock TYPE REF TO zif_hithub_clock OPTIONAL.
+      io_clock           TYPE REF TO zif_hithub_clock OPTIONAL.
 
     METHODS receive
       IMPORTING
-        iv_pack              TYPE xstring
+        iv_pack             TYPE xstring
         iv_repository_id    TYPE string
         iv_ref_name         TYPE string
         iv_target_oid       TYPE string
         iv_algorithm        TYPE string DEFAULT 'sha1'
         iv_expected_version TYPE int8 OPTIONAL
       RETURNING
-        VALUE(rv_updated) TYPE abap_bool
+        VALUE(rv_updated)   TYPE abap_bool
       RAISING
         cx_static_check.
 
@@ -81,14 +81,14 @@ CLASS zcl_hithub_pack_receiver IMPLEMENTATION.
     DATA(ls_header) = zcl_hithub_pack_header=>parse( iv_pack ).
     IF mo_limits->is_allowed(
         iv_pack_size = xstrlen( iv_pack )
-        iv_objects = ls_header-object_count ) = abap_false.
+        iv_objects   = ls_header-object_count ) = abap_false.
       RETURN.
     ENDIF.
 
     lt_objects = mo_codec->unpack(
-      iv_pack = iv_pack
+      iv_pack          = iv_pack
       iv_repository_id = iv_repository_id
-      iv_algorithm = iv_algorithm ).
+      iv_algorithm     = iv_algorithm ).
     IF lt_objects IS INITIAL.
       RETURN.
     ENDIF.
@@ -126,7 +126,7 @@ CLASS zcl_hithub_pack_receiver IMPLEMENTATION.
         ls_reference-algorithm = iv_algorithm.
         ls_reference-oid = iv_target_oid.
         lv_version = mo_metadata->save_reference(
-          is_reference = ls_reference
+          is_reference        = ls_reference
           iv_expected_version = iv_expected_version ).
         IF lv_version IS INITIAL.
           mo_quarantine->discard( ).

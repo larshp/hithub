@@ -4,15 +4,15 @@ CLASS zcl_hithub_commit_identity DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_identity,
-        name        TYPE string,
-        email       TYPE string,
+        name         TYPE string,
+        email        TYPE string,
         unix_seconds TYPE int8,
-        timezone    TYPE string,
+        timezone     TYPE string,
       END OF ty_identity.
 
     CLASS-METHODS parse
       IMPORTING
-        iv_identity TYPE string
+        iv_identity        TYPE string
       RETURNING
         VALUE(rs_identity) TYPE ty_identity.
 

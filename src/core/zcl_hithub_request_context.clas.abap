@@ -6,7 +6,7 @@ CLASS zcl_hithub_request_context DEFINITION
 
     METHODS constructor
       IMPORTING
-        iv_actor_label   TYPE string OPTIONAL
+        iv_actor_label    TYPE string OPTIONAL
         iv_correlation_id TYPE string OPTIONAL.
 
   PRIVATE SECTION.

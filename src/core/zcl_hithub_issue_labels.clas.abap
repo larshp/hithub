@@ -12,13 +12,13 @@ CLASS zcl_hithub_issue_labels DEFINITION
         iv_issue_id      TYPE string
         iv_label         TYPE string
       RETURNING
-        VALUE(rv_saved) TYPE abap_bool.
+        VALUE(rv_saved)  TYPE abap_bool.
 
     CLASS-METHODS remove
       IMPORTING
-        iv_repository_id TYPE string
-        iv_issue_id      TYPE string
-        iv_label         TYPE string
+        iv_repository_id  TYPE string
+        iv_issue_id       TYPE string
+        iv_label          TYPE string
       RETURNING
         VALUE(rv_removed) TYPE abap_bool.
 

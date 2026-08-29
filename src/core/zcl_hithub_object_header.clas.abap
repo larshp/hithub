@@ -4,8 +4,8 @@ CLASS zcl_hithub_object_header DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS generate
       IMPORTING
-        iv_type TYPE string
-        iv_size TYPE int8
+        iv_type          TYPE string
+        iv_size          TYPE int8
       RETURNING
         VALUE(rv_header) TYPE xstring
       RAISING

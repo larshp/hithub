@@ -16,10 +16,10 @@ CLASS zcl_hithub_mergeability DEFINITION
         iv_expected_head_oid TYPE string
         iv_base_oid          TYPE string
         iv_expected_base_oid TYPE string
-        iv_merge_clean      TYPE abap_bool
-        iv_blocked          TYPE abap_bool
+        iv_merge_clean       TYPE abap_bool
+        iv_blocked           TYPE abap_bool
       RETURNING
-        VALUE(rv_state) TYPE string.
+        VALUE(rv_state)      TYPE string.
 ENDCLASS.
 
 CLASS zcl_hithub_mergeability IMPLEMENTATION.

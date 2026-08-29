@@ -29,7 +29,7 @@ CLASS ltcl_issue_assignees IMPLEMENTATION.
       iv_issue_id = 'issue-1' iv_actor = 'z-team' ) = abap_true.
     ASSERT lines( zcl_hithub_issue_assignees=>list(
       iv_repository_id = 'issue-assignee-repository'
-      iv_issue_id = 'issue-1' ) ) = 1.
+      iv_issue_id      = 'issue-1' ) ) = 1.
   ENDMETHOD.
 
 ENDCLASS.

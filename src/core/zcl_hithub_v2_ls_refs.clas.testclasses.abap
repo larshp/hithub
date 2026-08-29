@@ -27,8 +27,8 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND 'refs/heads/' TO lt_prefixes.
     lv_response = zcl_hithub_v2_ls_refs=>build(
       iv_repository_id = 'repo-v2'
-      it_references = lt_references
-      it_ref_prefixes = lt_prefixes ).
+      it_references    = lt_references
+      it_ref_prefixes  = lt_prefixes ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
     ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
       source = '1111111111111111111111111111111111111111 refs/heads/main' &&

@@ -3,8 +3,8 @@ INTERFACE zif_hithub_hashing
 
   METHODS digest
     IMPORTING
-      iv_algorithm TYPE string
-      iv_payload   TYPE xstring
+      iv_algorithm  TYPE string
+      iv_payload    TYPE xstring
     RETURNING
       VALUE(rv_oid) TYPE string
     RAISING
@@ -12,8 +12,8 @@ INTERFACE zif_hithub_hashing
 
   METHODS is_valid
     IMPORTING
-      iv_algorithm TYPE string
-      iv_oid       TYPE string
+      iv_algorithm    TYPE string
+      iv_oid          TYPE string
     RETURNING
       VALUE(rv_valid) TYPE abap_bool.
 

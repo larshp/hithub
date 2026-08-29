@@ -13,7 +13,7 @@ CLASS zcl_hithub_pkt_line_codec DEFINITION
 
     CLASS-METHODS encode
       IMPORTING
-        iv_payload TYPE xstring
+        iv_payload       TYPE xstring
       RETURNING
         VALUE(rv_packet) TYPE xstring.
 
@@ -23,13 +23,13 @@ CLASS zcl_hithub_pkt_line_codec DEFINITION
 
     CLASS-METHODS decode
       IMPORTING
-        iv_data TYPE xstring
+        iv_data          TYPE xstring
       RETURNING
         VALUE(rs_packet) TYPE ty_packet.
 
     CLASS-METHODS hex_digit
       IMPORTING
-        iv_char TYPE string
+        iv_char         TYPE string
       RETURNING
         VALUE(rv_value) TYPE i.
 

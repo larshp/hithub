@@ -5,48 +5,48 @@ CLASS zcl_hithub_branch_service DEFINITION
 
   PUBLIC SECTION.
     TYPES BEGIN OF ty_result.
-    TYPES   success TYPE abap_bool.
-    TYPES   reason TYPE string.
+    TYPES   success   TYPE abap_bool.
+    TYPES   reason    TYPE string.
     TYPES   reference TYPE zif_hithub_metadata_store=>ty_reference.
     TYPES END OF ty_result.
     METHODS constructor
       IMPORTING
-        io_metadata TYPE REF TO zif_hithub_metadata_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
         io_transaction TYPE REF TO zif_hithub_transaction.
     METHODS list
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id     TYPE string
       RETURNING
         VALUE(rt_references) TYPE zif_hithub_metadata_store=>ty_references
       RAISING cx_static_check.
     METHODS find
       IMPORTING
-        iv_repository_id TYPE string
-        iv_name TYPE string
+        iv_repository_id    TYPE string
+        iv_name             TYPE string
       RETURNING
         VALUE(rs_reference) TYPE zif_hithub_metadata_store=>ty_reference
       RAISING cx_static_check.
     METHODS create
       IMPORTING
-        iv_repository_id TYPE string
-        iv_name TYPE string
-        iv_oid TYPE string
-        iv_algorithm TYPE string DEFAULT 'sha1'
+        iv_repository_id         TYPE string
+        iv_name                  TYPE string
+        iv_oid                   TYPE string
+        iv_algorithm             TYPE string DEFAULT 'sha1'
       RETURNING VALUE(rs_result) TYPE ty_result
       RAISING cx_static_check.
     METHODS update
       IMPORTING
-        iv_repository_id TYPE string
-        iv_name TYPE string
-        iv_oid TYPE string
-        iv_expected_version TYPE int8
+        iv_repository_id         TYPE string
+        iv_name                  TYPE string
+        iv_oid                   TYPE string
+        iv_expected_version      TYPE int8
       RETURNING VALUE(rs_result) TYPE ty_result
       RAISING cx_static_check.
     METHODS delete
       IMPORTING
-        iv_repository_id TYPE string
-        iv_name TYPE string
-        iv_expected_version TYPE int8
+        iv_repository_id         TYPE string
+        iv_name                  TYPE string
+        iv_expected_version      TYPE int8
       RETURNING VALUE(rs_result) TYPE ty_result
       RAISING cx_static_check.
 
@@ -54,7 +54,7 @@ CLASS zcl_hithub_branch_service DEFINITION
     DATA mo_metadata TYPE REF TO zif_hithub_metadata_store.
     DATA mo_transaction TYPE REF TO zif_hithub_transaction.
     CLASS-METHODS normalize
-      IMPORTING iv_name TYPE string
+      IMPORTING iv_name        TYPE string
       RETURNING VALUE(rv_name) TYPE string.
 ENDCLASS.
 
@@ -170,7 +170,7 @@ CLASS zcl_hithub_branch_service IMPLEMENTATION.
     TRY.
         mo_transaction->start( ).
         lv_version = mo_metadata->save_reference(
-          is_reference = ls_reference
+          is_reference        = ls_reference
           iv_expected_version = iv_expected_version ).
         IF lv_version IS INITIAL.
           mo_transaction->rollback( ).
@@ -213,8 +213,8 @@ CLASS zcl_hithub_branch_service IMPLEMENTATION.
     TRY.
         mo_transaction->start( ).
         mo_metadata->delete_reference(
-          iv_repository_id = iv_repository_id
-          iv_name = lv_name
+          iv_repository_id    = iv_repository_id
+          iv_name             = lv_name
           iv_expected_version = iv_expected_version ).
         ls_after = mo_metadata->read_reference(
           iv_repository_id = iv_repository_id iv_name = lv_name ).

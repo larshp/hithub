@@ -5,22 +5,22 @@ CLASS zcl_hithub_receive_request DEFINITION
     TYPES:
       ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
       BEGIN OF ty_command,
-        old_oid       TYPE string,
-        new_oid       TYPE string,
-        ref_name      TYPE string,
+        old_oid  TYPE string,
+        new_oid  TYPE string,
+        ref_name TYPE string,
       END OF ty_command,
       ty_commands TYPE STANDARD TABLE OF ty_command WITH DEFAULT KEY,
       BEGIN OF ty_request,
-        commands      TYPE ty_commands,
-        capabilities  TYPE ty_lines,
-        pack          TYPE xstring,
-        saw_flush     TYPE abap_bool,
-        valid         TYPE abap_bool,
+        commands     TYPE ty_commands,
+        capabilities TYPE ty_lines,
+        pack         TYPE xstring,
+        saw_flush    TYPE abap_bool,
+        valid        TYPE abap_bool,
       END OF ty_request.
 
     CLASS-METHODS parse
       IMPORTING
-        iv_data TYPE xstring
+        iv_data           TYPE xstring
       RETURNING
         VALUE(rs_request) TYPE ty_request.
 

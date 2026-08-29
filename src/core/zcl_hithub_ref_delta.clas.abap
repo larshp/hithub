@@ -4,8 +4,8 @@ CLASS zcl_hithub_ref_delta DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS decode
       IMPORTING
-        iv_data TYPE xstring
-        iv_base TYPE xstring
+        iv_data          TYPE xstring
+        iv_base          TYPE xstring
       RETURNING
         VALUE(rv_result) TYPE xstring.
 

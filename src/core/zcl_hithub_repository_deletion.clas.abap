@@ -6,20 +6,20 @@ CLASS zcl_hithub_repository_deletion DEFINITION
   PUBLIC SECTION.
     TYPES BEGIN OF ty_result.
     TYPES   success TYPE abap_bool.
-    TYPES   reason TYPE string.
+    TYPES   reason  TYPE string.
     TYPES   version TYPE int8.
     TYPES END OF ty_result.
 
     METHODS constructor
       IMPORTING
-        io_metadata TYPE REF TO zif_hithub_metadata_store
+        io_metadata    TYPE REF TO zif_hithub_metadata_store
         io_transaction TYPE REF TO zif_hithub_transaction.
     METHODS delete
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id    TYPE string
         iv_expected_version TYPE int8 OPTIONAL
       RETURNING
-        VALUE(rs_result) TYPE ty_result
+        VALUE(rs_result)    TYPE ty_result
       RAISING
         cx_static_check.
 
@@ -60,7 +60,7 @@ CLASS zcl_hithub_repository_deletion IMPLEMENTATION.
     TRY.
         mo_transaction->start( ).
         lv_version = mo_metadata->update_repository(
-          is_repository = ls_repository
+          is_repository       = ls_repository
           iv_expected_version = iv_expected_version ).
         IF lv_version IS INITIAL.
           mo_transaction->rollback( ).

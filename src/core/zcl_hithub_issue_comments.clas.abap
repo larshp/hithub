@@ -17,14 +17,14 @@ CLASS zcl_hithub_issue_comments DEFINITION
 
     CLASS-METHODS add
       IMPORTING
-        is_comment TYPE ty_comment
+        is_comment      TYPE ty_comment
       RETURNING
         VALUE(rv_saved) TYPE abap_bool.
 
     CLASS-METHODS list
       IMPORTING
-        iv_repository_id TYPE string
-        iv_issue_id      TYPE string
+        iv_repository_id   TYPE string
+        iv_issue_id        TYPE string
       RETURNING
         VALUE(rt_comments) TYPE ty_comments.
 ENDCLASS.

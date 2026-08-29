@@ -11,7 +11,7 @@ CLASS zcl_hithub_pack_ingestor DEFINITION
 
     METHODS ingest
       IMPORTING
-        it_objects TYPE ty_objects
+        it_objects        TYPE ty_objects
       RETURNING
         VALUE(rv_created) TYPE i
       RAISING

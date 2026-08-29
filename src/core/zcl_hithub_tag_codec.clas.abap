@@ -4,16 +4,16 @@ CLASS zcl_hithub_tag_codec DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_tag,
-        object TYPE string,
-        type   TYPE string,
-        tag    TYPE string,
-        tagger TYPE string,
+        object  TYPE string,
+        type    TYPE string,
+        tag     TYPE string,
+        tagger  TYPE string,
         message TYPE string,
       END OF ty_tag.
 
     CLASS-METHODS encode
       IMPORTING
-        is_tag TYPE ty_tag
+        is_tag            TYPE ty_tag
       RETURNING
         VALUE(rv_payload) TYPE xstring
       RAISING
@@ -21,7 +21,7 @@ CLASS zcl_hithub_tag_codec DEFINITION
 
     CLASS-METHODS decode
       IMPORTING
-        iv_payload TYPE xstring
+        iv_payload    TYPE xstring
       RETURNING
         VALUE(rs_tag) TYPE ty_tag
       RAISING

@@ -22,7 +22,7 @@ CLASS ltcl_pr_comments IMPLEMENTATION.
 
     ASSERT zcl_hithub_pr_comments=>add( ls_comment ) = abap_true.
     lt_comments = zcl_hithub_pr_comments=>list(
-      iv_repository_id = ls_comment-repository_id
+      iv_repository_id   = ls_comment-repository_id
       iv_pull_request_id = ls_comment-pull_request_id ).
     ASSERT lines( lt_comments ) = 1.
     ASSERT lt_comments[ 1 ]-actor = 'reviewer'.

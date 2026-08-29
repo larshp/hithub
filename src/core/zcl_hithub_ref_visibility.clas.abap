@@ -4,9 +4,9 @@ CLASS zcl_hithub_ref_visibility DEFINITION
   PUBLIC SECTION.
     CLASS-METHODS filter
       IMPORTING
-        iv_repository_id TYPE string
-        iv_algorithm     TYPE string
-        it_references    TYPE zif_hithub_metadata_store=>ty_references
+        iv_repository_id  TYPE string
+        iv_algorithm      TYPE string
+        it_references     TYPE zif_hithub_metadata_store=>ty_references
       RETURNING
         VALUE(rt_visible) TYPE zif_hithub_metadata_store=>ty_references.
 

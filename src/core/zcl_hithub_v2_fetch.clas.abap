@@ -5,28 +5,28 @@ CLASS zcl_hithub_v2_fetch DEFINITION
     TYPES:
       ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
       BEGIN OF ty_request,
-        wants     TYPE ty_lines,
-        haves     TYPE ty_lines,
-        features  TYPE ty_lines,
-        saw_done  TYPE abap_bool,
-        valid     TYPE abap_bool,
+        wants    TYPE ty_lines,
+        haves    TYPE ty_lines,
+        features TYPE ty_lines,
+        saw_done TYPE abap_bool,
+        valid    TYPE abap_bool,
       END OF ty_request.
 
     CLASS-METHODS parse
       IMPORTING
-        iv_data TYPE xstring
+        iv_data           TYPE xstring
       RETURNING
         VALUE(rs_request) TYPE ty_request.
 
     CLASS-METHODS build_response
       IMPORTING
-        iv_pack TYPE xstring
+        iv_pack            TYPE xstring
       RETURNING
         VALUE(rv_response) TYPE xstring.
 
     CLASS-METHODS build_acknowledgments
       IMPORTING
-        it_common_haves TYPE ty_lines
+        it_common_haves    TYPE ty_lines
       RETURNING
         VALUE(rv_response) TYPE xstring.
 

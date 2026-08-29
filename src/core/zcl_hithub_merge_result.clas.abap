@@ -15,16 +15,16 @@ CLASS zcl_hithub_merge_result DEFINITION
 
     CLASS-METHODS save
       IMPORTING
-        is_result TYPE ty_result
+        is_result       TYPE ty_result
       RETURNING
         VALUE(rv_saved) TYPE abap_bool.
 
     CLASS-METHODS read
       IMPORTING
-        iv_repository_id TYPE string
+        iv_repository_id   TYPE string
         iv_pull_request_id TYPE string
       RETURNING
-        VALUE(rs_result) TYPE ty_result.
+        VALUE(rs_result)   TYPE ty_result.
 ENDCLASS.
 
 CLASS zcl_hithub_merge_result IMPLEMENTATION.

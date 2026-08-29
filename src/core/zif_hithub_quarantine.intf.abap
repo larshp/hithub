@@ -6,7 +6,7 @@ INTERFACE zif_hithub_quarantine
 
   METHODS stage
     IMPORTING
-      it_objects TYPE ty_objects
+      it_objects       TYPE ty_objects
     RETURNING
       VALUE(rv_staged) TYPE i.
 

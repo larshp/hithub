@@ -8,7 +8,7 @@ CLASS zcl_hithub_object_reader DEFINITION
 
     METHODS read
       IMPORTING
-        is_key TYPE zif_hithub_object_store=>ty_object_key
+        is_key           TYPE zif_hithub_object_store=>ty_object_key
       RETURNING
         VALUE(rs_object) TYPE zif_hithub_object_store=>ty_object
       RAISING
