@@ -4,6 +4,7 @@ CLASS ltcl_persist_contract DEFINITION
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
+    METHODS preserves_fixture_contract FOR TESTING RAISING cx_static_check.
     METHODS repository_roundtrip FOR TESTING RAISING cx_static_check.
     METHODS reference_compare_and_swap FOR TESTING RAISING cx_static_check.
     METHODS object_roundtrip FOR TESTING RAISING cx_static_check.
@@ -11,6 +12,64 @@ CLASS ltcl_persist_contract DEFINITION
 ENDCLASS.
 
 CLASS ltcl_persist_contract IMPLEMENTATION.
+
+  METHOD preserves_fixture_contract.
+    DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
+    DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+    DATA lv_payload TYPE xstring.
+    DATA lv_oid TYPE string.
+
+    ls_repository-id = 'repo-fixture-000000000000000000000000000000'.
+    ls_repository-name = 'fixture-repository'.
+    ls_repository-description = 'Deterministic HitHub persistence fixture'.
+    ls_repository-default_branch = 'refs/heads/main'.
+    ls_repository-version = 1.
+    ls_repository-deleted = abap_false.
+
+    ASSERT ls_repository-id = 'repo-fixture-000000000000000000000000000000'.
+    ASSERT ls_repository-name = 'fixture-repository'.
+    ASSERT ls_repository-description = 'Deterministic HitHub persistence fixture'.
+    ASSERT ls_repository-default_branch = 'refs/heads/main'.
+    ASSERT ls_repository-version = 1.
+    ASSERT ls_repository-deleted = abap_false.
+
+    ls_commit-tree = '1111111111111111111111111111111111111111'.
+    ls_commit-author =
+      'Fixture Author <fixture@example.invalid> 1704067200 +0000'.
+    ls_commit-committer = ls_commit-author.
+    ls_commit-message = |Fixture commit| && cl_abap_char_utilities=>newline.
+    lv_payload = zcl_hithub_commit_codec=>encode( ls_commit ).
+    ASSERT xstrlen( lv_payload ) = 195.
+    lv_oid = zcl_hithub_object_id=>calculate(
+      iv_type = 'commit' iv_payload = lv_payload ).
+    ASSERT lv_oid = '962dc6e57082fe02604d1a93d0dd2d833da2dcfc'.
+
+    ls_reference-repository_id = ls_repository-id.
+    ls_reference-name = 'refs/heads/main'.
+    ls_reference-algorithm = 'sha1'.
+    ls_reference-oid = lv_oid.
+    ls_reference-symbolic_target = ''.
+    ls_reference-version = 1.
+    ASSERT ls_reference-repository_id = ls_repository-id.
+    ASSERT ls_reference-name = 'refs/heads/main'.
+    ASSERT ls_reference-algorithm = 'sha1'.
+    ASSERT ls_reference-oid = lv_oid.
+    ASSERT ls_reference-symbolic_target IS INITIAL.
+    ASSERT ls_reference-version = 1.
+
+    CLEAR ls_commit.
+    ls_commit-tree = '1111111111111111111111111111111111111111'.
+    ls_commit-author =
+      'Fixture Author <fixture@example.invalid> 1704067200 +0000'.
+    ls_commit-committer = ls_commit-author.
+    ls_commit-message = |Ref target| && cl_abap_char_utilities=>newline.
+    lv_payload = zcl_hithub_commit_codec=>encode( ls_commit ).
+    lv_oid = zcl_hithub_object_id=>calculate(
+      iv_type = 'commit' iv_payload = lv_payload ).
+    ls_reference-oid = lv_oid.
+    ASSERT ls_reference-oid = lv_oid.
+  ENDMETHOD.
 
   METHOD repository_roundtrip.
     DATA(lo_store) = NEW zcl_hithub_local_meta_store( ).
