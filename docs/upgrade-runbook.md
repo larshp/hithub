@@ -53,7 +53,7 @@ npm run smoke
 ```
 
 Run the native Git, resilience, restore, and browser checks appropriate to the
-change. Keep the old generated build out of source control and do not reuse a
+change. Keep the old generated output out of source control and do not reuse a
 local database from an incompatible schema without restoring it through the
 documented procedure.
 

@@ -1,7 +1,7 @@
 {
   "input_folder": ["src"],
   "input_filter": [],
-  "output_folder": "build/transpiled",
+  "output_folder": "output",
   "libs": [
     {
       "url": "https://github.com/open-abap/open-abap-core",

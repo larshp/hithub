@@ -23,7 +23,7 @@ npm run smoke
 
 `npm ci` honors the repository's `ignore-scripts` setting. It does not create
 browser binaries or a production database. Generated transpiled files live
-under `build/` and are intentionally ignored by Git.
+under `output/` and are intentionally ignored by Git.
 
 For the full local verification set, also run the REST, security, resilience,
 native Git, load/soak, and browser checks:

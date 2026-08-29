@@ -3,14 +3,14 @@ import {createHash, randomUUID} from "node:crypto";
 import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {createLocalDatabase} from "../scripts/local-database.mjs";
-import {initializeABAP} from "../build/transpiled/init.mjs";
-import {cl_express_icf_shim} from "../build/transpiled/cl_express_icf_shim.clas.mjs";
+import {initializeABAP} from "../output/init.mjs";
+import {cl_express_icf_shim} from "../output/cl_express_icf_shim.clas.mjs";
 import {logEvent} from "./logger.mjs";
 import {metricsSnapshot, observeRequest} from "./metrics.mjs";
 import {createGitAdmission} from "./git-admission.mjs";
 
 await initializeABAP();
-const generated = readFileSync(new URL("../build/transpiled/init.mjs", import.meta.url), "utf8");
+const generated = readFileSync(new URL("../output/init.mjs", import.meta.url), "utf8");
 const tick = String.fromCharCode(96);
 const statements = generated.split("\n")
   .filter((line) => line.includes("sqlite.push("))

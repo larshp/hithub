@@ -110,7 +110,7 @@ const expected = {
   },
 };
 
-const generated = readFileSync("build/transpiled/init.mjs", "utf8");
+const generated = readFileSync("output/init.mjs", "utf8");
 const statements = [...generated.matchAll(/sqlite\.push\(`(CREATE TABLE [^`]+)`\);/g)]
   .map((match) => match[1]);
 const schemaStatements = statements.filter((statement) =>

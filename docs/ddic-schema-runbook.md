@@ -58,7 +58,7 @@ uses those names for repository ref transactions.
    native Git suites.
 3. Compare the verifier's table, column, type and primary-key output with the
    SAP activation result.
-4. Keep generated build output and local database files out of source control.
+4. Keep generated output and local database files out of source control.
 
 The local verifier must report the same 14 tables, columns, types and primary
 keys as the SAP activation result. A mismatch is a release blocker; resolve
