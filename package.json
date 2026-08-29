@@ -3,7 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "HitHub",
-  "main": "index.js",
   "scripts": {
     "lint": "abaplint",
     "transpile": "abap_transpile abap_transpile.json",
@@ -32,7 +31,7 @@
     "fixtures": "node --test integration/fixtures/*.test.mjs",
     "start": "node server/index.mjs",
     "verify": "npm run lint && npm run unit && npm run schema && npm run fixtures && npm run anomalies && npm run smoke",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run verify"
   },
   "repository": {
     "type": "git",
