@@ -25,7 +25,8 @@ test("abapGit fixture has a deserializable repository layout", async () => {
   assert.match(classAbap, /CLASS zcl_hithub_fixture IMPLEMENTATION/);
 
   for (const content of [dotAbapGit, packageXml, classXml, classAbap]) {
-    assert.equal(content.includes("\r"), false);
-    assert.equal(content.endsWith("\n"), true);
+    const normalized = content.replaceAll("\r\n", "\n");
+    assert.equal(normalized.includes("\r"), false);
+    assert.equal(normalized.endsWith("\n"), true);
   }
 });
