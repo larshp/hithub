@@ -8,6 +8,49 @@ const repositoryNavigation = document.querySelector("#repository-navigation");
 const panel = document.querySelector(".content-panel");
 const panelHeading = document.querySelector(".panel-heading");
 const createRepositoryLink = document.querySelector(".page-intro .button");
+const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
+const primaryNavigation = document.querySelector("#primary-navigation");
+const globalSearchInput = document.querySelector("#global-search-input");
+
+const iconPaths = {
+  repository: "M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75H4.5A2.5 2.5 0 0 1 2 11.5Zm1.5 0v9A1 1 0 0 0 4.5 12.5h8V1.5h-8a1 1 0 0 0-1 1Zm2 1.25A.75.75 0 0 1 6.25 3h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Z",
+  code: "M4.72 3.22a.75.75 0 0 1 1.06 1.06L2.06 8l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06Zm6.56 0a.75.75 0 0 0-1.06 1.06L13.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06l4.25-4.25a.75.75 0 0 0 0-1.06Z",
+  issue: "M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm0 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z",
+  pull: "M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm10.75 7.5a.75.75 0 0 1-.75-.75V5.56L9.53 7.53a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1-1.06 1.06L13 5.56V10a.75.75 0 0 1-.75.75Z",
+  audit: "M8 0c.69 0 1.765.311 2.91.695 1.18.395 2.372.836 3.33 1.187a.75.75 0 0 1 .49.704v4.985c0 3.925-2.296 6.76-6.432 8.349a.75.75 0 0 1-.536 0C3.63 14.331 1.27 11.496 1.27 7.571V2.586a.75.75 0 0 1 .49-.704A71.7 71.7 0 0 1 5.09.695C6.235.31 7.31 0 8 0Zm0 1.5c-.45 0-1.39.25-2.433.6a68.2 68.2 0 0 0-2.797.985v4.486c0 3.15 1.785 5.438 5.23 6.842 3.445-1.404 5.23-3.693 5.23-6.842V3.085a68.2 68.2 0 0 0-2.797-.984C9.39 1.75 8.45 1.5 8 1.5Z",
+  copy: "M0 6.75C0 5.784.784 5 1.75 5h6.5C9.216 5 10 5.784 10 6.75v7.5A1.75 1.75 0 0 1 8.25 16h-6.5A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Zm4-6.5h6.5C13.216 0 14 .784 14 1.75v7.5A1.75 1.75 0 0 1 12.25 11h-.5a.75.75 0 0 1 0-1.5h.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25h-6.5a.25.25 0 0 0-.25.25v.5a.75.75 0 0 1-1.5 0v-.5C4 .784 4.784 0 5.75 0Z",
+};
+
+function interfaceIcon(name, className = "octicon") {
+  const namespace = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(namespace, "svg");
+  svg.classList.add(className);
+  svg.setAttribute("viewBox", "0 0 16 16");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS(namespace, "path");
+  path.setAttribute("d", iconPaths[name]);
+  svg.append(path);
+  return svg;
+}
+
+mobileMenuToggle?.addEventListener("click", () => {
+  const open = mobileMenuToggle.getAttribute("aria-expanded") !== "true";
+  mobileMenuToggle.setAttribute("aria-expanded", String(open));
+  mobileMenuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+  primaryNavigation.classList.toggle("is-open", open);
+});
+
+const initialSearch = new URLSearchParams(window.location.search).get("q") || "";
+if (globalSearchInput) globalSearchInput.value = initialSearch;
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+  const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+  if (typing) return;
+  event.preventDefault();
+  globalSearchInput?.focus();
+});
 
 async function checkService() {
   try {
@@ -88,20 +131,178 @@ function renderMarkdownSafe(markdown) {
   return fragment;
 }
 
+function generateInternalId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 14)}`;
+}
+
+function shortReference(reference) {
+  return String(reference || "").replace(/^refs\/(heads|tags)\//, "") || "unknown";
+}
+
+function formatRelativeTimestamp(value) {
+  const date = commitTimestampDate(value);
+  if (!date) return value ? String(value) : "recently";
+  const elapsed = date.getTime() - Date.now();
+  const units = [
+    ["year", 31_536_000_000],
+    ["month", 2_592_000_000],
+    ["day", 86_400_000],
+    ["hour", 3_600_000],
+    ["minute", 60_000],
+  ];
+  const formatter = new Intl.RelativeTimeFormat(undefined, {numeric: "auto"});
+  for (const [unit, milliseconds] of units) {
+    if (Math.abs(elapsed) >= milliseconds) {
+      return formatter.format(Math.round(elapsed / milliseconds), unit);
+    }
+  }
+  return "just now";
+}
+
+function createAvatar(actor) {
+  const avatar = document.createElement("span");
+  avatar.className = "avatar";
+  avatar.setAttribute("aria-hidden", "true");
+  avatar.textContent = String(actor || "H").trim().charAt(0).toLocaleUpperCase() || "H";
+  return avatar;
+}
+
+function createStateBadge(state, kind = "issue") {
+  const badge = document.createElement("span");
+  badge.className = `state-badge is-${state}`;
+  badge.setAttribute("aria-label", `State: ${state}`);
+  badge.append(interfaceIcon(kind === "pull" ? "pull" : "issue"));
+  const label = document.createElement("span");
+  label.textContent = state === "draft" ? "Draft" : state === "closed" ? "Closed" : "Open";
+  badge.append(label);
+  return badge;
+}
+
+function createWorkList({items, kind, createHref, renderRow}) {
+  const wrapper = document.createElement("section");
+  wrapper.className = "work-list-shell";
+  const searchRow = document.createElement("div");
+  searchRow.className = "work-search-row";
+  const searchLabel = document.createElement("label");
+  searchLabel.className = "sr-only";
+  searchLabel.htmlFor = `${kind}-filter`;
+  searchLabel.textContent = `Search ${kind === "issue" ? "issues" : "pull requests"}`;
+  const search = document.createElement("input");
+  search.id = `${kind}-filter`;
+  search.type = "search";
+  search.placeholder = `Search ${kind === "issue" ? "issues" : "pull requests"}`;
+  const create = document.createElement("a");
+  create.className = "button";
+  create.href = createHref;
+  create.textContent = kind === "issue" ? "New issue" : "New pull request";
+  searchRow.append(searchLabel, search, create);
+
+  const panel = document.createElement("div");
+  panel.className = "work-list-panel";
+  const toolbar = document.createElement("div");
+  toolbar.className = "work-list-toolbar";
+  const openCount = items.filter((item) => item.state !== "closed").length;
+  const closedCount = items.length - openCount;
+  let selectedState = "open";
+  const filters = document.createElement("div");
+  filters.className = "work-state-filters";
+  const filterButtons = [];
+  for (const [state, count] of [["open", openCount], ["closed", closedCount]]) {
+    const button = document.createElement("button");
+    button.className = "work-state-filter";
+    button.type = "button";
+    button.dataset.state = state;
+    button.setAttribute("aria-pressed", String(state === selectedState));
+    button.textContent = `${count} ${state === "open" ? "Open" : "Closed"}`;
+    filterButtons.push(button);
+    filters.append(button);
+  }
+  const sort = document.createElement("select");
+  sort.className = "work-sort";
+  sort.setAttribute("aria-label", "Sort items");
+  for (const [value, label] of [["newest", "Newest"], ["oldest", "Oldest"]]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    sort.append(option);
+  }
+  toolbar.append(filters, sort);
+  const list = document.createElement("div");
+  list.className = `${kind === "issue" ? "issue" : "pull-request"}-list work-list`;
+
+  const update = () => {
+    const query = search.value.trim().toLocaleLowerCase();
+    const matching = items
+      .filter((item) => (selectedState === "open" ? item.state !== "closed" : item.state === "closed"))
+      .filter((item) => JSON.stringify(item).toLocaleLowerCase().includes(query));
+    if (sort.value === "oldest") matching.reverse();
+    list.replaceChildren();
+    if (!matching.length) {
+      const empty = document.createElement("div");
+      empty.className = "work-list-empty";
+      const heading = document.createElement("h2");
+      heading.textContent = query ? "No results matched your search" : `There aren't any ${selectedState} ${kind === "issue" ? "issues" : "pull requests"}.`;
+      const hint = document.createElement("p");
+      hint.textContent = query ? "Try a different search term or state." : `When there are, they'll appear here.`;
+      empty.append(heading, hint);
+      list.append(empty);
+      return;
+    }
+    matching.forEach((item) => list.append(renderRow(item)));
+  };
+  filterButtons.forEach((button) => button.addEventListener("click", () => {
+    selectedState = button.dataset.state;
+    filterButtons.forEach((candidate) => candidate.setAttribute(
+      "aria-pressed", String(candidate.dataset.state === selectedState),
+    ));
+    update();
+  }));
+  search.addEventListener("input", update);
+  sort.addEventListener("change", update);
+  update();
+  panel.append(toolbar, list);
+  wrapper.append(searchRow, panel);
+  return wrapper;
+}
+
+function createMetadataSidebar(sections) {
+  const sidebar = document.createElement("aside");
+  sidebar.className = "metadata-sidebar";
+  sidebar.setAttribute("aria-label", "Item metadata");
+  sections.forEach(([title, value]) => {
+    const section = document.createElement("section");
+    const heading = document.createElement("h2");
+    heading.textContent = title;
+    const content = document.createElement("p");
+    content.textContent = value;
+    section.append(heading, content);
+    sidebar.append(section);
+  });
+  return sidebar;
+}
+
 async function loadRepositories() {
   try {
     const response = await fetch("/api/repos", {headers: {accept: "application/json"}});
     if (!response.ok) throw new Error(`repository list returned ${response.status}`);
     const repositories = await response.json();
     dashboard.replaceChildren();
-    if (!repositories.length) {
+    const query = initialSearch.trim().toLocaleLowerCase();
+    const matchingRepositories = query
+      ? repositories.filter((repository) => [repository.name, repository.description]
+        .some((value) => String(value || "").toLocaleLowerCase().includes(query)))
+      : repositories;
+    if (!matchingRepositories.length) {
       const empty = document.createElement("p");
       empty.className = "muted-message";
-      empty.textContent = "No repositories yet. Create one to begin browsing.";
+      empty.textContent = query
+        ? `No repositories match “${initialSearch.trim()}”.`
+        : "No repositories yet. Create one to begin browsing.";
       dashboard.append(empty);
       return;
     }
-    repositories.forEach((repository) => dashboard.append(repositoryCard(repository)));
+    matchingRepositories.forEach((repository) => dashboard.append(repositoryCard(repository)));
   } catch (error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -157,28 +358,125 @@ function showRepositoryNavigation(repository) {
   repositoryNavigation.replaceChildren();
   const inner = document.createElement("div");
   inner.className = "repository-navigation-inner";
+  const identityRow = document.createElement("div");
+  identityRow.className = "repository-identity-row";
   const identity = document.createElement("a");
   identity.className = "repository-identity";
   identity.href = `/ui/repos/${encoded}`;
-  identity.textContent = repository;
-  inner.append(identity);
+  identity.append(interfaceIcon("repository"));
+  const owner = document.createElement("span");
+  owner.className = "repository-owner";
+  owner.textContent = "HitHub";
+  const separator = document.createElement("span");
+  separator.className = "repository-separator";
+  separator.textContent = "/";
+  const name = document.createElement("strong");
+  name.textContent = repository;
+  identity.append(owner, separator, name);
+  const typeBadge = document.createElement("span");
+  typeBadge.className = "repository-type-badge";
+  typeBadge.textContent = "Repository";
+  identityRow.append(identity, typeBadge);
   const tabs = [
-    ["Code", `/ui/repos/${encoded}`, repositoryRoute || treeRoute || blobRoute || historyRoute || commitRoute || compareRoute],
-    ["Issues", `/ui/repos/${encoded}/issues`, issueListRoute || issueRoute || issueCreateRoute],
-    ["Pull Requests", `/ui/repos/${encoded}/pulls`, pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute],
+    ["code", "Code", `/ui/repos/${encoded}`, repositoryRoute || treeRoute || blobRoute || historyRoute || commitRoute || compareRoute],
+    ["issue", "Issues", `/ui/repos/${encoded}/issues`, issueListRoute || issueRoute || issueCreateRoute],
+    ["pull", "Pull requests", `/ui/repos/${encoded}/pulls`, pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute],
+    ["audit", "Audit", `/ui/repos/${encoded}/audit`, auditRoute],
   ];
   const tabList = document.createElement("div");
   tabList.className = "repository-tabs";
-  tabs.forEach(([label, href, active]) => {
+  tabs.forEach(([icon, label, href, active]) => {
     const link = document.createElement("a");
     link.href = href;
     link.className = active ? "repository-tab is-active" : "repository-tab";
     if (active) link.setAttribute("aria-current", "page");
-    link.textContent = label;
+    link.append(interfaceIcon(icon), document.createTextNode(label));
     tabList.append(link);
   });
-  inner.append(tabList);
+  inner.append(identityRow, tabList);
   repositoryNavigation.append(inner);
+}
+
+async function copyText(value, control) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+    } else {
+      const input = control.closest(".clone-field")?.querySelector("input");
+      input?.select();
+      document.execCommand("copy");
+    }
+    const previous = control.getAttribute("aria-label");
+    control.setAttribute("aria-label", "Copied");
+    control.classList.add("is-copied");
+    window.setTimeout(() => {
+      control.setAttribute("aria-label", previous || "Copy clone URL");
+      control.classList.remove("is-copied");
+    }, 1600);
+  } catch (_error) {
+    control.setAttribute("aria-label", "Copy failed");
+  }
+}
+
+function createCodeMenu(cloneUrl) {
+  const menu = document.createElement("details");
+  menu.className = "code-menu";
+  const summary = document.createElement("summary");
+  summary.className = "button code-menu-summary";
+  summary.append(interfaceIcon("code"), document.createTextNode("Code"));
+  const popover = document.createElement("div");
+  popover.className = "code-menu-popover";
+  const heading = document.createElement("strong");
+  heading.textContent = "Clone with HTTPS";
+  const cloneField = document.createElement("div");
+  cloneField.className = "clone-field";
+  const clone = document.createElement("input");
+  clone.readOnly = true;
+  clone.value = cloneUrl;
+  clone.setAttribute("aria-label", "HTTPS clone URL");
+  const copy = document.createElement("button");
+  copy.className = "icon-button clone-copy";
+  copy.type = "button";
+  copy.setAttribute("aria-label", "Copy clone URL");
+  copy.append(interfaceIcon("copy"));
+  copy.addEventListener("click", () => copyText(cloneUrl, copy));
+  cloneField.append(clone, copy);
+  const hint = document.createElement("p");
+  hint.textContent = "Use Git to clone this repository over HTTPS.";
+  popover.append(heading, cloneField, hint);
+  menu.append(summary, popover);
+  return menu;
+}
+
+function createFileFinder(list) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "file-finder";
+  const toggle = document.createElement("button");
+  toggle.className = "button button-secondary toolbar-button";
+  toggle.type = "button";
+  toggle.textContent = "Go to file";
+  toggle.setAttribute("aria-expanded", "false");
+  const input = document.createElement("input");
+  input.className = "file-filter";
+  input.type = "search";
+  input.placeholder = "Filter files";
+  input.setAttribute("aria-label", "Filter files");
+  input.hidden = true;
+  toggle.addEventListener("click", () => {
+    const open = input.hidden;
+    input.hidden = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+    if (open) input.focus();
+  });
+  input.addEventListener("input", () => {
+    const query = input.value.trim().toLocaleLowerCase();
+    list.querySelectorAll("li").forEach((item) => {
+      const name = item.querySelector(".tree-entry-link")?.textContent || "";
+      item.hidden = Boolean(query) && !name.toLocaleLowerCase().includes(query);
+    });
+  });
+  wrapper.append(toggle, input);
+  return wrapper;
 }
 
 if (window.location.pathname !== "/") {
@@ -343,43 +641,50 @@ async function showRepositoryOverview(name) {
     ) : null;
     const contents = contentsResponse?.ok ? await contentsResponse.json() : null;
     dashboard.replaceChildren();
-    const header = document.createElement("div");
-    header.className = "overview-header";
-    const cloneInfo = document.createElement("div");
-    cloneInfo.className = "clone-info";
-    const cloneLabel = document.createElement("span");
-    cloneLabel.className = "overview-label";
-    cloneLabel.textContent = "Clone with Git";
-    const clone = document.createElement("code");
-    clone.textContent = `${window.location.origin}/git/${repository.name}.git`;
-    cloneInfo.append(cloneLabel, clone);
-    header.append(cloneInfo);
+    const cloneUrl = `${window.location.origin}/git/${repository.name}.git`;
     const selector = document.createElement("div");
     selector.className = "reference-toolbar";
     const branchControl = document.createElement("div");
     branchControl.className = "branch-control";
     const referenceChoice = document.createElement("select");
     referenceChoice.id = "reference-choice";
-    referenceChoice.setAttribute("aria-label", "Select branch");
+    referenceChoice.setAttribute("aria-label", "Select branch or tag");
+    const branchOptions = document.createElement("optgroup");
+    branchOptions.label = "Branches";
     for (const reference of branches) {
       const option = document.createElement("option");
       option.value = reference.name;
       option.textContent = reference.name.replace(/^refs\/(heads|tags)\//, "");
-      referenceChoice.append(option);
+      branchOptions.append(option);
+    }
+    referenceChoice.append(branchOptions);
+    if (tags.length) {
+      const tagOptions = document.createElement("optgroup");
+      tagOptions.label = "Tags";
+      for (const reference of tags) {
+        const option = document.createElement("option");
+        option.value = reference.name;
+        option.textContent = reference.name.replace(/^refs\/(heads|tags)\//, "");
+        tagOptions.append(option);
+      }
+      referenceChoice.append(tagOptions);
     }
     referenceChoice.addEventListener("change", () => {
-      const selected = referenceChoice.value.replace(/^refs\/heads\//, "");
+      const selected = referenceChoice.value.replace(/^refs\/(heads|tags)\//, "");
       window.location.href = `/ui/repos/${encoded}/files/${encodeURIComponent(selected)}`;
     });
     if (defaultReference) referenceChoice.value = defaultReference;
     branchControl.append(referenceChoice);
-    const branchCount = document.createElement("span");
+    const branchCount = document.createElement("button");
     branchCount.className = "reference-count";
+    branchCount.type = "button";
     branchCount.textContent = `${branches.length} ${branches.length === 1 ? "Branch" : "Branches"}`;
-    const tagCount = document.createElement("span");
+    branchCount.addEventListener("click", () => referenceChoice.focus());
+    const tagCount = document.createElement("button");
     tagCount.className = "reference-count";
+    tagCount.type = "button";
     tagCount.textContent = `${tags.length} ${tags.length === 1 ? "Tag" : "Tags"}`;
-    selector.append(branchControl, branchCount, tagCount);
+    tagCount.addEventListener("click", () => referenceChoice.focus());
     const contentsPanel = document.createElement("section");
     contentsPanel.className = "repository-contents";
     const latestEntry = Array.isArray(contents?.entries)
@@ -387,21 +692,37 @@ async function showRepositoryOverview(name) {
       : null;
     const commitLine = document.createElement("div");
     commitLine.className = "contents-commit";
-    const commitLabel = document.createElement("span");
+    const commitAvatar = document.createElement("span");
+    commitAvatar.className = "commit-avatar";
+    commitAvatar.setAttribute("aria-hidden", "true");
+    commitAvatar.textContent = "H";
+    const commitSummary = document.createElement("div");
+    commitSummary.className = "contents-commit-summary";
+    const commitLabel = document.createElement("strong");
     commitLabel.className = "contents-commit-label";
     commitLabel.textContent = "Latest commit";
     const commitDescription = document.createElement("span");
     commitDescription.className = "contents-commit-description";
     commitDescription.textContent = latestEntry?.last_commit || "No commit description available.";
-    commitLine.append(commitLabel, commitDescription);
+    commitSummary.append(commitLabel, commitDescription);
+    const commitMeta = document.createElement("div");
+    commitMeta.className = "contents-commit-meta";
     if (latestEntry?.last_commit_at !== undefined) {
       const commitDate = commitTimestampDate(latestEntry.last_commit_at);
       const commitTime = document.createElement("time");
       commitTime.className = "contents-commit-time";
       if (commitDate) commitTime.dateTime = commitDate.toISOString();
       commitTime.textContent = formatCommitTimestamp(latestEntry.last_commit_at);
-      commitLine.append(commitTime);
+      commitMeta.append(commitTime);
     }
+    if (defaultReference) {
+      const history = document.createElement("a");
+      history.className = "commit-history-link";
+      history.href = `/ui/repos/${encoded}/commits/${encodeURIComponent(defaultBranchName)}`;
+      history.textContent = "History";
+      commitMeta.append(history);
+    }
+    commitLine.append(commitAvatar, commitSummary, commitMeta);
     const contentsList = document.createElement("ul");
     contentsList.className = "tree-list";
     if (!Array.isArray(contents?.entries) || !contents.entries.length) {
@@ -415,10 +736,17 @@ async function showRepositoryOverview(name) {
         renderTreeEntry(entry, name, contentBranch, ""),
       ));
     }
+    const referenceGroup = document.createElement("div");
+    referenceGroup.className = "reference-group";
+    referenceGroup.append(branchControl, branchCount, tagCount);
+    const toolbarActions = document.createElement("div");
+    toolbarActions.className = "code-toolbar-actions";
+    toolbarActions.append(createFileFinder(contentsList), createCodeMenu(cloneUrl));
+    selector.append(referenceGroup, toolbarActions);
     contentsPanel.append(commitLine, contentsList);
     const readme = document.createElement("section");
     readme.className = "readme-panel";
-    const readmeTitle = document.createElement("h3");
+    const readmeTitle = document.createElement("h2");
     readmeTitle.textContent = "README";
     const readmeContent = document.createElement("div");
     readmeContent.className = "readme-content";
@@ -428,7 +756,7 @@ async function showRepositoryOverview(name) {
       readmeContent.textContent = "No README is available for this repository.";
     }
     readme.append(readmeTitle, readmeContent);
-    dashboard.append(header, selector, contentsPanel, readme);
+    dashboard.append(selector, contentsPanel, readme);
   } catch (_error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -439,120 +767,217 @@ async function showRepositoryOverview(name) {
 }
 
 async function showPullRequest(repository, id) {
-  pageTitle.textContent = `Pull request ${id}`;
-  pageLede.textContent = `${repository} · review and update pull-request state.`;
   dashboard.replaceChildren();
   const loading = document.createElement("p");
   loading.className = "muted-message";
-  loading.textContent = "Loading pull request…";
+  loading.textContent = "Loading pull request...";
   dashboard.append(loading);
   try {
     const encodedRepository = encodeURIComponent(repository);
     const encodedId = encodeURIComponent(id);
-    const response = await fetch(
-      `/api/repos/${encodedRepository}/pulls/${encodedId}`,
-      {headers: {accept: "application/json"}},
-    );
+    const response = await fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}`, {
+      headers: {accept: "application/json"},
+    });
     if (!response.ok) throw new Error(`pull request returned ${response.status}`);
     const pullRequest = await response.json();
+    const source = shortReference(pullRequest.source_ref);
+    const target = shortReference(pullRequest.target_ref);
+    pageTitle.textContent = "Pull request";
+    pageLede.textContent = `#${pullRequest.id} · ${repository}`;
     dashboard.replaceChildren();
-    const panel = document.createElement("article");
-    panel.className = "pull-request-panel";
-    const heading = document.createElement("h2");
-    heading.textContent = `Pull request ${pullRequest.id}`;
-    const state = document.createElement("p");
-    state.className = "status-pill";
-    state.textContent = pullRequest.state;
-    state.setAttribute("aria-label", `State: ${pullRequest.state}`);
+
+    const summary = document.createElement("div");
+    summary.className = "work-detail-summary";
+    const titleLine = document.createElement("div");
+    titleLine.className = "detail-title-line";
+    const visibleTitle = document.createElement("h1");
+    visibleTitle.textContent = `${source} into ${target}`;
+    const number = document.createElement("span");
+    number.textContent = `#${pullRequest.id}`;
+    titleLine.append(visibleTitle, number);
+    const stateLine = document.createElement("div");
+    stateLine.className = "work-detail-state-line";
+    stateLine.append(createStateBadge(pullRequest.state, "pull"));
+    const summaryText = document.createElement("p");
+    summaryText.append(document.createTextNode(" wants to merge "));
+    const commitsLink = document.createElement("a");
+    commitsLink.href = `/ui/repos/${encodedRepository}/commits/${encodeURIComponent(source)}`;
+    commitsLink.textContent = source;
+    const targetCode = document.createElement("code");
+    targetCode.textContent = target;
+    summaryText.append(commitsLink, document.createTextNode(" into "), targetCode);
+    stateLine.append(summaryText);
+    summary.append(titleLine, stateLine);
+
+    const tabs = document.createElement("nav");
+    tabs.className = "detail-tabs";
+    tabs.setAttribute("aria-label", "Pull request sections");
+    const conversationTab = document.createElement("button");
+    conversationTab.type = "button";
+    conversationTab.className = "detail-tab is-active";
+    conversationTab.textContent = "Conversation";
+    conversationTab.setAttribute("aria-selected", "true");
+    const commitsTab = document.createElement("a");
+    commitsTab.className = "detail-tab";
+    commitsTab.href = `/ui/repos/${encodedRepository}/commits/${encodeURIComponent(source)}`;
+    commitsTab.textContent = "Commits";
+    const checksTab = document.createElement("button");
+    checksTab.type = "button";
+    checksTab.className = "detail-tab";
+    checksTab.textContent = "Checks";
+    checksTab.disabled = true;
+    checksTab.title = "Checks are not configured for this repository";
+    const filesTab = document.createElement("button");
+    filesTab.type = "button";
+    filesTab.className = "detail-tab";
+    filesTab.textContent = "Files changed";
+    filesTab.setAttribute("aria-selected", "false");
+    tabs.append(conversationTab, commitsTab, checksTab, filesTab);
+
+    const conversation = document.createElement("div");
+    conversation.className = "detail-panel";
+    const layout = document.createElement("div");
+    layout.className = "discussion-layout";
+    const main = document.createElement("div");
+    main.className = "discussion-main";
+    const timeline = document.createElement("article");
+    timeline.className = "timeline-card";
+    const timelineHeader = document.createElement("header");
+    timelineHeader.append(createAvatar("H"));
+    const timelineMeta = document.createElement("p");
+    timelineMeta.append(document.createTextNode("This pull request compares "));
+    const sourceCode = document.createElement("code");
+    sourceCode.textContent = source;
+    const baseCode = document.createElement("code");
+    baseCode.textContent = target;
+    timelineMeta.append(sourceCode, document.createTextNode(" with "), baseCode, document.createTextNode("."));
+    timelineHeader.append(timelineMeta);
+    const timelineBody = document.createElement("div");
+    timelineBody.className = "timeline-body";
+    const timelineText = document.createElement("p");
+    timelineText.textContent = "Review the changed files and merge when the branch is ready.";
+    timelineBody.append(timelineText);
+    timeline.append(timelineHeader, timelineBody);
+
     const mergeability = pullRequest.mergeability || "unknown";
     const mergeExplanation = {
-      clean: "No conflicting changes were detected.",
+      clean: "This branch has no conflicts with the base branch.",
       conflicting: "Resolve the conflicting files before merging.",
-      stale: "The source or target reference moved; refresh the comparison.",
+      stale: "The source or target branch moved. Refresh the comparison.",
       blocked: "Branch protection or required reviews are blocking the merge.",
       unknown: "Mergeability has not been calculated yet.",
     }[mergeability] || "Mergeability could not be determined.";
-    const mergeStatus = document.createElement("p");
-    mergeStatus.className = "merge-status";
-    mergeStatus.textContent = `Mergeability: ${mergeability}. ${mergeExplanation}`;
-    mergeStatus.setAttribute("role", "status");
-    const details = document.createElement("dl");
-    details.className = "repository-meta";
-    for (const [label, value] of [
-      ["Source", pullRequest.source_ref],
-      ["Target", pullRequest.target_ref],
-      ["Base", pullRequest.base_oid],
-      ["Head", pullRequest.head_oid],
-      ["Version", String(pullRequest.version)],
-    ]) {
-      const term = document.createElement("dt");
-      term.textContent = label;
-      const detail = document.createElement("dd");
-      detail.textContent = value;
-      details.append(term, detail);
-    }
+    const mergeBox = document.createElement("section");
+    mergeBox.className = `merge-box is-${mergeability}`;
+    const mergeHeading = document.createElement("h2");
+    mergeHeading.textContent = mergeability === "clean"
+      ? "This branch has no conflicts with the base branch"
+      : `Merge status: ${mergeability}`;
+    const mergeMessage = document.createElement("p");
+    mergeMessage.textContent = mergeExplanation;
     const actions = document.createElement("div");
     actions.className = "pull-request-actions";
     const nextState = {draft: "open", open: "closed", closed: "open"}[pullRequest.state];
     if (nextState) {
-      const action = document.createElement("button");
-      action.className = "button";
-      action.type = "button";
-      action.textContent = nextState === "open"
-        ? "Ready for review" : "Close pull request";
-      action.addEventListener("click", async () => {
-        action.disabled = true;
+      const stateAction = document.createElement("button");
+      stateAction.className = "button button-secondary";
+      stateAction.type = "button";
+      stateAction.textContent = pullRequest.state === "draft"
+        ? "Ready for review" : nextState === "closed" ? "Close pull request" : "Reopen pull request";
+      stateAction.addEventListener("click", async () => {
+        stateAction.disabled = true;
         try {
-          const update = await fetch(
-            `/api/repos/${encodedRepository}/pulls/${encodedId}`,
-            {
-              method: "PATCH",
-              headers: {
-                "content-type": "application/json",
-                "if-match": `"${pullRequest.version}"`,
-              },
-              body: JSON.stringify({state: nextState}),
-            },
-          );
-          if (!update.ok) throw new Error(`pull request update returned ${update.status}`);
+          const update = await fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}`, {
+            method: "PATCH",
+            headers: {"content-type": "application/json", "if-match": `"${pullRequest.version}"`},
+            body: JSON.stringify({state: nextState}),
+          });
+          if (!update.ok) throw new Error("update failed");
           await showPullRequest(repository, id);
         } catch (_error) {
-          action.disabled = false;
-          action.textContent = "Update failed; try again";
+          stateAction.disabled = false;
+          stateAction.textContent = "Update failed; try again";
         }
       });
-      actions.append(action);
+      actions.append(stateAction);
     }
     if (pullRequest.state === "open") {
       const mergeAction = document.createElement("button");
       mergeAction.className = "button";
       mergeAction.type = "button";
       mergeAction.textContent = "Merge pull request";
+      mergeAction.disabled = mergeability === "conflicting" || mergeability === "blocked";
       mergeAction.addEventListener("click", async () => {
         mergeAction.disabled = true;
         try {
-          const merge = await fetch(
-            `/api/repos/${encodedRepository}/pulls/${encodedId}/merge`,
-            {
-              method: "PUT",
-              headers: {"content-type": "application/json"},
-              body: JSON.stringify({
-                expected_head_oid: pullRequest.head_oid,
-                clean: true,
-              }),
-            },
-          );
-          if (!merge.ok) throw new Error(`merge returned ${merge.status}`);
+          const merge = await fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}/merge`, {
+            method: "PUT",
+            headers: {"content-type": "application/json"},
+            body: JSON.stringify({expected_head_oid: pullRequest.head_oid, clean: true}),
+          });
+          if (!merge.ok) throw new Error("merge failed");
           await showPullRequest(repository, id);
         } catch (_error) {
           mergeAction.disabled = false;
           mergeAction.textContent = "Merge failed; try again";
         }
       });
-      actions.append(mergeAction);
+      actions.prepend(mergeAction);
     }
-    panel.append(heading, state, mergeStatus, details, actions);
-    dashboard.append(panel);
+    mergeBox.append(mergeHeading, mergeMessage, actions);
+    main.append(timeline, mergeBox);
+
+    const sidebar = createMetadataSidebar([
+      ["Reviewers", "No reviews yet"],
+      ["Assignees", "No one assigned"],
+      ["Labels", "None yet"],
+      ["Development", `${source} into ${target}`],
+    ]);
+    const technical = document.createElement("details");
+    technical.className = "technical-details";
+    const technicalSummary = document.createElement("summary");
+    technicalSummary.textContent = "Technical details";
+    const details = document.createElement("dl");
+    details.className = "repository-meta";
+    for (const [label, value] of [["Base", pullRequest.base_oid], ["Head", pullRequest.head_oid], ["Version", pullRequest.version]]) {
+      const term = document.createElement("dt");
+      term.textContent = label;
+      const detail = document.createElement("dd");
+      detail.textContent = String(value);
+      details.append(term, detail);
+    }
+    technical.append(technicalSummary, details);
+    sidebar.append(technical);
+    layout.append(main, sidebar);
+    conversation.append(layout);
+
+    const files = document.createElement("div");
+    files.className = "detail-panel";
+    files.hidden = true;
+    const filesLoading = document.createElement("p");
+    filesLoading.className = "muted-message";
+    filesLoading.textContent = "Loading changed files...";
+    files.append(filesLoading);
+    const selectPanel = (selected) => {
+      const showingFiles = selected === "files";
+      conversation.hidden = showingFiles;
+      files.hidden = !showingFiles;
+      conversationTab.classList.toggle("is-active", !showingFiles);
+      filesTab.classList.toggle("is-active", showingFiles);
+      conversationTab.setAttribute("aria-selected", String(!showingFiles));
+      filesTab.setAttribute("aria-selected", String(showingFiles));
+    };
+    conversationTab.addEventListener("click", () => selectPanel("conversation"));
+    filesTab.addEventListener("click", () => selectPanel("files"));
+    dashboard.append(summary, tabs, conversation, files);
+    try {
+      const params = new URLSearchParams({base: pullRequest.target_ref, head: pullRequest.source_ref});
+      const compare = await fetch(`/api/repos/${encodedRepository}/compare?${params}`);
+      if (!compare.ok) throw new Error("comparison unavailable");
+      files.replaceChildren(renderUnifiedDiffSafe(await compare.json()));
+    } catch (_error) {
+      filesLoading.textContent = "Changed files are not available for this pull request.";
+    }
   } catch (_error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -563,47 +988,38 @@ async function showPullRequest(repository, id) {
 }
 
 async function showPullRequests(repository) {
-  pageTitle.textContent = "Pull Requests";
-  pageLede.textContent = `${repository} · propose and merge changes.`;
+  pageTitle.textContent = "Pull requests";
+  pageLede.textContent = `${repository} · propose and review changes.`;
   dashboard.replaceChildren();
-  const create = document.createElement("a");
-  create.className = "button";
-  create.href = `/ui/repos/${encodeURIComponent(repository)}/pulls/new`;
-  create.textContent = "New pull request";
-  dashboard.append(create);
   try {
-    const response = await fetch(
-      `/api/repos/${encodeURIComponent(repository)}/pulls`,
-      {headers: {accept: "application/json"}},
-    );
+    const encoded = encodeURIComponent(repository);
+    const response = await fetch(`/api/repos/${encoded}/pulls`, {headers: {accept: "application/json"}});
     if (!response.ok) throw new Error(`pull requests returned ${response.status}`);
     const pullRequests = await response.json();
-    const list = document.createElement("div");
-    list.className = "pull-request-list";
-    if (!pullRequests.length) {
-      const empty = document.createElement("p");
-      empty.className = "muted-message";
-      empty.textContent = "No pull requests yet.";
-      list.append(empty);
-    }
-    for (const pullRequest of pullRequests) {
-      const card = document.createElement("article");
-      card.className = "issue-card";
-      const heading = document.createElement("h2");
-      const link = document.createElement("a");
-      link.href = `/ui/repos/${encodeURIComponent(repository)}/pulls/${encodeURIComponent(pullRequest.id)}`;
-      link.textContent = `Pull request ${pullRequest.id}`;
-      heading.append(link);
-      const state = document.createElement("span");
-      state.className = "status-pill";
-      state.textContent = pullRequest.state;
-      const refs = document.createElement("p");
-      refs.className = "issue-excerpt";
-      refs.textContent = `${pullRequest.source_ref} → ${pullRequest.target_ref}`;
-      card.append(heading, state, refs);
-      list.append(card);
-    }
-    dashboard.append(list);
+    dashboard.append(createWorkList({
+      items: pullRequests,
+      kind: "pull",
+      createHref: `/ui/repos/${encoded}/pulls/new`,
+      renderRow: (pullRequest) => {
+        const row = document.createElement("article");
+        row.className = "work-row";
+        const icon = document.createElement("span");
+        icon.className = `work-row-icon is-${pullRequest.state}`;
+        icon.append(interfaceIcon("pull"));
+        const content = document.createElement("div");
+        content.className = "work-row-content";
+        const heading = document.createElement("h2");
+        const link = document.createElement("a");
+        link.href = `/ui/repos/${encoded}/pulls/${encodeURIComponent(pullRequest.id)}`;
+        link.textContent = `${shortReference(pullRequest.source_ref)} into ${shortReference(pullRequest.target_ref)}`;
+        heading.append(link);
+        const meta = document.createElement("p");
+        meta.textContent = `#${pullRequest.id} · ${pullRequest.state === "draft" ? "Draft" : pullRequest.state} · ${shortReference(pullRequest.source_ref)} → ${shortReference(pullRequest.target_ref)}`;
+        content.append(heading, meta);
+        row.append(icon, content);
+        return row;
+      },
+    }));
   } catch (_error) {
     const failure = document.createElement("p");
     failure.className = "muted-message";
@@ -616,44 +1032,36 @@ async function showIssues(repository) {
   pageTitle.textContent = "Issues";
   pageLede.textContent = `${repository} · track work and discussions.`;
   dashboard.replaceChildren();
-  const create = document.createElement("a");
-  create.className = "button";
-  create.href = `/ui/repos/${encodeURIComponent(repository)}/issues/new`;
-  create.textContent = "New issue";
-  dashboard.append(create);
   try {
-    const response = await fetch(
-      `/api/repos/${encodeURIComponent(repository)}/issues`,
-      {headers: {accept: "application/json"}},
-    );
+    const encoded = encodeURIComponent(repository);
+    const response = await fetch(`/api/repos/${encoded}/issues`, {headers: {accept: "application/json"}});
     if (!response.ok) throw new Error(`issues returned ${response.status}`);
     const issues = await response.json();
-    const list = document.createElement("div");
-    list.className = "issue-list";
-    if (!issues.length) {
-      const empty = document.createElement("p");
-      empty.className = "muted-message";
-      empty.textContent = "No issues yet.";
-      list.append(empty);
-    }
-    for (const issue of issues) {
-      const card = document.createElement("article");
-      card.className = "issue-card";
-      const heading = document.createElement("h2");
-      const link = document.createElement("a");
-      link.href = `/ui/repos/${encodeURIComponent(repository)}/issues/${encodeURIComponent(issue.id)}`;
-      link.textContent = `${issue.title} #${issue.id}`;
-      heading.append(link);
-      const state = document.createElement("span");
-      state.className = "status-pill";
-      state.textContent = issue.state;
-      const body = document.createElement("p");
-      body.className = "issue-excerpt";
-      body.textContent = issue.body || "No description.";
-      card.append(heading, state, body);
-      list.append(card);
-    }
-    dashboard.append(list);
+    dashboard.append(createWorkList({
+      items: issues,
+      kind: "issue",
+      createHref: `/ui/repos/${encoded}/issues/new`,
+      renderRow: (issue) => {
+        const row = document.createElement("article");
+        row.className = "work-row";
+        const icon = document.createElement("span");
+        icon.className = `work-row-icon is-${issue.state}`;
+        icon.append(interfaceIcon("issue"));
+        const content = document.createElement("div");
+        content.className = "work-row-content";
+        const heading = document.createElement("h2");
+        const link = document.createElement("a");
+        link.href = `/ui/repos/${encoded}/issues/${encodeURIComponent(issue.id)}`;
+        link.textContent = issue.title;
+        heading.append(link);
+        const meta = document.createElement("p");
+        const actor = issue.actor || "unknown";
+        meta.textContent = `#${issue.id} opened ${formatRelativeTimestamp(issue.created_at)} by ${actor}`;
+        content.append(heading, meta);
+        row.append(icon, content);
+        return row;
+      },
+    }));
   } catch (_error) {
     const failure = document.createElement("p");
     failure.className = "muted-message";
@@ -715,56 +1123,62 @@ async function showAudit(repository) {
 }
 
 async function showCreateIssue(repository) {
-  pageTitle.textContent = "Open an issue";
+  pageTitle.textContent = "Open a new issue";
   pageLede.textContent = `${repository} · describe a task, bug, or discussion.`;
   dashboard.replaceChildren();
+  const layout = document.createElement("div");
+  layout.className = "create-work-layout";
   const form = document.createElement("form");
-  form.className = "repository-form issue-form";
-  const fields = [
-    ["id", "Issue ID", `issue-${Date.now()}`, "input"],
-    ["title", "Title", "", "input"],
-    ["body", "Description", "", "textarea"],
-  ];
-  for (const [name, labelText, value, kind] of fields) {
-    const label = document.createElement("label");
-    label.htmlFor = `issue-${name}`;
-    label.textContent = labelText;
-    const input = document.createElement(kind);
-    input.id = `issue-${name}`;
-    input.name = name;
-    input.value = value;
-    input.required = name !== "body";
-    input.maxLength = name === "title" ? 255 : name === "id" ? 36 : 10000;
-    if (kind === "textarea") input.rows = 8;
-    form.append(label, input);
-  }
+  form.className = "repository-form issue-form create-work-form";
+  const heading = document.createElement("h2");
+  heading.textContent = "Add a title and description";
+  const titleLabel = document.createElement("label");
+  titleLabel.htmlFor = "issue-title";
+  titleLabel.textContent = "Title";
+  const title = document.createElement("input");
+  title.id = "issue-title";
+  title.name = "title";
+  title.required = true;
+  title.maxLength = 255;
+  title.placeholder = "Title";
+  const bodyLabel = document.createElement("label");
+  bodyLabel.htmlFor = "issue-body";
+  bodyLabel.textContent = "Description";
+  const body = document.createElement("textarea");
+  body.id = "issue-body";
+  body.name = "body";
+  body.rows = 10;
+  body.maxLength = 10000;
+  body.placeholder = "Add a description, steps to reproduce, or other context. Markdown is supported.";
+  const footer = document.createElement("div");
+  footer.className = "form-actions";
+  const cancel = document.createElement("a");
+  cancel.className = "button button-secondary";
+  cancel.href = `/ui/repos/${encodeURIComponent(repository)}/issues`;
+  cancel.textContent = "Cancel";
   const submit = document.createElement("button");
   submit.className = "button";
   submit.type = "submit";
   submit.textContent = "Create issue";
+  footer.append(cancel, submit);
   const status = document.createElement("p");
   status.className = "form-status";
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
-  form.append(submit, status);
-  dashboard.append(form);
+  form.append(heading, titleLabel, title, bodyLabel, body, footer, status);
+  layout.append(createAvatar("H"), form);
+  dashboard.append(layout);
+  title.focus();
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     submit.disabled = true;
-    status.textContent = "Creating issue…";
+    status.textContent = "Creating issue...";
     try {
-      const response = await fetch(
-        `/api/repos/${encodeURIComponent(repository)}/issues`,
-        {
-          method: "POST",
-          headers: {"content-type": "application/json"},
-          body: JSON.stringify({
-            id: form.elements.id.value,
-            title: form.elements.title.value,
-            body: form.elements.body.value,
-          }),
-        },
-      );
+      const response = await fetch(`/api/repos/${encodeURIComponent(repository)}/issues`, {
+        method: "POST",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({id: generateInternalId(), title: title.value, body: body.value}),
+      });
       if (!response.ok) throw new Error(`issue create returned ${response.status}`);
       const issue = await response.json();
       window.location.href = `/ui/repos/${encodeURIComponent(repository)}/issues/${encodeURIComponent(issue.id)}`;
@@ -777,12 +1191,10 @@ async function showCreateIssue(repository) {
 }
 
 async function showIssue(repository, id) {
-  pageTitle.textContent = `Issue ${id}`;
-  pageLede.textContent = `${repository} · update status and discuss the issue.`;
   dashboard.replaceChildren();
   const loading = document.createElement("p");
   loading.className = "muted-message";
-  loading.textContent = "Loading issue…";
+  loading.textContent = "Loading issue...";
   dashboard.append(loading);
   try {
     const encodedRepository = encodeURIComponent(repository);
@@ -794,65 +1206,58 @@ async function showIssue(repository, id) {
     if (!issueResponse.ok) throw new Error("issue not found");
     const issue = await issueResponse.json();
     const comments = commentsResponse.ok ? await commentsResponse.json() : [];
+    const actor = issue.actor || "unknown";
+    pageTitle.textContent = "Issue";
+    pageLede.textContent = `#${issue.id} · ${repository}`;
     dashboard.replaceChildren();
-    const panel = document.createElement("article");
-    panel.className = "issue-panel";
-    const heading = document.createElement("h2");
-    heading.textContent = `${issue.title} #${issue.id}`;
-    const state = document.createElement("p");
-    state.className = "status-pill";
-    state.textContent = issue.state;
-    state.setAttribute("aria-label", `State: ${issue.state}`);
-    const body = document.createElement("div");
-    body.className = "issue-body readme-content";
-    body.append(...renderMarkdownSafe(issue.body).childNodes);
-    const details = document.createElement("dl");
-    details.className = "repository-meta";
-    for (const [label, value] of [
-      ["Opened by", issue.actor || "Runtime actor unavailable"],
-      ["Created", issue.created_at],
-      ["Updated", issue.updated_at],
-      ["Version", String(issue.version)],
-    ]) {
-      const term = document.createElement("dt");
-      term.textContent = label;
-      const detail = document.createElement("dd");
-      detail.textContent = value;
-      details.append(term, detail);
-    }
-    const actions = document.createElement("div");
-    actions.className = "pull-request-actions";
-    const stateAction = document.createElement("button");
-    stateAction.className = "button";
-    stateAction.type = "button";
-    const nextState = issue.state === "open" ? "closed" : "open";
-    stateAction.textContent = nextState === "closed" ? "Close issue" : "Reopen issue";
-    stateAction.addEventListener("click", async () => {
-      stateAction.disabled = true;
-      try {
-        const response = await fetch(
-          `/api/repos/${encodedRepository}/issues/${encodedId}`,
-          {
-            method: "PATCH",
-            headers: {
-              "content-type": "application/json",
-              "if-match": `"${issue.version}"`,
-            },
-            body: JSON.stringify({state: nextState}),
-          },
-        );
-        if (!response.ok) throw new Error("issue state update failed");
-        await showIssue(repository, id);
-      } catch (_error) {
-        stateAction.disabled = false;
-        stateAction.textContent = "Update failed; try again";
-      }
-    });
-    actions.append(stateAction);
-    panel.append(heading, state, body, details, actions);
 
+    const summary = document.createElement("div");
+    summary.className = "work-detail-summary";
+    const titleLine = document.createElement("div");
+    titleLine.className = "detail-title-line";
+    const visibleTitle = document.createElement("h1");
+    visibleTitle.textContent = issue.title;
+    const number = document.createElement("span");
+    number.textContent = `#${issue.id}`;
+    titleLine.append(visibleTitle, number);
+    const stateLine = document.createElement("div");
+    stateLine.className = "work-detail-state-line";
+    stateLine.append(createStateBadge(issue.state));
+    const summaryText = document.createElement("p");
+    summaryText.textContent = `${actor} opened this issue ${formatRelativeTimestamp(issue.created_at)} · ${comments.length} ${comments.length === 1 ? "comment" : "comments"}`;
+    stateLine.append(summaryText);
+    summary.append(titleLine, stateLine);
+
+    const layout = document.createElement("div");
+    layout.className = "discussion-layout";
+    const main = document.createElement("div");
+    main.className = "discussion-main issue-comments";
+    const description = document.createElement("article");
+    description.className = "timeline-card";
+    const descriptionHeader = document.createElement("header");
+    descriptionHeader.append(createAvatar(actor));
+    const descriptionMeta = document.createElement("p");
+    const author = document.createElement("strong");
+    author.textContent = actor;
+    descriptionMeta.append(author, document.createTextNode(` commented ${formatRelativeTimestamp(issue.created_at)}`));
+    const editToggle = document.createElement("button");
+    editToggle.className = "icon-button timeline-edit";
+    editToggle.type = "button";
+    editToggle.textContent = "Edit";
+    editToggle.setAttribute("aria-expanded", "false");
+    descriptionHeader.append(descriptionMeta, editToggle);
+    const renderedBody = document.createElement("div");
+    renderedBody.className = "timeline-body readme-content";
+    if (issue.body) renderedBody.append(...renderMarkdownSafe(issue.body).childNodes);
+    else {
+      const empty = document.createElement("p");
+      empty.className = "muted-message";
+      empty.textContent = "No description provided.";
+      renderedBody.append(empty);
+    }
     const edit = document.createElement("form");
-    edit.className = "repository-form issue-form";
+    edit.className = "repository-form issue-edit-form";
+    edit.hidden = true;
     const titleLabel = document.createElement("label");
     titleLabel.htmlFor = "issue-edit-title";
     titleLabel.textContent = "Edit title";
@@ -866,31 +1271,40 @@ async function showIssue(repository, id) {
     bodyLabel.textContent = "Edit description";
     const bodyInput = document.createElement("textarea");
     bodyInput.id = "issue-edit-body";
-    bodyInput.rows = 6;
-    bodyInput.value = issue.body;
+    bodyInput.rows = 8;
+    bodyInput.value = issue.body || "";
+    const editActions = document.createElement("div");
+    editActions.className = "form-actions";
+    const cancelEdit = document.createElement("button");
+    cancelEdit.className = "button button-secondary";
+    cancelEdit.type = "button";
+    cancelEdit.textContent = "Cancel";
     const editButton = document.createElement("button");
     editButton.className = "button";
     editButton.type = "submit";
-    editButton.textContent = "Save issue";
+    editButton.textContent = "Save changes";
+    editActions.append(cancelEdit, editButton);
     const editStatus = document.createElement("p");
     editStatus.className = "form-status";
     editStatus.setAttribute("role", "status");
-    edit.append(titleLabel, titleInput, bodyLabel, bodyInput, editButton, editStatus);
+    edit.append(titleLabel, titleInput, bodyLabel, bodyInput, editActions, editStatus);
+    const toggleEdit = (open) => {
+      edit.hidden = !open;
+      renderedBody.hidden = open;
+      editToggle.setAttribute("aria-expanded", String(open));
+      if (open) titleInput.focus();
+    };
+    editToggle.addEventListener("click", () => toggleEdit(edit.hidden));
+    cancelEdit.addEventListener("click", () => toggleEdit(false));
     edit.addEventListener("submit", async (event) => {
       event.preventDefault();
       editButton.disabled = true;
       try {
-        const response = await fetch(
-          `/api/repos/${encodedRepository}/issues/${encodedId}`,
-          {
-            method: "PATCH",
-            headers: {
-              "content-type": "application/json",
-              "if-match": `"${issue.version}"`,
-            },
-            body: JSON.stringify({title: titleInput.value, body: bodyInput.value}),
-          },
-        );
+        const response = await fetch(`/api/repos/${encodedRepository}/issues/${encodedId}`, {
+          method: "PATCH",
+          headers: {"content-type": "application/json", "if-match": `"${issue.version}"`},
+          body: JSON.stringify({title: titleInput.value, body: bodyInput.value}),
+        });
         if (!response.ok) throw new Error("issue edit failed");
         await showIssue(repository, id);
       } catch (_error) {
@@ -899,58 +1313,85 @@ async function showIssue(repository, id) {
         editStatus.textContent = "Issue could not be updated.";
       }
     });
+    description.append(descriptionHeader, renderedBody, edit);
+    main.append(description);
 
-    const discussion = document.createElement("section");
-    discussion.className = "issue-comments";
-    const discussionHeading = document.createElement("h2");
-    discussionHeading.textContent = "Discussion";
-    const commentList = document.createElement("div");
-    commentList.className = "issue-comment-list";
-    if (!comments.length) {
-      const empty = document.createElement("p");
-      empty.className = "muted-message";
-      empty.textContent = "No comments yet.";
-      commentList.append(empty);
-    }
     for (const comment of comments) {
       const item = document.createElement("article");
-      item.className = "issue-comment";
+      item.className = "timeline-card issue-comment";
+      const header = document.createElement("header");
+      header.append(createAvatar(comment.actor));
       const meta = document.createElement("p");
-      meta.className = "entry-summary";
-      meta.textContent = `${comment.actor} · ${comment.created_at}`;
-      const text = document.createElement("p");
-      text.textContent = comment.body;
-      item.append(meta, text);
-      commentList.append(item);
+      const commenter = document.createElement("strong");
+      commenter.textContent = comment.actor || "unknown";
+      meta.append(commenter, document.createTextNode(` commented ${formatRelativeTimestamp(comment.created_at)}`));
+      header.append(meta);
+      const text = document.createElement("div");
+      text.className = "timeline-body";
+      const paragraph = document.createElement("p");
+      paragraph.textContent = comment.body;
+      text.append(paragraph);
+      item.append(header, text);
+      main.append(item);
     }
-    const commentForm = document.createElement("form");
-    commentForm.className = "repository-form issue-form";
-    const commentId = document.createElement("input");
-    commentId.placeholder = "Comment ID";
-    commentId.required = true;
+
+    const composer = document.createElement("form");
+    composer.className = "comment-composer";
+    const composerAvatar = createAvatar("H");
+    const composerCard = document.createElement("div");
+    composerCard.className = "comment-composer-card";
+    const commentLabel = document.createElement("label");
+    commentLabel.htmlFor = "issue-comment-body";
+    commentLabel.textContent = "Add a comment";
     const commentBody = document.createElement("textarea");
-    commentBody.placeholder = "Add a comment";
+    commentBody.id = "issue-comment-body";
     commentBody.required = true;
-    commentBody.rows = 4;
+    commentBody.rows = 5;
+    commentBody.placeholder = "Leave a comment";
+    const composerFooter = document.createElement("div");
+    composerFooter.className = "composer-footer";
+    const commentStatus = document.createElement("p");
+    commentStatus.className = "form-status";
+    commentStatus.setAttribute("role", "status");
+    const actionGroup = document.createElement("div");
+    actionGroup.className = "form-actions";
+    const stateAction = document.createElement("button");
+    stateAction.className = "button button-secondary";
+    stateAction.type = "button";
+    const nextState = issue.state === "open" ? "closed" : "open";
+    stateAction.textContent = nextState === "closed" ? "Close issue" : "Reopen issue";
+    stateAction.addEventListener("click", async () => {
+      stateAction.disabled = true;
+      try {
+        const response = await fetch(`/api/repos/${encodedRepository}/issues/${encodedId}`, {
+          method: "PATCH",
+          headers: {"content-type": "application/json", "if-match": `"${issue.version}"`},
+          body: JSON.stringify({state: nextState}),
+        });
+        if (!response.ok) throw new Error("issue state update failed");
+        await showIssue(repository, id);
+      } catch (_error) {
+        stateAction.disabled = false;
+        stateAction.textContent = "Update failed; try again";
+      }
+    });
     const commentButton = document.createElement("button");
     commentButton.className = "button";
     commentButton.type = "submit";
-    commentButton.textContent = "Add comment";
-    const commentStatus = document.createElement("p");
-    commentStatus.className = "form-status";
-    commentForm.append(commentId, commentBody, commentButton, commentStatus);
-    commentForm.addEventListener("submit", async (event) => {
+    commentButton.textContent = "Comment";
+    actionGroup.append(stateAction, commentButton);
+    composerFooter.append(commentStatus, actionGroup);
+    composerCard.append(commentLabel, commentBody, composerFooter);
+    composer.append(composerAvatar, composerCard);
+    composer.addEventListener("submit", async (event) => {
       event.preventDefault();
       commentButton.disabled = true;
       try {
-        const response = await fetch(
-          `/api/repos/${encodedRepository}/issues/${encodedId}/comments`,
-          {
-            method: "POST",
-            headers: {"content-type": "application/json"},
-            body: JSON.stringify({id: commentId.value, body: commentBody.value}),
-          },
-        );
+        const response = await fetch(`/api/repos/${encodedRepository}/issues/${encodedId}/comments`, {
+          method: "POST",
+          headers: {"content-type": "application/json"},
+          body: JSON.stringify({id: generateInternalId(), body: commentBody.value}),
+        });
         if (!response.ok) throw new Error("comment failed");
         await showIssue(repository, id);
       } catch (_error) {
@@ -959,8 +1400,16 @@ async function showIssue(repository, id) {
         commentStatus.textContent = "Comment could not be added.";
       }
     });
-    discussion.append(discussionHeading, commentList, commentForm);
-    dashboard.append(panel, edit, discussion);
+    main.append(composer);
+
+    const sidebar = createMetadataSidebar([
+      ["Assignees", "No one assigned"],
+      ["Labels", "None yet"],
+      ["Projects", "None yet"],
+      ["Milestone", "No milestone"],
+    ]);
+    layout.append(main, sidebar);
+    dashboard.append(summary, layout);
   } catch (_error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -972,62 +1421,129 @@ async function showIssue(repository, id) {
 
 async function showCreatePullRequest(repository) {
   pageTitle.textContent = "Open a pull request";
-  pageLede.textContent = `${repository} · compare a source ref with a target ref.`;
+  pageLede.textContent = `${repository} · compare changes across branches.`;
   dashboard.replaceChildren();
   const form = document.createElement("form");
-  form.className = "repository-form pull-request-form";
-  const query = new URLSearchParams(window.location.search);
-  const fields = [
-    ["id", "Pull request ID", query.get("id") || `pull-${Date.now()}`],
-    ["source_ref", "Source ref", query.get("source") || "refs/heads/feature"],
-    ["target_ref", "Target ref", query.get("target") || "refs/heads/main"],
-    ["base_oid", "Base object ID", query.get("base") || "base"],
-    ["head_oid", "Head object ID", query.get("head") || "head"],
-  ];
-  for (const [name, labelText, value] of fields) {
-    const label = document.createElement("label");
-    label.htmlFor = `pull-${name}`;
-    label.textContent = labelText;
-    const input = document.createElement("input");
-    input.id = `pull-${name}`;
-    input.name = name;
-    input.value = value;
-    input.required = true;
-    input.maxLength = name.endsWith("_ref") ? 160 : 64;
-    form.append(label, input);
-  }
+  form.className = "repository-form pull-request-form create-pull-form";
+  const heading = document.createElement("h2");
+  heading.textContent = "Compare changes";
+  const hint = document.createElement("p");
+  hint.className = "muted-message";
+  hint.textContent = "Choose a base branch, then select the branch with your changes.";
+  const chooser = document.createElement("div");
+  chooser.className = "branch-compare-chooser";
+  const baseGroup = document.createElement("div");
+  const baseLabel = document.createElement("label");
+  baseLabel.htmlFor = "pull-target-ref";
+  baseLabel.textContent = "Base";
+  const base = document.createElement("select");
+  base.id = "pull-target-ref";
+  base.required = true;
+  baseGroup.append(baseLabel, base);
+  const arrow = document.createElement("span");
+  arrow.className = "branch-compare-arrow";
+  arrow.setAttribute("aria-hidden", "true");
+  arrow.textContent = "←";
+  const sourceGroup = document.createElement("div");
+  const sourceLabel = document.createElement("label");
+  sourceLabel.htmlFor = "pull-source-ref";
+  sourceLabel.textContent = "Compare";
+  const source = document.createElement("select");
+  source.id = "pull-source-ref";
+  source.required = true;
+  sourceGroup.append(sourceLabel, source);
+  chooser.append(baseGroup, arrow, sourceGroup);
+  const preview = document.createElement("section");
+  preview.className = "pull-create-preview";
+  const previewTitle = document.createElement("h3");
+  previewTitle.textContent = "Select branches to preview this pull request";
+  const previewText = document.createElement("p");
+  previewText.textContent = "The pull request title will be based on the selected branches.";
+  preview.append(previewTitle, previewText);
+  const actions = document.createElement("div");
+  actions.className = "form-actions";
+  const cancel = document.createElement("a");
+  cancel.className = "button button-secondary";
+  cancel.href = `/ui/repos/${encodeURIComponent(repository)}/pulls`;
+  cancel.textContent = "Cancel";
   const submit = document.createElement("button");
   submit.className = "button";
   submit.type = "submit";
   submit.textContent = "Create pull request";
+  actions.append(cancel, submit);
   const status = document.createElement("p");
   status.className = "form-status";
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
-  form.append(submit, status);
+  form.append(heading, hint, chooser, preview, actions, status);
   dashboard.append(form);
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    submit.disabled = true;
-    status.textContent = "Creating pull request…";
-    try {
-      const response = await fetch(
-        `/api/repos/${encodeURIComponent(repository)}/pulls`,
-        {
+  try {
+    const encoded = encodeURIComponent(repository);
+    const response = await fetch(`/api/repos/${encoded}/branches`, {headers: {accept: "application/json"}});
+    if (!response.ok) throw new Error("branches unavailable");
+    const branches = await response.json();
+    if (!branches.length) throw new Error("no branches");
+    for (const branch of branches) {
+      for (const select of [base, source]) {
+        const option = document.createElement("option");
+        option.value = branch.name;
+        option.textContent = shortReference(branch.name);
+        option.dataset.oid = branch.oid;
+        select.append(option);
+      }
+    }
+    const query = new URLSearchParams(window.location.search);
+    const requestedBase = query.get("target") || query.get("base");
+    const requestedSource = query.get("source") || query.get("head");
+    const mainBranch = branches.find((branch) => branch.name === "refs/heads/main");
+    if (mainBranch) base.value = mainBranch.name;
+    if (requestedBase && branches.some((branch) => branch.name === requestedBase)) base.value = requestedBase;
+    const comparisonBranch = branches.find((branch) => branch.name !== base.value);
+    if (comparisonBranch) source.value = comparisonBranch.name;
+    if (requestedSource && branches.some((branch) => branch.name === requestedSource)) source.value = requestedSource;
+    const updatePreview = () => {
+      previewTitle.textContent = `${shortReference(source.value)} into ${shortReference(base.value)}`;
+      const sameBranch = source.value === base.value;
+      previewText.textContent = sameBranch
+        ? "Choose two different branches to create a pull request."
+        : `Changes from ${shortReference(source.value)} will be proposed for ${shortReference(base.value)}.`;
+      submit.disabled = sameBranch;
+    };
+    base.addEventListener("change", updatePreview);
+    source.addEventListener("change", updatePreview);
+    updatePreview();
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      submit.disabled = true;
+      status.textContent = "Creating pull request...";
+      const baseBranch = branches.find((branch) => branch.name === base.value);
+      const sourceBranch = branches.find((branch) => branch.name === source.value);
+      try {
+        const create = await fetch(`/api/repos/${encoded}/pulls`, {
           method: "POST",
           headers: {"content-type": "application/json"},
-          body: JSON.stringify(Object.fromEntries(new FormData(form))),
-        },
-      );
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.detail || "create failed");
-      window.location.href = `/ui/repos/${encodeURIComponent(repository)}/pulls/${encodeURIComponent(body.id)}`;
-    } catch (error) {
-      submit.disabled = false;
-      status.className = "form-status is-error";
-      status.textContent = error.message || "Pull request could not be created.";
-    }
-  });
+          body: JSON.stringify({
+            id: generateInternalId(),
+            source_ref: sourceBranch.name,
+            target_ref: baseBranch.name,
+            base_oid: baseBranch.oid,
+            head_oid: sourceBranch.oid,
+          }),
+        });
+        const created = await create.json();
+        if (!create.ok) throw new Error(created.detail || "create failed");
+        window.location.href = `/ui/repos/${encoded}/pulls/${encodeURIComponent(created.id)}`;
+      } catch (error) {
+        submit.disabled = false;
+        status.className = "form-status is-error";
+        status.textContent = error.message || "Pull request could not be created.";
+      }
+    });
+  } catch (_error) {
+    submit.disabled = true;
+    status.className = "form-status is-error";
+    status.textContent = "Branches could not be loaded. Create at least two branches first.";
+  }
 }
 
 async function showCompareView(repository) {
@@ -1147,16 +1663,16 @@ function renderTreeEntry(entry, repository, branch, path) {
 
 function commitTimestampDate(value) {
   const raw = String(value ?? "");
-  if (/^-?\d+$/.test(raw)) {
-    const date = new Date(Number(raw) * 1000);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
   const compact = raw.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
   if (compact) {
     const date = new Date(Date.UTC(
       Number(compact[1]), Number(compact[2]) - 1, Number(compact[3]),
       Number(compact[4]), Number(compact[5]), Number(compact[6]),
     ));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if (/^-?\d+$/.test(raw)) {
+    const date = new Date(Number(raw) * 1000);
     return Number.isNaN(date.getTime()) ? null : date;
   }
   const date = new Date(raw);
@@ -1319,11 +1835,37 @@ async function showTreeBrowser(repository, branch, path) {
   pageTitle.textContent = repository;
   pageLede.textContent = `Files on ${branch}${path ? ` · ${path}` : ""}`;
   dashboard.replaceChildren();
+  const list = document.createElement("ul");
+  list.className = "tree-list";
   const browserHeader = document.createElement("div");
   browserHeader.className = "file-browser-header";
-  const breadcrumb = document.createElement("p");
+  const breadcrumb = document.createElement("nav");
   breadcrumb.className = "breadcrumb";
-  breadcrumb.textContent = `Repository / ${branch}${path ? ` / ${path}` : ""}`;
+  breadcrumb.setAttribute("aria-label", "File path");
+  const rootLink = document.createElement("a");
+  rootLink.href = `/ui/repos/${encodeURIComponent(repository)}/files/${encodeURIComponent(branch)}`;
+  rootLink.textContent = repository;
+  breadcrumb.append(rootLink, " / ");
+  const branchLabel = document.createElement("span");
+  branchLabel.className = "breadcrumb-branch";
+  branchLabel.textContent = branch;
+  breadcrumb.append(branchLabel);
+  let accumulatedPath = "";
+  path.split("/").filter(Boolean).forEach((part, index, parts) => {
+    accumulatedPath = accumulatedPath ? `${accumulatedPath}/${part}` : part;
+    breadcrumb.append(" / ");
+    if (index === parts.length - 1) {
+      const current = document.createElement("strong");
+      current.textContent = part;
+      breadcrumb.append(current);
+    } else {
+      const link = document.createElement("a");
+      const encodedPartPath = accumulatedPath.split("/").map(encodeURIComponent).join("/");
+      link.href = `/ui/repos/${encodeURIComponent(repository)}/files/${encodeURIComponent(branch)}/${encodedPartPath}`;
+      link.textContent = part;
+      breadcrumb.append(link);
+    }
+  });
   const browserActions = document.createElement("div");
   browserActions.className = "file-browser-actions";
   const overviewLink = document.createElement("a");
@@ -1334,10 +1876,11 @@ async function showTreeBrowser(repository, branch, path) {
   historyLink.className = "button button-secondary";
   historyLink.href = `/ui/repos/${encodeURIComponent(repository)}/commits/${encodeURIComponent(branch)}`;
   historyLink.textContent = "History";
-  browserActions.append(overviewLink, historyLink);
+  browserActions.append(
+    createFileFinder(list), overviewLink, historyLink,
+    createCodeMenu(`${window.location.origin}/git/${repository}.git`),
+  );
   browserHeader.append(breadcrumb, browserActions);
-  const list = document.createElement("ul");
-  list.className = "tree-list";
   const loading = document.createElement("li");
   loading.className = "muted-message";
   loading.textContent = "Loading files…";
