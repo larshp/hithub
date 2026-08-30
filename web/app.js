@@ -448,37 +448,6 @@ function createCodeMenu(cloneUrl) {
   return menu;
 }
 
-function createFileFinder(list) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "file-finder";
-  const toggle = document.createElement("button");
-  toggle.className = "button button-secondary toolbar-button";
-  toggle.type = "button";
-  toggle.textContent = "Go to file";
-  toggle.setAttribute("aria-expanded", "false");
-  const input = document.createElement("input");
-  input.className = "file-filter";
-  input.type = "search";
-  input.placeholder = "Filter files";
-  input.setAttribute("aria-label", "Filter files");
-  input.hidden = true;
-  toggle.addEventListener("click", () => {
-    const open = input.hidden;
-    input.hidden = !open;
-    toggle.setAttribute("aria-expanded", String(open));
-    if (open) input.focus();
-  });
-  input.addEventListener("input", () => {
-    const query = input.value.trim().toLocaleLowerCase();
-    list.querySelectorAll("li").forEach((item) => {
-      const name = item.querySelector(".tree-entry-link")?.textContent || "";
-      item.hidden = Boolean(query) && !name.toLocaleLowerCase().includes(query);
-    });
-  });
-  wrapper.append(toggle, input);
-  return wrapper;
-}
-
 if (window.location.pathname !== "/") {
   createRepositoryLink.hidden = true;
   panelHeading.hidden = true;
@@ -541,6 +510,7 @@ function showCreateForm() {
   name.pattern = "[A-Za-z0-9][A-Za-z0-9._-]*";
   name.maxLength = 100;
   name.autocomplete = "off";
+  name.autofocus = true;
   const descriptionLabel = document.createElement("label");
   descriptionLabel.htmlFor = "repository-description";
   descriptionLabel.textContent = "Description ";
@@ -577,6 +547,7 @@ function showCreateForm() {
   form.append(nameLabel, name, descriptionLabel, description,
     branchLabel, branch, submit, status);
   dashboard.append(form);
+  name.focus();
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = form.querySelector("#form-status");
@@ -597,12 +568,7 @@ function showCreateForm() {
         status.textContent = body.detail || "Repository could not be created.";
         return;
       }
-      status.className = "form-status is-success";
-      status.textContent = "Repository created.";
-      const link = document.createElement("a");
-      link.href = `/ui/repos/${encodeURIComponent(body.name)}`;
-      link.textContent = "Open repository";
-      status.append(" ", link);
+      window.location.href = `/ui/repos/${encodeURIComponent(body.name)}`;
     } catch (_error) {
       status.className = "form-status is-error";
       status.textContent = "Repository could not be created. Try again shortly.";
@@ -741,7 +707,7 @@ async function showRepositoryOverview(name) {
     referenceGroup.append(branchControl, branchCount, tagCount);
     const toolbarActions = document.createElement("div");
     toolbarActions.className = "code-toolbar-actions";
-    toolbarActions.append(createFileFinder(contentsList), createCodeMenu(cloneUrl));
+    toolbarActions.append(createCodeMenu(cloneUrl));
     selector.append(referenceGroup, toolbarActions);
     contentsPanel.append(commitLine, contentsList);
     const readme = document.createElement("section");
@@ -1231,7 +1197,7 @@ async function showIssue(repository, id) {
     const layout = document.createElement("div");
     layout.className = "discussion-layout";
     const main = document.createElement("div");
-    main.className = "discussion-main issue-comments";
+    main.className = "discussion-main";
     const description = document.createElement("article");
     description.className = "timeline-card";
     const descriptionHeader = document.createElement("header");
@@ -1877,7 +1843,7 @@ async function showTreeBrowser(repository, branch, path) {
   historyLink.href = `/ui/repos/${encodeURIComponent(repository)}/commits/${encodeURIComponent(branch)}`;
   historyLink.textContent = "History";
   browserActions.append(
-    createFileFinder(list), overviewLink, historyLink,
+    overviewLink, historyLink,
     createCodeMenu(`${window.location.origin}/git/${repository}.git`),
   );
   browserHeader.append(breadcrumb, browserActions);

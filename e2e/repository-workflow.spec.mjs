@@ -34,13 +34,11 @@ test("creates a repository from the browser", async ({page}) => {
     await json(route, []);
   });
   await page.goto("/ui/create");
+  await expect(page.locator("#repository-name")).toBeFocused();
   await page.locator("#repository-name").fill("browser-repository");
   await page.locator("#repository-description").fill("Created in a browser test.");
   await page.getByRole("button", {name: "Create repository"}).click();
-  await expect(page.locator("#form-status")).toContainText("Repository created.");
-  await expect(page.locator("#form-status a")).toHaveAttribute(
-    "href", "/ui/repos/browser-repository",
-  );
+  await page.waitForURL(/\/ui\/repos\/browser-repository$/);
 });
 
 test("a caller creates a repository through the real web UI", async ({page}, testInfo) => {
@@ -48,7 +46,7 @@ test("a caller creates a repository through the real web UI", async ({page}, tes
   await page.goto("/ui/create");
   await page.locator("#repository-name").fill(name);
   await page.getByRole("button", {name: "Create repository"}).click();
-  await expect(page.locator("#form-status")).toContainText("Repository created.");
+  await page.waitForURL(new RegExp(`/ui/repos/${name}$`));
 });
 
 test("the repository overview displays its clone URL in the Code menu", async ({page}, testInfo) => {
@@ -56,8 +54,7 @@ test("the repository overview displays its clone URL in the Code menu", async ({
   await page.goto("/ui/create");
   await page.locator("#repository-name").fill(name);
   await page.getByRole("button", {name: "Create repository"}).click();
-  await expect(page.locator("#form-status")).toContainText("Repository created.");
-  await page.goto(`/ui/repos/${name}`);
+  await page.waitForURL(new RegExp(`/ui/repos/${name}$`));
   await page.locator(".code-menu summary").click();
   await expect(page.locator(".clone-field input")).toHaveValue(
     `${new URL(page.url()).origin}/git/${name}.git`,
@@ -128,10 +125,8 @@ test("browses a repository tree", async ({page}) => {
   await expect(page.locator("#reference-choice")).toHaveValue("refs/heads/main");
   await expect(page.locator(".contents-commit")).toContainText("Document the project");
   await expect(page.locator(".tree-entry-time")).toHaveCount(2);
-  await page.getByRole("button", {name: "Go to file"}).click();
-  await page.getByRole("searchbox", {name: "Filter files"}).fill("README");
-  await expect(page.locator(".tree-entry-link", {hasText: "README.md"})).toBeVisible();
-  await expect(page.locator(".tree-entry-link", {hasText: "src"})).toBeHidden();
+  await expect(page.getByRole("button", {name: "Go to file"})).toHaveCount(0);
+  await expect(page.getByRole("searchbox", {name: "Filter files"})).toHaveCount(0);
   await page.locator("#reference-choice").selectOption("refs/heads/main");
   await page.goto("/ui/repos/demo/files/main");
   await expect(page.locator(".tree-list")).toContainText("README.md");
