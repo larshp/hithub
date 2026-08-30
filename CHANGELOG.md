@@ -21,6 +21,28 @@ the OpenAPI contract revision is tracked separately in
   and dry-run GC reporting.
 - SAP ICF, DDIC, local setup, administrator, backup/restore, upgrade,
   capability, and API compatibility documentation.
+- `GET /api/repos/{repo}/compare` returns a three-dot comparison between two
+  references with per-file unified diffs, add/delete counts, and a change
+  summary; the Compare page and the pull-request "Files changed" tab now read
+  it from the real backend instead of a test double.
+- `GET`/`POST /api/repos/{repo}/pulls/{pull}/reviews` and `.../comments`, plus
+  `GET`/`POST`/`DELETE` for issue labels and assignees, connect the existing
+  review, comment, label and assignee domain classes to REST. The pull-request
+  sidebar lists real reviewers and the issue sidebar edits labels and
+  assignees in place, replacing the previous static placeholders.
+
+### Fixed
+
+- The Code menu advertised `/git/{repo}.git`, which the Git router never
+  served; it now shows `/{repo}.git`, and UI tests fetch the advertised URL to
+  keep it reachable.
+
+### Documentation
+
+- Corrected the documented merge route from `PUT /api/repos/{repo}/pulls/
+  {pull}` to the implemented `PUT /api/repos/{repo}/pulls/{pull}/merge`, and
+  added the missing contents and comparison routes to the OpenAPI contract.
+  The server behavior is unchanged; only the contract was wrong.
 
 ### Security
 

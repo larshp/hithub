@@ -69,7 +69,16 @@ try {
       || !appSource.includes("Merge pull request")
       || !appSource.includes("Merge status:")
       || !appSource.includes("conflicting files")
+      || !appSource.includes("createTokenEditor")
+      || !appSource.includes("createPullComposer")
+      || !appSource.includes("pullDiscussion")
+      || !appSource.includes("reviewStateLabel")
+      || !appSource.includes("/reviews")
+      || !appSource.includes("/labels")
+      || !appSource.includes("/assignees")
+      || !appSource.includes("createCompareSummary")
       || !appSource.includes("textContent")
+      || appSource.includes("/git/")
       || appSource.includes("innerHTML")) {
     throw new Error("UI smoke test could not load dashboard behavior");
   }
@@ -106,12 +115,72 @@ try {
   await commentForm.locator("textarea").fill("A UI comment");
   await commentForm.getByRole("button", {name: "Comment"}).click();
   await page.getByText("A UI comment").waitFor();
+  await page.getByLabel("Add label").fill("needs-triage");
+  await page.locator(".metadata-tokens").filter({has: page.getByLabel("Add label")})
+    .getByRole("button", {name: "Add"}).click();
+  await page.locator(".token", {hasText: "needs-triage"}).waitFor();
+  await page.getByLabel("Add assignee").fill("ui-tester");
+  await page.locator(".metadata-tokens").filter({has: page.getByLabel("Add assignee")})
+    .getByRole("button", {name: "Add"}).click();
+  await page.locator(".token", {hasText: "ui-tester"}).waitFor();
+  await page.getByRole("button", {name: "Remove label needs-triage"}).click();
+  await page.locator(".token", {hasText: "needs-triage"}).waitFor({state: "detached"});
   await page.goto(
     `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/issues`,
     {waitUntil: "networkidle"},
   );
   await page.getByRole("link", {name: "Updated UI issue"}).waitFor();
   console.log("UI issue workflow passed");
+
+  const overview = await fetch(`http://127.0.0.1:${port}/api/repos/ui-issue-repository`);
+  const overviewBody = await overview.json();
+  const branches = await (await fetch(
+    `http://127.0.0.1:${port}/api/repos/ui-issue-repository/branches`,
+  )).json();
+  await page.goto(
+    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository`,
+    {waitUntil: "networkidle"},
+  );
+  await page.locator(".code-menu > summary").click();
+  const cloneUrl = await page.getByLabel("HTTPS clone URL").inputValue();
+  if (cloneUrl !== `http://127.0.0.1:${port}/ui-issue-repository.git`) {
+    throw new Error(`UI clone URL is not reachable: ${cloneUrl}`);
+  }
+  const discovery = await fetch(`${cloneUrl}/info/refs?service=git-upload-pack`);
+  if (!discovery.ok) {
+    throw new Error(`Cloning the advertised URL failed: ${discovery.status}`);
+  }
+  if (!(await discovery.text()).includes(branches[0].oid)) {
+    throw new Error("The advertised clone URL did not advertise the repository refs");
+  }
+  console.log(`UI clone URL points at ${overviewBody.name}.git`);
+
+  const pullRequest = await fetch(
+    `http://127.0.0.1:${port}/api/repos/ui-issue-repository/pulls`,
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({
+        id: "ui-pull",
+        source_ref: "refs/heads/main",
+        target_ref: "refs/heads/main",
+        base_oid: branches[0].oid,
+        head_oid: branches[0].oid,
+      }),
+    },
+  );
+  if (pullRequest.status !== 201) throw new Error("UI pull-request fixture failed");
+  await page.goto(
+    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/pulls/ui-pull`,
+    {waitUntil: "networkidle"},
+  );
+  await page.getByLabel("Add a comment").fill("Please take a look");
+  await page.getByLabel("Review verdict").selectOption("approved");
+  await page.getByRole("button", {name: "Submit"}).click();
+  await page.locator(".pull-review").waitFor();
+  await page.getByText("Please take a look").waitFor();
+  await page.locator(".metadata-sidebar").getByText("Approved").first().waitFor();
+  console.log("UI pull-request review workflow passed");
   console.log("UI layout smoke test passed");
 } finally {
   await browser?.close();

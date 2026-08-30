@@ -56,9 +56,13 @@ test("the repository overview displays its clone URL in the Code menu", async ({
   await page.getByRole("button", {name: "Create repository"}).click();
   await page.waitForURL(new RegExp(`/ui/repos/${name}$`));
   await page.locator(".code-menu summary").click();
-  await expect(page.locator(".clone-field input")).toHaveValue(
-    `${new URL(page.url()).origin}/git/${name}.git`,
+  const cloneUrl = `${new URL(page.url()).origin}/${name}.git`;
+  await expect(page.locator(".clone-field input")).toHaveValue(cloneUrl);
+  const discovery = await page.request.get(
+    `${cloneUrl}/info/refs?service=git-upload-pack`,
   );
+  expect(discovery.status()).toBe(200);
+  expect(await discovery.text()).toContain("refs/heads/main");
   await expect(page.getByRole("button", {name: "Copy clone URL"})).toBeVisible();
   await expect(page.locator(".readme-content")).toContainText(name);
   await expect(page.locator(".repository-contents")).toContainText("README.md");
@@ -196,16 +200,90 @@ test("shows pull request conversation and changed files tabs", async ({page}) =>
     id: "pull-1", state: "draft", source_ref: "refs/heads/feature",
     target_ref: "refs/heads/main", base_oid: "base", head_oid: "head", version: 1,
   }));
+  await page.route("**/api/repos/demo/pulls/pull-1/reviews", async (route) => json(route, [
+    {
+      id: "review-1", actor: "carol", state: "request_changes",
+      body: "Please rename the helper", created_at: "20260830120000",
+    },
+  ]));
+  await page.route("**/api/repos/demo/pulls/pull-1/comments", async (route) => json(route, [
+    {id: "comment-1", actor: "dave", body: "Nice cleanup", created_at: "20260830110000"},
+  ]));
   await page.route("**/api/repos/demo/compare?*", async (route) => json(route, {
-    diff: "@@ -1 +1 @@\n-old line\n+new line",
+    files: [{path: "README", patch: "@@ -1 +1 @@\n-old line\n+new line"}],
+    additions: 1, deletions: 1, summary: {added: 0, modified: 1, deleted: 0, total: 1},
   }));
   await page.goto("/ui/repos/demo/pulls/pull-1");
   await expect(page.getByRole("heading", {name: "feature into main"})).toBeVisible();
   await expect(page.getByRole("button", {name: "Ready for review"})).toBeVisible();
+  await expect(page.locator(".pull-comment")).toContainText("Nice cleanup");
+  await expect(page.locator(".pull-review")).toContainText("Please rename the helper");
+  await expect(page.locator(".pull-review .review-state")).toContainText("Requested changes");
+  await expect(page.locator(".metadata-sidebar")).toContainText("carol");
   await page.getByRole("button", {name: "Files changed"}).click();
   await expect(page.locator(".diff-viewer")).toContainText("new line");
   await page.getByRole("button", {name: "Conversation"}).click();
   await expect(page.locator(".merge-box")).toBeVisible();
+});
+
+test("submits a pull request review from the conversation tab", async ({page}) => {
+  await page.route("**/api/repos/demo/pulls/pull-2", async (route) => json(route, {
+    id: "pull-2", state: "open", source_ref: "refs/heads/feature",
+    target_ref: "refs/heads/main", base_oid: "base", head_oid: "head", version: 1,
+  }));
+  const submitted = [];
+  await page.route("**/api/repos/demo/pulls/pull-2/reviews", async (route) => {
+    if (route.request().method() === "POST") {
+      submitted.push(route.request().postDataJSON());
+      await json(route, submitted[submitted.length - 1], 201);
+      return;
+    }
+    await json(route, submitted.map((review) => ({
+      ...review, actor: "local-development", created_at: "20260830130000",
+    })));
+  });
+  await page.route("**/api/repos/demo/pulls/pull-2/comments", async (route) => json(route, []));
+  await page.goto("/ui/repos/demo/pulls/pull-2");
+  await page.getByLabel("Add a comment").fill("Ship it");
+  await page.getByLabel("Review verdict").selectOption("approved");
+  await page.getByRole("button", {name: "Submit"}).click();
+  await expect(page.locator(".pull-review")).toContainText("Ship it");
+  expect(submitted[0].state).toBe("approved");
+  expect(submitted[0].body).toBe("Ship it");
+});
+
+test("edits issue labels and assignees from the sidebar", async ({page}) => {
+  const labels = [];
+  const assignees = ["alice"];
+  await page.route("**/api/repos/demo/issues/issue-1", async (route) => json(route, {
+    id: "issue-1", title: "Sidebar issue", body: "", state: "open", actor: "alice",
+    created_at: "20260830120000", updated_at: "20260830120000", version: 1,
+  }));
+  await page.route("**/api/repos/demo/issues/issue-1/comments", async (route) => json(route, []));
+  await page.route("**/api/repos/demo/issues/issue-1/labels", async (route) => {
+    if (route.request().method() === "POST") {
+      labels.push(route.request().postDataJSON().label);
+      await json(route, {label: labels[labels.length - 1]}, 201);
+      return;
+    }
+    await json(route, labels.map((label) => ({label})));
+  });
+  await page.route("**/api/repos/demo/issues/issue-1/labels/*", async (route) => {
+    labels.splice(0, labels.length);
+    await route.fulfill({status: 204, body: ""});
+  });
+  await page.route("**/api/repos/demo/issues/issue-1/assignees", async (route) => json(
+    route, assignees.map((actor) => ({actor})),
+  ));
+  await page.goto("/ui/repos/demo/issues/issue-1");
+  await expect(page.locator(".token", {hasText: "alice"})).toBeVisible();
+  await page.getByLabel("Add label").fill("regression");
+  await page.locator(".metadata-tokens")
+    .filter({has: page.getByLabel("Add label")})
+    .getByRole("button", {name: "Add"}).click();
+  await expect(page.locator(".token", {hasText: "regression"})).toBeVisible();
+  await page.getByRole("button", {name: "Remove label regression"}).click();
+  await expect(page.locator(".token", {hasText: "regression"})).toHaveCount(0);
 });
 
 test("creates pull requests from branch selections without technical ID fields", async ({page}) => {
@@ -235,24 +313,34 @@ test("creates pull requests from branch selections without technical ID fields",
   expect(submitted.head_oid).toBe("b".repeat(40));
 });
 
-test("compares references and toggles diff views", async ({page}) => {
-  await page.route("**/api/repos/demo/branches", async (route) => json(route, [
-    {name: "refs/heads/main", oid: "a".repeat(40), algorithm: "sha1", version: 1},
-  ]));
-  await page.route("**/api/repos/demo/tags", async (route) => json(route, [
-    {name: "refs/tags/v1", oid: "b".repeat(40), algorithm: "sha1", version: 1},
-  ]));
-  await page.route("**/api/repos/demo/compare*", async (route) => json(route, {
-    diff: "@@ -1 +1 @@\n-old line\n+new line",
-  }));
-  await page.goto("/ui/repos/demo/compare");
+test("compares references through the real comparison API", async ({page}) => {
+  await page.goto("/ui/repos/compare-fixture/compare");
   await page.locator("#compare-base").selectOption("refs/heads/main");
-  await page.locator("#compare-head").selectOption("refs/tags/v1");
+  await page.locator("#compare-head").selectOption("refs/heads/feature");
   await page.getByRole("button", {name: "Compare"}).click();
-  await expect(page.locator(".diff-viewer")).toContainText("new line");
+  await expect(page.locator(".compare-summary")).toContainText(
+    "1 changed file with 1 addition and 1 deletion",
+  );
+  await expect(page.locator(".diff-viewer")).toContainText("--- a/README");
+  await expect(page.locator(".diff-viewer")).toContainText("@@ -1,1 +1,1 @@");
+  await expect(page.locator(".diff-viewer .diff-removed")).toContainText("-hello");
+  await expect(page.locator(".diff-viewer .diff-added")).toContainText("+feature");
   await page.getByRole("button", {name: "Show split view"}).click();
   await expect(page.locator(".split-diff")).toBeVisible();
-  await expect(page.locator(".split-diff .diff-added")).toContainText("new line");
+  await expect(page.locator(".split-diff .diff-added")).toContainText("feature");
+});
+
+test("reports an unchanged comparison without a diff", async ({page}) => {
+  await page.goto("/ui/repos/compare-fixture/compare");
+  await page.locator("#compare-base").selectOption("refs/heads/main");
+  await page.locator("#compare-head").selectOption("refs/heads/main");
+  await page.getByRole("button", {name: "Compare"}).click();
+  await expect(page.locator(".compare-summary")).toContainText(
+    "These references point at the same content",
+  );
+  await expect(page.locator(".diff-viewer")).toContainText(
+    "No textual changes are available",
+  );
 });
 
 test("falls back for binary and oversized blobs", async ({page}) => {

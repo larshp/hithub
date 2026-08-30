@@ -14,17 +14,29 @@ const operations = [
   ["/api/repos/{repo}/pulls", "post", "createPullRequest"],
   ["/api/repos/{repo}/pulls/{pull}", "get", "getPullRequest"],
   ["/api/repos/{repo}/pulls/{pull}", "patch", "updatePullRequestState"],
-  ["/api/repos/{repo}/pulls/{pull}", "put", "mergePullRequest"],
+  ["/api/repos/{repo}/pulls/{pull}/merge", "put", "mergePullRequest"],
+  ["/api/repos/{repo}/pulls/{pull}/reviews", "get", "listPullRequestReviews"],
+  ["/api/repos/{repo}/pulls/{pull}/reviews", "post", "createPullRequestReview"],
+  ["/api/repos/{repo}/pulls/{pull}/comments", "get", "listPullRequestComments"],
+  ["/api/repos/{repo}/pulls/{pull}/comments", "post", "createPullRequestComment"],
   ["/api/repos/{repo}/issues", "get", "listIssues"],
   ["/api/repos/{repo}/issues", "post", "createIssue"],
   ["/api/repos/{repo}/issues/{issue}", "get", "getIssue"],
   ["/api/repos/{repo}/issues/{issue}", "patch", "updateIssue"],
   ["/api/repos/{repo}/issues/{issue}/comments", "get", "listIssueComments"],
   ["/api/repos/{repo}/issues/{issue}/comments", "post", "createIssueComment"],
+  ["/api/repos/{repo}/issues/{issue}/labels", "get", "listIssueLabels"],
+  ["/api/repos/{repo}/issues/{issue}/labels", "post", "addIssueLabel"],
+  ["/api/repos/{repo}/issues/{issue}/labels/{label}", "delete", "removeIssueLabel"],
+  ["/api/repos/{repo}/issues/{issue}/assignees", "get", "listIssueAssignees"],
+  ["/api/repos/{repo}/issues/{issue}/assignees", "post", "addIssueAssignee"],
+  ["/api/repos/{repo}/issues/{issue}/assignees/{actor}", "delete", "removeIssueAssignee"],
   ["/api/repos/{repo}/activity", "get", "listRepositoryActivity"],
   ["/api/repos/{repo}/audit", "get", "listRepositoryAudit"],
   ["/api/repos/{repo}/commits", "get", "listCommits"],
   ["/api/repos/{repo}/commits/{oid}", "get", "getCommit"],
+  ["/api/repos/{repo}/contents/{path}", "get", "getContents"],
+  ["/api/repos/{repo}/compare", "get", "compareReferences"],
   ["/api/repos/{repo}/branches", "get", "listBranches"],
   ["/api/repos/{repo}/branches", "post", "createBranch"],
   ["/api/repos/{repo}/branches/{branch}", "get", "getBranch"],
@@ -83,7 +95,11 @@ function assertCommit(value) {
 }
 
 const child = spawn(process.execPath, ["server/index.mjs"], {
-  env: {...process.env, HITHUB_PORT: String(port)},
+  env: {
+    ...process.env,
+    HITHUB_PORT: String(port),
+    HITHUB_FIXTURE_REPOSITORY: "compare-fixture",
+  },
   stdio: "inherit",
 });
 
@@ -424,9 +440,163 @@ try {
       || !activity.body.some((item) => item.action === "issue.comment")) {
     fail("repository activity did not include issue events");
   }
+  const label = await request(
+    "/api/repos/contract-repository/issues/contract-issue/labels",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({label: "contract"}),
+    },
+  );
+  if (label.response.status !== 201 || label.body?.label !== "contract") {
+    fail("issue label create failed");
+  }
+  const duplicateLabel = await request(
+    "/api/repos/contract-repository/issues/contract-issue/labels",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({label: "contract"}),
+    },
+  );
+  if (duplicateLabel.response.status !== 409) {
+    fail("duplicate issue label was not rejected");
+  }
+  const labels = await request(
+    "/api/repos/contract-repository/issues/contract-issue/labels",
+  );
+  if (labels.response.status !== 200
+      || labels.body?.length !== 1 || labels.body[0]?.label !== "contract") {
+    fail("issue label list did not return the applied label");
+  }
+  const assignee = await request(
+    "/api/repos/contract-repository/issues/contract-issue/assignees",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({actor: "contract-actor"}),
+    },
+  );
+  if (assignee.response.status !== 201
+      || assignee.body?.actor !== "contract-actor") {
+    fail("issue assignee create failed");
+  }
+  const assignees = await request(
+    "/api/repos/contract-repository/issues/contract-issue/assignees",
+  );
+  if (assignees.response.status !== 200 || assignees.body?.length !== 1
+      || assignees.body[0]?.actor !== "contract-actor") {
+    fail("issue assignee list did not return the added actor");
+  }
+  const removedLabel = await request(
+    "/api/repos/contract-repository/issues/contract-issue/labels/contract",
+    {method: "DELETE"},
+  );
+  if (removedLabel.response.status !== 204) fail("issue label delete failed");
+  const missingLabel = await request(
+    "/api/repos/contract-repository/issues/contract-issue/labels/contract",
+    {method: "DELETE"},
+  );
+  if (missingLabel.response.status !== 404) {
+    fail("removing an absent label did not return the documented 404");
+  }
+
+  const review = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request/reviews",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({
+        id: "contract-review", state: "approved", body: "Looks correct",
+      }),
+    },
+  );
+  if (review.response.status !== 201 || review.body?.state !== "approved"
+      || typeof review.body?.actor !== "string") {
+    fail("pull-request review create failed");
+  }
+  const invalidReview = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request/reviews",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({id: "contract-review-2", state: "shipit"}),
+    },
+  );
+  if (invalidReview.response.status !== 400) {
+    fail("an unknown review state was not rejected");
+  }
+  const reviews = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request/reviews",
+  );
+  if (reviews.response.status !== 200 || reviews.body?.length !== 1
+      || reviews.body[0]?.id !== "contract-review") {
+    fail("pull-request review list did not return the created review");
+  }
+  const pullComment = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request/comments",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({id: "contract-pull-comment", body: "One remark"}),
+    },
+  );
+  if (pullComment.response.status !== 201) fail("pull-request comment create failed");
+  const pullComments = await request(
+    "/api/repos/contract-repository/pulls/contract-pull-request/comments",
+  );
+  if (pullComments.response.status !== 200 || pullComments.body?.length !== 1
+      || pullComments.body[0]?.body !== "One remark") {
+    fail("pull-request comment list did not return the created comment");
+  }
+  const missingPullReviews = await request(
+    "/api/repos/contract-repository/pulls/absent-pull-request/reviews",
+  );
+  if (missingPullReviews.response.status !== 404) {
+    fail("reviews for an unknown pull request did not return 404");
+  }
+
+  const identical = await request(
+    "/api/repos/contract-repository/compare?base=main&head=main",
+  );
+  if (identical.response.status !== 200
+      || !Array.isArray(identical.body?.files)
+      || identical.body.files.length !== 0
+      || identical.body.summary?.total !== 0) {
+    fail("comparing a reference with itself did not return an empty comparison");
+  }
+  const comparison = await request(
+    "/api/repos/compare-fixture/compare?base=refs/heads/main&head=refs/heads/feature",
+  );
+  if (comparison.response.status !== 200
+      || comparison.body?.files?.length !== 1
+      || comparison.body.files[0].path !== "README"
+      || comparison.body.files[0].status !== "modified"
+      || comparison.body.files[0].binary !== false
+      || comparison.body.additions !== 1 || comparison.body.deletions !== 1
+      || comparison.body.summary?.modified !== 1
+      || comparison.body.merge_base_oid !== comparison.body.base_oid) {
+    fail("branch comparison did not report the changed README");
+  }
+  const patch = comparison.body.files[0].patch;
+  if (!patch.includes("--- a/README") || !patch.includes("+++ b/README")
+      || !patch.includes("@@ -1,1 +1,1 @@")
+      || !patch.includes("-hello") || !patch.includes("+feature")) {
+    fail("branch comparison did not return a unified diff");
+  }
+  const missingComparison = await request(
+    "/api/repos/compare-fixture/compare?base=refs/heads/main&head=refs/heads/absent",
+  );
+  if (missingComparison.response.status !== 404
+      || missingComparison.body?.status !== 404) {
+    fail("comparing an unknown reference did not return the documented 404");
+  }
+
   const audit = await request("/api/repos/contract-repository/audit");
   if (audit.response.status !== 200 || !Array.isArray(audit.body)
       || !audit.body.some((item) => item.action === "issue.create")
+      || !audit.body.some((item) => item.action === "issue.label")
+      || !audit.body.some((item) => item.action === "pull_request.review")
       || !audit.body.every((item) => typeof item.correlation_id === "string")) {
     fail("repository audit did not expose complete event records");
   }

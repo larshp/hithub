@@ -638,6 +638,24 @@ a.detail-tab { display: inline-flex; align-items: center; }
 .metadata-sidebar > section + section { padding-top: 1rem; }
 .metadata-sidebar h2 { margin: 0 0 .375rem; color: var(--text); font-size: .75rem; }
 .metadata-sidebar p { margin: 0; overflow-wrap: anywhere; }
+.metadata-list { display: grid; margin: 0; padding: 0; gap: .375rem; list-style: none; }
+.metadata-list li { display: flex; align-items: center; gap: .375rem; color: var(--text); }
+.metadata-list .avatar { width: 1.25rem; height: 1.25rem; font-size: .625rem; }
+.metadata-note { margin-left: auto; color: var(--muted); }
+.metadata-tokens { display: grid; gap: .5rem; }
+.token-list { display: flex; flex-wrap: wrap; margin: 0; padding: 0; gap: .375rem; list-style: none; }
+.token { display: inline-flex; align-items: center; gap: .25rem; padding: .125rem .25rem .125rem .5rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--surface); color: var(--text); }
+.token-remove { padding: 0 .25rem; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; font-size: .875rem; line-height: 1; }
+.token-remove:hover { color: var(--danger); }
+.token-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .375rem; }
+.token-form input { padding: .25rem .5rem; border: 1px solid var(--line); border-radius: .375rem; background: var(--canvas-inset); color: var(--text); }
+.token-form .form-status { grid-column: 1 / -1; min-height: 0; }
+.token-add { padding: .25rem .625rem; }
+.review-state { padding: .125rem .5rem; border-radius: 1rem; background: rgba(110, 118, 129, .25); color: var(--muted); font-size: .6875rem; }
+.review-state.is-approved { background: rgba(63, 185, 80, .2); color: var(--success); }
+.review-state.is-request_changes { background: rgba(248, 81, 73, .2); color: var(--danger); }
+.compare-results { display: grid; gap: 1rem; margin-top: 1rem; }
+.compare-summary { margin: 0; color: var(--muted); }
 .technical-details { padding-top: 1rem; }
 .technical-details summary { color: var(--text); cursor: pointer; font-size: .75rem; font-weight: 600; }
 .technical-details .repository-meta { margin-top: .75rem; }

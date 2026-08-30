@@ -249,12 +249,105 @@ function createMetadataSidebar(sections) {
     const section = document.createElement("section");
     const heading = document.createElement("h2");
     heading.textContent = title;
-    const content = document.createElement("p");
-    content.textContent = value;
-    section.append(heading, content);
+    section.append(heading);
+    if (value instanceof Node) {
+      section.append(value);
+    } else {
+      const content = document.createElement("p");
+      content.textContent = value;
+      section.append(content);
+    }
     sidebar.append(section);
   });
   return sidebar;
+}
+
+function createMetadataList(items, emptyMessage) {
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted-message";
+    empty.textContent = emptyMessage;
+    return empty;
+  }
+  const list = document.createElement("ul");
+  list.className = "metadata-list";
+  for (const item of items) {
+    const entry = document.createElement("li");
+    entry.append(createAvatar(item.primary), document.createTextNode(item.primary));
+    if (item.secondary) {
+      const secondary = document.createElement("span");
+      secondary.className = "metadata-note";
+      secondary.textContent = item.secondary;
+      entry.append(secondary);
+    }
+    list.append(entry);
+  }
+  return list;
+}
+
+function createTokenEditor(options) {
+  const {name, values, emptyMessage, placeholder, onAdd, onRemove} = options;
+  const wrapper = document.createElement("div");
+  wrapper.className = "metadata-tokens";
+  if (!values.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted-message";
+    empty.textContent = emptyMessage;
+    wrapper.append(empty);
+  } else {
+    const list = document.createElement("ul");
+    list.className = "token-list";
+    for (const value of values) {
+      const entry = document.createElement("li");
+      entry.className = "token";
+      const label = document.createElement("span");
+      label.textContent = value;
+      const remove = document.createElement("button");
+      remove.className = "token-remove";
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", `Remove ${name} ${value}`);
+      remove.addEventListener("click", async () => {
+        remove.disabled = true;
+        await onRemove(value);
+      });
+      entry.append(label, remove);
+      list.append(entry);
+    }
+    wrapper.append(list);
+  }
+  const form = document.createElement("form");
+  form.className = "token-form";
+  const label = document.createElement("label");
+  const inputId = `add-${name}`;
+  label.htmlFor = inputId;
+  label.className = "sr-only";
+  label.textContent = `Add ${name}`;
+  const input = document.createElement("input");
+  input.id = inputId;
+  input.required = true;
+  input.maxLength = 100;
+  input.placeholder = placeholder;
+  const submit = document.createElement("button");
+  submit.className = "button button-secondary token-add";
+  submit.type = "submit";
+  submit.textContent = "Add";
+  const status = document.createElement("p");
+  status.className = "form-status";
+  status.setAttribute("role", "status");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    submit.disabled = true;
+    const added = await onAdd(input.value.trim());
+    if (!added) {
+      submit.disabled = false;
+      status.className = "form-status is-error";
+      status.textContent = `${input.value.trim()} could not be added.`;
+    }
+  });
+  form.append(label, input, submit, status);
+  wrapper.append(form);
+  return wrapper;
 }
 
 async function loadRepositories() {
@@ -620,7 +713,7 @@ async function showRepositoryOverview(name) {
     ) : null;
     const contents = contentsResponse?.ok ? await contentsResponse.json() : null;
     dashboard.replaceChildren();
-    const cloneUrl = `${window.location.origin}/git/${repository.name}.git`;
+    const cloneUrl = `${window.location.origin}/${repository.name}.git`;
     const selector = document.createElement("div");
     selector.className = "reference-toolbar";
     const branchControl = document.createElement("div");
@@ -745,6 +838,133 @@ async function showRepositoryOverview(name) {
   }
 }
 
+function reviewStateLabel(state) {
+  return {
+    approved: "Approved",
+    request_changes: "Requested changes",
+    commented: "Commented",
+  }[state] || "Reviewed";
+}
+
+function pullDiscussion(reviews, comments) {
+  const entries = [
+    ...comments.map((comment) => ({...comment, kind: "comment"})),
+    ...reviews.map((review) => ({...review, kind: "review"})),
+  ];
+  entries.sort((left, right) => String(left.created_at || "")
+    .localeCompare(String(right.created_at || "")));
+  return entries.map((entry) => {
+    const card = document.createElement("article");
+    card.className = entry.kind === "review"
+      ? "timeline-card pull-review" : "timeline-card pull-comment";
+    const header = document.createElement("header");
+    header.append(createAvatar(entry.actor));
+    const meta = document.createElement("p");
+    const who = document.createElement("strong");
+    who.textContent = entry.actor || "unknown";
+    const action = entry.kind === "review"
+      ? `${reviewStateLabel(entry.state).toLocaleLowerCase()} these changes`
+      : "commented";
+    meta.append(who, document.createTextNode(
+      ` ${action} ${formatRelativeTimestamp(entry.created_at)}`,
+    ));
+    header.append(meta);
+    if (entry.kind === "review") {
+      const badge = document.createElement("span");
+      badge.className = `review-state is-${entry.state}`;
+      badge.textContent = reviewStateLabel(entry.state);
+      header.append(badge);
+    }
+    card.append(header);
+    if (entry.body) {
+      const text = document.createElement("div");
+      text.className = "timeline-body";
+      const paragraph = document.createElement("p");
+      paragraph.textContent = entry.body;
+      text.append(paragraph);
+      card.append(text);
+    }
+    return card;
+  });
+}
+
+function createPullComposer(context) {
+  const {repository, id, encodedRepository, encodedId} = context;
+  const composer = document.createElement("form");
+  composer.className = "comment-composer pull-composer";
+  const card = document.createElement("div");
+  card.className = "comment-composer-card";
+  const bodyLabel = document.createElement("label");
+  bodyLabel.htmlFor = "pull-comment-body";
+  bodyLabel.textContent = "Add a comment";
+  const body = document.createElement("textarea");
+  body.id = "pull-comment-body";
+  body.rows = 5;
+  body.placeholder = "Leave a comment";
+  const reviewLabel = document.createElement("label");
+  reviewLabel.htmlFor = "pull-review-state";
+  reviewLabel.textContent = "Review verdict";
+  const reviewState = document.createElement("select");
+  reviewState.id = "pull-review-state";
+  for (const [value, text] of [
+    ["comment", "Comment only"],
+    ["approved", "Approve"],
+    ["request_changes", "Request changes"],
+  ]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = text;
+    reviewState.append(option);
+  }
+  const footer = document.createElement("div");
+  footer.className = "composer-footer";
+  const status = document.createElement("p");
+  status.className = "form-status";
+  status.setAttribute("role", "status");
+  const group = document.createElement("div");
+  group.className = "form-actions";
+  const submit = document.createElement("button");
+  submit.className = "button";
+  submit.type = "submit";
+  submit.textContent = "Submit";
+  group.append(submit);
+  footer.append(status, group);
+  card.append(bodyLabel, body, reviewLabel, reviewState, footer);
+  composer.append(createAvatar("H"), card);
+  composer.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const text = body.value.trim();
+    const verdict = reviewState.value;
+    if (!text && verdict === "comment") {
+      status.className = "form-status is-error";
+      status.textContent = "Write a comment or choose a review verdict.";
+      return;
+    }
+    submit.disabled = true;
+    const resource = verdict === "comment" ? "comments" : "reviews";
+    const payload = verdict === "comment"
+      ? {id: generateInternalId(), body: text}
+      : {id: generateInternalId(), state: verdict, body: text};
+    try {
+      const posted = await fetch(
+        `/api/repos/${encodedRepository}/pulls/${encodedId}/${resource}`,
+        {
+          method: "POST",
+          headers: {"content-type": "application/json"},
+          body: JSON.stringify(payload),
+        },
+      );
+      if (!posted.ok) throw new Error("submit failed");
+      await showPullRequest(repository, id);
+    } catch (_error) {
+      submit.disabled = false;
+      status.className = "form-status is-error";
+      status.textContent = "The review could not be submitted.";
+    }
+  });
+  return composer;
+}
+
 async function showPullRequest(repository, id) {
   dashboard.replaceChildren();
   const loading = document.createElement("p");
@@ -754,11 +974,17 @@ async function showPullRequest(repository, id) {
   try {
     const encodedRepository = encodeURIComponent(repository);
     const encodedId = encodeURIComponent(id);
-    const response = await fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}`, {
-      headers: {accept: "application/json"},
-    });
+    const [response, reviewsResponse, commentsResponse] = await Promise.all([
+      fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}`, {
+        headers: {accept: "application/json"},
+      }),
+      fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}/reviews`),
+      fetch(`/api/repos/${encodedRepository}/pulls/${encodedId}/comments`),
+    ]);
     if (!response.ok) throw new Error(`pull request returned ${response.status}`);
     const pullRequest = await response.json();
+    const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
+    const comments = commentsResponse.ok ? await commentsResponse.json() : [];
     const source = shortReference(pullRequest.source_ref);
     const target = shortReference(pullRequest.target_ref);
     pageTitle.textContent = "Pull request";
@@ -904,12 +1130,26 @@ async function showPullRequest(repository, id) {
       actions.prepend(mergeAction);
     }
     mergeBox.append(mergeHeading, mergeMessage, actions);
-    main.append(timeline, mergeBox);
+    main.append(timeline);
+
+    for (const entry of pullDiscussion(reviews, comments)) {
+      main.append(entry);
+    }
+    main.append(mergeBox, createPullComposer({
+      repository,
+      id,
+      encodedRepository,
+      encodedId,
+    }));
 
     const sidebar = createMetadataSidebar([
-      ["Reviewers", "No reviews yet"],
-      ["Assignees", "No one assigned"],
-      ["Labels", "None yet"],
+      ["Reviewers", createMetadataList(
+        reviews.map((review) => ({
+          primary: review.actor || "unknown",
+          secondary: reviewStateLabel(review.state),
+        })),
+        "No reviews yet",
+      )],
       ["Development", `${source} into ${target}`],
     ]);
     const technical = document.createElement("details");
@@ -1178,13 +1418,19 @@ async function showIssue(repository, id) {
   try {
     const encodedRepository = encodeURIComponent(repository);
     const encodedId = encodeURIComponent(id);
-    const [issueResponse, commentsResponse] = await Promise.all([
+    const [issueResponse, commentsResponse, labelsResponse, assigneesResponse] = await Promise.all([
       fetch(`/api/repos/${encodedRepository}/issues/${encodedId}`),
       fetch(`/api/repos/${encodedRepository}/issues/${encodedId}/comments`),
+      fetch(`/api/repos/${encodedRepository}/issues/${encodedId}/labels`),
+      fetch(`/api/repos/${encodedRepository}/issues/${encodedId}/assignees`),
     ]);
     if (!issueResponse.ok) throw new Error("issue not found");
     const issue = await issueResponse.json();
     const comments = commentsResponse.ok ? await commentsResponse.json() : [];
+    const labels = labelsResponse.ok
+      ? (await labelsResponse.json()).map((entry) => entry.label) : [];
+    const assignees = assigneesResponse.ok
+      ? (await assigneesResponse.json()).map((entry) => entry.actor) : [];
     const actor = issue.actor || "unknown";
     pageTitle.textContent = "Issue";
     pageLede.textContent = `#${issue.id} · ${repository}`;
@@ -1381,11 +1627,36 @@ async function showIssue(repository, id) {
     });
     main.append(composer);
 
+    const mutateMetadata = async (resource, method, value) => {
+      const suffix = method === "DELETE" ? `/${encodeURIComponent(value)}` : "";
+      const field = resource === "labels" ? "label" : "actor";
+      const request = {method, headers: {"content-type": "application/json"}};
+      if (method === "POST") request.body = JSON.stringify({[field]: value});
+      const response = await fetch(
+        `/api/repos/${encodedRepository}/issues/${encodedId}/${resource}${suffix}`,
+        request,
+      );
+      if (!response.ok) return false;
+      await showIssue(repository, id);
+      return true;
+    };
     const sidebar = createMetadataSidebar([
-      ["Assignees", "No one assigned"],
-      ["Labels", "None yet"],
-      ["Projects", "None yet"],
-      ["Milestone", "No milestone"],
+      ["Assignees", createTokenEditor({
+        name: "assignee",
+        values: assignees,
+        emptyMessage: "No one assigned",
+        placeholder: "Assign a person",
+        onAdd: (value) => mutateMetadata("assignees", "POST", value),
+        onRemove: (value) => mutateMetadata("assignees", "DELETE", value),
+      })],
+      ["Labels", createTokenEditor({
+        name: "label",
+        values: labels,
+        emptyMessage: "None yet",
+        placeholder: "Add a label",
+        onAdd: (value) => mutateMetadata("labels", "POST", value),
+        onRemove: (value) => mutateMetadata("labels", "DELETE", value),
+      })],
     ]);
     layout.append(main, sidebar);
     dashboard.append(summary, layout);
@@ -1525,6 +1796,18 @@ async function showCreatePullRequest(repository) {
   }
 }
 
+function createCompareSummary(payload) {
+  const summary = document.createElement("p");
+  summary.className = "compare-summary";
+  const files = Array.isArray(payload?.files) ? payload.files.length : 0;
+  const additions = Number(payload?.additions || 0);
+  const deletions = Number(payload?.deletions || 0);
+  summary.textContent = files
+    ? `${files} changed ${files === 1 ? "file" : "files"} with ${additions} ${additions === 1 ? "addition" : "additions"} and ${deletions} ${deletions === 1 ? "deletion" : "deletions"}.`
+    : "These references point at the same content.";
+  return summary;
+}
+
 async function showCompareView(repository) {
   pageTitle.textContent = "Compare references";
   pageLede.textContent = `${repository} · review changes between two branches or tags`;
@@ -1554,7 +1837,9 @@ async function showCompareView(repository) {
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
   form.append(heading, baseLabel, base, headLabel, head, submit, status);
-  dashboard.append(form);
+  const results = document.createElement("div");
+  results.className = "compare-results";
+  dashboard.append(form, results);
   try {
     const encoded = encodeURIComponent(repository);
     const [branchesResponse, tagsResponse] = await Promise.all([
@@ -1584,17 +1869,21 @@ async function showCompareView(repository) {
         const response = await fetch(`/api/repos/${encoded}/compare?${params}`);
         if (!response.ok) throw new Error(`compare returned ${response.status}`);
         const payload = await response.json();
-        dashboard.append(renderUnifiedDiffSafe(payload));
+        results.replaceChildren(
+          createCompareSummary(payload), renderUnifiedDiffSafe(payload),
+        );
         const mergeButton = document.createElement("button");
         mergeButton.className = "button merge-button";
         mergeButton.type = "button";
         mergeButton.textContent = "Merge pull request";
         mergeButton.disabled = true;
         mergeButton.setAttribute("aria-describedby", "compare-status");
+        status.className = "form-status";
         status.id = "compare-status";
         status.textContent = `${base.value} compared with ${head.value}. Open a pull request to enable merging.`;
-        dashboard.append(mergeButton);
+        results.append(mergeButton);
       } catch (_error) {
+        results.replaceChildren();
         status.className = "form-status is-error";
         status.textContent = "This comparison could not be loaded.";
       }
@@ -1857,7 +2146,7 @@ async function showTreeBrowser(repository, branch, path) {
   historyLink.textContent = "History";
   browserActions.append(
     overviewLink, historyLink,
-    createCodeMenu(`${window.location.origin}/git/${repository}.git`),
+    createCodeMenu(`${window.location.origin}/${repository}.git`),
   );
   browserHeader.append(breadcrumb, browserActions);
   const loading = document.createElement("li");

@@ -21,6 +21,10 @@ export default defineConfig({
     url: "http://127.0.0.1:3600/health",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
-    env: {...process.env, HITHUB_PORT: "3600"},
+    env: {
+      ...process.env,
+      HITHUB_PORT: "3600",
+      HITHUB_FIXTURE_REPOSITORY: "compare-fixture",
+    },
   },
 });

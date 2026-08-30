@@ -505,7 +505,31 @@ CLASS zcl_hithub_http IMPLEMENTATION.
       DATA(lo_rest_query) = NEW zcl_hithub_repository_query(
         NEW zcl_hithub_local_meta_store( ) ).
       DATA(lo_audit_sink) = NEW zcl_hithub_local_event_sink( ).
-      IF lv_rest_method = 'PUT' AND lv_path CS '/pulls/' AND lv_path CS '/merge'.
+      IF zcl_hithub_pr_discussion_api=>matches( lv_path ) = abap_true
+          OR zcl_hithub_issue_meta_api=>matches( lv_path ) = abap_true.
+        DATA ls_delegated TYPE zcl_hithub_rest_response=>ty_response.
+        DATA(lo_delegated_context) = zcl_hithub_rest_context=>for_local(
+          iv_method = lv_rest_method iv_path = lv_path
+          iv_body = server->request->get_data( )
+          iv_correlation_id = server->request->get_header_field(
+            'X-Request-ID' ) ).
+        IF zcl_hithub_pr_discussion_api=>matches( lv_path ) = abap_true.
+          ls_delegated = zcl_hithub_pr_discussion_api=>handle(
+            io_context = lo_delegated_context io_sink = lo_audit_sink ).
+        ELSE.
+          ls_delegated = zcl_hithub_issue_meta_api=>handle(
+            io_context = lo_delegated_context io_sink = lo_audit_sink ).
+        ENDIF.
+        server->response->set_status(
+          code = ls_delegated-status reason = ls_delegated-reason ).
+        IF ls_delegated-location IS NOT INITIAL.
+          server->response->set_header_field(
+            name = 'Location' value = ls_delegated-location ).
+        ENDIF.
+        server->response->set_content_type( ls_delegated-content_type ).
+        server->response->set_data( ls_delegated-body ).
+      ELSEIF lv_rest_method = 'PUT' AND lv_path CS '/pulls/'
+          AND lv_path CS '/merge'.
         DATA lv_merge_repo_name TYPE string.
         DATA lv_merge_pr_id TYPE string.
         FIND REGEX '^/api/repos/([A-Za-z0-9._-]+)/pulls/([^/]+)/merge$'
@@ -1138,6 +1162,61 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               server->response->set_content_type( 'application/json' ).
               server->response->set_data(
                 zcl_hithub_contents_repr=>list( lt_contents_entries ) ).
+            ENDIF.
+          ENDIF.
+        ENDIF.
+      ELSEIF lv_rest_method = 'GET' AND lv_path CP '/api/repos/*/compare'.
+        DATA lv_compare_repo_name TYPE string.
+        FIND REGEX '^/api/repos/([A-Za-z0-9._-]+)/compare$' IN lv_path
+          SUBMATCHES lv_compare_repo_name.
+        DATA(ls_compare_problem) = zcl_hithub_problem_response=>build(
+          iv_status = 404 iv_detail = 'Comparison route was not found.'
+          iv_instance = lv_path ).
+        IF sy-subrc <> 0 OR lv_compare_repo_name IS INITIAL.
+          server->response->set_status( code = 404 reason = 'Not Found' ).
+          server->response->set_content_type(
+            ls_compare_problem-content_type ).
+          server->response->set_data( ls_compare_problem-body ).
+        ELSE.
+          DATA(ls_compare_repository) = lo_rest_query->find(
+            lv_compare_repo_name ).
+          IF ls_compare_repository-id IS INITIAL.
+            ls_compare_problem = zcl_hithub_problem_response=>build(
+              iv_status = 404 iv_detail = 'Repository was not found.'
+              iv_instance = lv_path ).
+            server->response->set_status( code = 404 reason = 'Not Found' ).
+            server->response->set_content_type(
+              ls_compare_problem-content_type ).
+            server->response->set_data( ls_compare_problem-body ).
+          ELSE.
+            DATA(lv_compare_base) = server->request->get_form_field( 'base' ).
+            DATA(lv_compare_head) = server->request->get_form_field( 'head' ).
+            IF lv_compare_base IS INITIAL.
+              lv_compare_base = ls_compare_repository-default_branch.
+            ENDIF.
+            IF lv_compare_head IS INITIAL.
+              lv_compare_head = ls_compare_repository-default_branch.
+            ENDIF.
+            DATA(lo_compare_service) = NEW zcl_hithub_compare_service(
+              io_metadata = NEW zcl_hithub_local_meta_store( )
+              io_objects  = NEW zcl_hithub_local_object_store( ) ).
+            DATA(ls_comparison) = lo_compare_service->compare(
+              iv_repository_id = ls_compare_repository-id
+              iv_base          = lv_compare_base
+              iv_head          = lv_compare_head ).
+            IF ls_comparison-found = abap_false.
+              ls_compare_problem = zcl_hithub_problem_response=>build(
+                iv_status = 404 iv_detail = ls_comparison-reason
+                iv_instance = lv_path ).
+              server->response->set_status( code = 404 reason = 'Not Found' ).
+              server->response->set_content_type(
+                ls_compare_problem-content_type ).
+              server->response->set_data( ls_compare_problem-body ).
+            ELSE.
+              server->response->set_status( code = 200 reason = 'OK' ).
+              server->response->set_content_type( 'application/json' ).
+              server->response->set_data(
+                zcl_hithub_compare_repr=>one( ls_comparison ) ).
             ENDIF.
           ENDIF.
         ENDIF.
