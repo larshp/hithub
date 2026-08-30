@@ -28,7 +28,7 @@ try {
   const app = await fetch(`http://127.0.0.1:${port}/app.js`);
   const appSource = await app.text();
   if (!app.ok || !appSource.includes("/api/repos")
-      || !appSource.includes("repositoryCard")
+      || !appSource.includes("repositoryRow")
       || !appSource.includes("showCreateForm")
       || !appSource.includes("showRepositoryOverview")
       || !appSource.includes("renderMarkdownSafe")

@@ -23,6 +23,8 @@ const operations = [
   ["/api/repos/{repo}/issues/{issue}/comments", "post", "createIssueComment"],
   ["/api/repos/{repo}/activity", "get", "listRepositoryActivity"],
   ["/api/repos/{repo}/audit", "get", "listRepositoryAudit"],
+  ["/api/repos/{repo}/commits", "get", "listCommits"],
+  ["/api/repos/{repo}/commits/{oid}", "get", "getCommit"],
   ["/api/repos/{repo}/branches", "get", "listBranches"],
   ["/api/repos/{repo}/branches", "post", "createBranch"],
   ["/api/repos/{repo}/branches/{branch}", "get", "getBranch"],
@@ -70,6 +72,16 @@ function assertReference(value, prefix) {
   }
 }
 
+function assertCommit(value) {
+  if (!value || typeof value.oid !== "string"
+      || !/^[0-9a-f]{40}$/i.test(value.oid)
+      || value.algorithm !== "sha1" || typeof value.tree !== "string"
+      || !Array.isArray(value.parents) || typeof value.author !== "string"
+      || typeof value.committer !== "string" || typeof value.message !== "string") {
+    fail("commit response did not match the Commit schema");
+  }
+}
+
 const child = spawn(process.execPath, ["server/index.mjs"], {
   env: {...process.env, HITHUB_PORT: String(port)},
   stdio: "inherit",
@@ -111,6 +123,18 @@ try {
   const retrieved = await request("/api/repos/contract-repository");
   if (retrieved.response.status !== 200) fail("repository retrieve failed");
   assertRepository(retrieved.body);
+
+  const commits = await request("/api/repos/contract-repository/commits?ref=main");
+  if (commits.response.status !== 200 || !Array.isArray(commits.body)
+      || commits.body.length !== 1) {
+    fail("commit history did not return the initial commit");
+  }
+  commits.body.forEach(assertCommit);
+  const commit = await request(
+    `/api/repos/contract-repository/commits/${commits.body[0].oid}`,
+  );
+  if (commit.response.status !== 200) fail("commit retrieve failed");
+  assertCommit(commit.body);
 
   const retryFirst = await request("/api/repos", {
     method: "POST",

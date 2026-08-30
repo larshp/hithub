@@ -35,35 +35,19 @@
           <nav class="primary-nav" id="primary-navigation" aria-label="Primary navigation">
             <a href="/">Repositories</a>
           </nav>
-          <div class="header-actions">
-            <a class="new-repository-link" href="/ui/create" aria-label="Create repository">
-              <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16">
-                <path d="M7.25 2.75a.75.75 0 0 1 1.5 0v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5Z"/>
-              </svg>
-              <span>New</span>
-            </a>
-          </div>
         </div>
       </header>
       <main id="main-content" class="site-main">
         <nav id="repository-navigation" class="repository-navigation" aria-label="Repository navigation" hidden></nav>
         <section class="page-intro" aria-labelledby="page-title">
           <div>
-            <p class="eyebrow">Repository workspace</p>
             <h1 id="page-title">Repositories</h1>
-            <p class="lede">Browse source, history, branches, and tags.</p>
+            <p class="lede" hidden></p>
           </div>
-          <a class="button" href="/ui/create">Create repository</a>
+          <a class="button" href="/ui/create">New repository</a>
         </section>
-        <section class="content-panel" aria-labelledby="panel-title">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Getting started</p>
-              <h2 id="panel-title">All repositories</h2>
-            </div>
-            <span class="status-pill" id="service-status">Checking service</span>
-          </div>
-          <div id="repository-dashboard" class="repository-grid" aria-live="polite">
+        <section class="content-panel" aria-label="Repository list">
+          <div id="repository-dashboard" class="repository-list" aria-live="polite">
             <p class="muted-message">Loading repositories…</p>
           </div>
         </section>
@@ -75,9 +59,6 @@
         </div>
         <div class="footer-links">
           <a href="/api/repos">API</a>
-          <span class="header-status" id="header-status" role="status" aria-live="polite">
-            Connecting…
-          </span>
         </div>
       </footer>
     </div>

@@ -1005,6 +1005,81 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ENDIF.
           ENDIF.
         ENDIF.
+      ELSEIF lv_rest_method = 'GET'
+          AND ( lv_path CP '/api/repos/*/commits'
+            OR lv_path CP '/api/repos/*/commits/*' ).
+        DATA lv_commit_repo_name TYPE string.
+        DATA lv_commit_oid TYPE string.
+        DATA lv_commit_collection TYPE abap_bool.
+        FIND REGEX '^/api/repos/([A-Za-z0-9._-]+)/commits$' IN lv_path
+          SUBMATCHES lv_commit_repo_name.
+        IF sy-subrc = 0.
+          lv_commit_collection = abap_true.
+        ELSE.
+          FIND REGEX '^/api/repos/([A-Za-z0-9._-]+)/commits/([^/]+)$'
+            IN lv_path SUBMATCHES lv_commit_repo_name lv_commit_oid.
+        ENDIF.
+        DATA(ls_commit_problem) = zcl_hithub_problem_response=>build(
+          iv_status = 404 iv_detail = 'Commit route was not found.'
+          iv_instance = lv_path ).
+        IF lv_commit_repo_name IS INITIAL.
+          server->response->set_status( code = 404 reason = 'Not Found' ).
+          server->response->set_content_type(
+            ls_commit_problem-content_type ).
+          server->response->set_data( ls_commit_problem-body ).
+        ELSE.
+          DATA(ls_commit_repository) = lo_rest_query->find(
+            lv_commit_repo_name ).
+          IF ls_commit_repository-id IS INITIAL.
+            ls_commit_problem = zcl_hithub_problem_response=>build(
+              iv_status = 404 iv_detail = 'Repository was not found.'
+              iv_instance = lv_path ).
+            server->response->set_status( code = 404 reason = 'Not Found' ).
+            server->response->set_content_type(
+              ls_commit_problem-content_type ).
+            server->response->set_data( ls_commit_problem-body ).
+          ELSE.
+            DATA(lo_commit_service) = NEW zcl_hithub_commit_service(
+              io_metadata = NEW zcl_hithub_local_meta_store( )
+              io_objects  = NEW zcl_hithub_local_object_store( ) ).
+            IF lv_commit_collection = abap_true.
+              DATA(lv_commit_ref) = server->request->get_form_field( 'ref' ).
+              IF lv_commit_ref IS INITIAL.
+                lv_commit_ref = ls_commit_repository-default_branch.
+              ENDIF.
+              DATA(lt_commit_entries) = lo_commit_service->list(
+                iv_repository_id = ls_commit_repository-id
+                iv_ref           = lv_commit_ref ).
+              server->response->set_status( code = 200 reason = 'OK' ).
+              server->response->set_content_type( 'application/json' ).
+              server->response->set_data(
+                zcl_hithub_commit_repr=>list( lt_commit_entries ) ).
+            ELSE.
+              DATA(lv_commit_algorithm) = COND string(
+                WHEN strlen( lv_commit_oid ) = 64 THEN 'sha256'
+                ELSE 'sha1' ).
+              DATA(ls_commit_entry) = lo_commit_service->read(
+                iv_repository_id = ls_commit_repository-id
+                iv_algorithm     = lv_commit_algorithm
+                iv_oid           = lv_commit_oid ).
+              IF ls_commit_entry-oid IS INITIAL.
+                ls_commit_problem = zcl_hithub_problem_response=>build(
+                  iv_status = 404 iv_detail = 'Commit was not found.'
+                  iv_instance = lv_path ).
+                server->response->set_status(
+                  code = 404 reason = 'Not Found' ).
+                server->response->set_content_type(
+                  ls_commit_problem-content_type ).
+                server->response->set_data( ls_commit_problem-body ).
+              ELSE.
+                server->response->set_status( code = 200 reason = 'OK' ).
+                server->response->set_content_type( 'application/json' ).
+                server->response->set_data(
+                  zcl_hithub_commit_repr=>one( ls_commit_entry ) ).
+              ENDIF.
+            ENDIF.
+          ENDIF.
+        ENDIF.
       ELSEIF lv_rest_method = 'GET' AND lv_path CS '/contents'.
         DATA lv_contents_repo_name TYPE string.
         DATA lv_contents_path TYPE string.

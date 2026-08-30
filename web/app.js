@@ -1,12 +1,9 @@
-const headerStatus = document.querySelector("#header-status");
-const serviceStatus = document.querySelector("#service-status");
 const dashboard = document.querySelector("#repository-dashboard");
 const pageTitle = document.querySelector("#page-title");
 const pageLede = document.querySelector(".lede");
 const pageIntro = document.querySelector(".page-intro");
 const repositoryNavigation = document.querySelector("#repository-navigation");
 const panel = document.querySelector(".content-panel");
-const panelHeading = document.querySelector(".panel-heading");
 const createRepositoryLink = document.querySelector(".page-intro .button");
 const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
 const primaryNavigation = document.querySelector("#primary-navigation");
@@ -18,6 +15,7 @@ const iconPaths = {
   issue: "M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm0 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z",
   pull: "M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm10.75 7.5a.75.75 0 0 1-.75-.75V5.56L9.53 7.53a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1-1.06 1.06L13 5.56V10a.75.75 0 0 1-.75.75Z",
   audit: "M8 0c.69 0 1.765.311 2.91.695 1.18.395 2.372.836 3.33 1.187a.75.75 0 0 1 .49.704v4.985c0 3.925-2.296 6.76-6.432 8.349a.75.75 0 0 1-.536 0C3.63 14.331 1.27 11.496 1.27 7.571V2.586a.75.75 0 0 1 .49-.704A71.7 71.7 0 0 1 5.09.695C6.235.31 7.31 0 8 0Zm0 1.5c-.45 0-1.39.25-2.433.6a68.2 68.2 0 0 0-2.797.985v4.486c0 3.15 1.785 5.438 5.23 6.842 3.445-1.404 5.23-3.693 5.23-6.842V3.085a68.2 68.2 0 0 0-2.797-.984C9.39 1.75 8.45 1.5 8 1.5Z",
+  more: "M3.75 8a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5.5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5.5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Z",
   copy: "M0 6.75C0 5.784.784 5 1.75 5h6.5C9.216 5 10 5.784 10 6.75v7.5A1.75 1.75 0 0 1 8.25 16h-6.5A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Zm4-6.5h6.5C13.216 0 14 .784 14 1.75v7.5A1.75 1.75 0 0 1 12.25 11h-.5a.75.75 0 0 1 0-1.5h.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25h-6.5a.25.25 0 0 0-.25.25v.5a.75.75 0 0 1-1.5 0v-.5C4 .784 4.784 0 5.75 0Z",
 };
 
@@ -52,49 +50,26 @@ document.addEventListener("keydown", (event) => {
   globalSearchInput?.focus();
 });
 
-async function checkService() {
-  try {
-    const response = await fetch("/health", {headers: {accept: "application/json"}});
-    if (!response.ok) throw new Error(`health returned ${response.status}`);
-    const body = await response.json();
-    if (body.status !== "ok") throw new Error("health response was not ok");
-    headerStatus.textContent = "Service online";
-    serviceStatus.textContent = "Online";
-    serviceStatus.classList.add("is-positive");
-  } catch (error) {
-    headerStatus.textContent = "Service unavailable";
-    serviceStatus.textContent = "Unavailable";
-    serviceStatus.classList.add("is-negative");
-    console.warn("HitHub health check failed", error);
-  }
-}
-
-checkService();
-
-function repositoryCard(repository) {
-  const card = document.createElement("article");
-  card.className = "repository-card";
-  const title = document.createElement("h3");
+function repositoryRow(repository) {
+  const row = document.createElement("article");
+  row.className = "repository-row";
+  const main = document.createElement("div");
+  main.className = "repository-row-main";
+  const title = document.createElement("h2");
   const link = document.createElement("a");
   link.href = `/ui/repos/${encodeURIComponent(repository.name)}`;
   link.textContent = repository.name;
   title.append(link);
   const description = document.createElement("p");
   description.textContent = repository.description || "No description yet.";
-  const metadata = document.createElement("dl");
-  metadata.className = "repository-meta";
-  for (const [label, value] of [
-    ["Default branch", repository.default_branch],
-    ["Version", String(repository.version)],
-  ]) {
-    const term = document.createElement("dt");
-    term.textContent = label;
-    const detail = document.createElement("dd");
-    detail.textContent = value;
-    metadata.append(term, detail);
-  }
-  card.append(title, description, metadata);
-  return card;
+  main.append(title, description);
+  const branch = document.createElement("span");
+  branch.className = "repository-row-branch";
+  branch.append(interfaceIcon("pull"), document.createTextNode(
+    `Default branch ${shortReference(repository.default_branch)}`,
+  ));
+  row.append(main, branch);
+  return row;
 }
 
 function renderMarkdownSafe(markdown) {
@@ -302,7 +277,7 @@ async function loadRepositories() {
       dashboard.append(empty);
       return;
     }
-    matchingRepositories.forEach((repository) => dashboard.append(repositoryCard(repository)));
+    matchingRepositories.forEach((repository) => dashboard.append(repositoryRow(repository)));
   } catch (error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -352,6 +327,24 @@ const repositoryPageRoute = repositoryRoute || treeRoute || blobRoute || history
   || commitRoute || compareRoute || pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute
   || issueListRoute || issueRoute || issueCreateRoute || auditRoute;
 
+async function loadRepositoryTabCounts(repository, targets) {
+  const encoded = encodeURIComponent(repository);
+  await Promise.all(Object.entries(targets).map(async ([kind, target]) => {
+    try {
+      const response = await fetch(`/api/repos/${encoded}/${kind}`, {
+        headers: {accept: "application/json"},
+      });
+      if (!response.ok) return;
+      const items = await response.json();
+      if (!Array.isArray(items)) return;
+      target.textContent = String(items.filter((item) => item.state !== "closed").length);
+      target.hidden = false;
+    } catch (_error) {
+      // Navigation remains fully usable when optional counts are unavailable.
+    }
+  }));
+}
+
 function showRepositoryNavigation(repository) {
   const encoded = encodeURIComponent(repository);
   repositoryNavigation.hidden = false;
@@ -373,28 +366,48 @@ function showRepositoryNavigation(repository) {
   const name = document.createElement("strong");
   name.textContent = repository;
   identity.append(owner, separator, name);
-  const typeBadge = document.createElement("span");
-  typeBadge.className = "repository-type-badge";
-  typeBadge.textContent = "Repository";
-  identityRow.append(identity, typeBadge);
+  identityRow.append(identity);
   const tabs = [
-    ["code", "Code", `/ui/repos/${encoded}`, repositoryRoute || treeRoute || blobRoute || historyRoute || commitRoute || compareRoute],
-    ["issue", "Issues", `/ui/repos/${encoded}/issues`, issueListRoute || issueRoute || issueCreateRoute],
-    ["pull", "Pull requests", `/ui/repos/${encoded}/pulls`, pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute],
-    ["audit", "Audit", `/ui/repos/${encoded}/audit`, auditRoute],
+    ["code", "Code", `/ui/repos/${encoded}`, repositoryRoute || treeRoute || blobRoute || historyRoute || commitRoute || compareRoute, ""],
+    ["issue", "Issues", `/ui/repos/${encoded}/issues`, issueListRoute || issueRoute || issueCreateRoute, "issues"],
+    ["pull", "Pull requests", `/ui/repos/${encoded}/pulls`, pullRequestListRoute || pullRequestRoute || pullRequestCreateRoute, "pulls"],
   ];
   const tabList = document.createElement("div");
   tabList.className = "repository-tabs";
-  tabs.forEach(([icon, label, href, active]) => {
+  const countTargets = {};
+  tabs.forEach(([icon, label, href, active, countKind]) => {
     const link = document.createElement("a");
     link.href = href;
     link.className = active ? "repository-tab is-active" : "repository-tab";
     if (active) link.setAttribute("aria-current", "page");
     link.append(interfaceIcon(icon), document.createTextNode(label));
+    if (countKind) {
+      const count = document.createElement("span");
+      count.className = "repository-tab-count";
+      count.hidden = true;
+      link.append(count);
+      countTargets[countKind] = count;
+    }
     tabList.append(link);
   });
+  const more = document.createElement("details");
+  more.className = "repository-more";
+  const moreSummary = document.createElement("summary");
+  moreSummary.className = auditRoute ? "repository-tab is-active" : "repository-tab";
+  moreSummary.append(interfaceIcon("more"), document.createTextNode("More"));
+  const moreMenu = document.createElement("div");
+  moreMenu.className = "repository-more-menu";
+  const auditLink = document.createElement("a");
+  auditLink.href = `/ui/repos/${encoded}/audit`;
+  auditLink.className = "repository-more-item";
+  if (auditRoute) auditLink.setAttribute("aria-current", "page");
+  auditLink.append(interfaceIcon("audit"), document.createTextNode("Audit"));
+  moreMenu.append(auditLink);
+  more.append(moreSummary, moreMenu);
+  tabList.append(more);
   inner.append(identityRow, tabList);
   repositoryNavigation.append(inner);
+  void loadRepositoryTabCounts(repository, countTargets);
 }
 
 async function copyText(value, control) {
@@ -450,8 +463,8 @@ function createCodeMenu(cloneUrl) {
 
 if (window.location.pathname !== "/") {
   createRepositoryLink.hidden = true;
-  panelHeading.hidden = true;
-  panel.removeAttribute("aria-labelledby");
+  pageLede.hidden = false;
+  panel.removeAttribute("aria-label");
   panel.classList.add("page-content-panel");
   dashboard.className = "page-dashboard";
 }

@@ -67,6 +67,10 @@ test("the repository overview displays its clone URL in the Code menu", async ({
   await expect(page.getByText("Recent activity")).toHaveCount(0);
   await page.goto(`/ui/repos/${name}/files/main`);
   await expect(page.locator(".tree-list")).toContainText("README.md");
+  await page.goto(`/ui/repos/${name}/commits/main`);
+  await expect(page.locator(".commit-list")).toContainText("Initial commit");
+  await page.getByRole("link", {name: "Initial commit"}).click();
+  await expect(page.locator(".commit-message")).toContainText("Initial commit");
 });
 
 test("browses every object in the abapGit interoperability fixture", async ({page}) => {
@@ -134,6 +138,7 @@ test("browses a repository tree", async ({page}) => {
 });
 
 test("shows the supported repository navigation and pull requests", async ({page}) => {
+  await page.route("**/api/repos/demo/issues", async (route) => json(route, []));
   await page.route("**/api/repos/demo/pulls", async (route) => json(route, [
     {
       id: "pull-1", state: "open", source_ref: "refs/heads/feature",
@@ -141,13 +146,29 @@ test("shows the supported repository navigation and pull requests", async ({page
     },
   ]));
   await page.goto("/ui/repos/demo/pulls");
-  await expect(page.locator(".repository-tabs")).toContainText("CodeIssuesPull requestsAudit");
-  await expect(page.locator(".repository-tab.is-active")).toHaveText("Pull requests");
+  await expect(page.locator(".repository-tabs")).toContainText("CodeIssues0Pull requests1More");
+  await expect(page.locator(".repository-tab.is-active")).toContainText("Pull requests");
+  await expect(page.locator(".repository-type-badge")).toHaveCount(0);
+  await page.locator(".repository-more > summary").click();
+  await expect(page.getByRole("link", {name: "Audit"})).toBeVisible();
   await expect(page.locator(".pull-request-list")).toContainText("feature into main");
   await expect(page.locator(".pull-request-list")).toContainText("#pull-1");
   await expect(page.getByRole("link", {name: "New pull request"})).toHaveAttribute(
     "href", "/ui/repos/demo/pulls/new",
   );
+});
+
+test("keeps secondary repository navigation in More on mobile", async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.route("**/api/repos/demo/issues", async (route) => json(route, []));
+  await page.route("**/api/repos/demo/pulls", async (route) => json(route, []));
+  await page.goto("/ui/repos/demo/issues");
+  await expect(page.locator(".repository-more > summary")).toBeVisible();
+  await page.locator(".repository-more > summary").click();
+  await expect(page.getByRole("link", {name: "Audit"})).toBeVisible();
+  expect(await page.evaluate(
+    () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+  )).toBe(true);
 });
 
 test("filters compact issue rows by state and search", async ({page}) => {

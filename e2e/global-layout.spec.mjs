@@ -8,7 +8,7 @@ test("global repository shell loads", async ({page}) => {
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(page.getByRole("navigation", {name: "Primary navigation"})).toBeVisible();
   await expect(page.getByRole("search")).toBeVisible();
-  await expect(page.getByRole("link", {name: "Create repository"}).first()).toBeVisible();
+  await expect(page.getByRole("link", {name: "New repository"})).toHaveCount(1);
   await expect(page.getByRole("main")).toBeVisible();
   await expect(page.getByRole("contentinfo")).toBeVisible();
   await page.keyboard.press("Tab");
@@ -18,7 +18,7 @@ test("global repository shell loads", async ({page}) => {
 test("global shell remains usable on a narrow viewport", async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.goto("/");
-  await expect(page.locator(".page-intro").getByRole("link", {name: "Create repository"})).toBeVisible();
+  await expect(page.locator(".page-intro").getByRole("link", {name: "New repository"})).toBeVisible();
   await page.getByRole("button", {name: "Open navigation"}).click();
   await expect(page.getByRole("navigation", {name: "Primary navigation"})).toBeVisible();
   const fitsViewport = await page.evaluate(
@@ -37,7 +37,9 @@ test("global search filters the repository index", async ({page}) => {
     ]),
   }));
   await page.goto("/?q=alpha");
-  await expect(page.locator(".repository-card")).toHaveCount(1);
+  await expect(page.locator(".repository-row")).toHaveCount(1);
   await expect(page.getByRole("link", {name: "alpha"})).toBeVisible();
   await expect(page.getByRole("link", {name: "beta"})).toHaveCount(0);
+  await expect(page.locator(".repository-row")).toContainText("Default branch main");
+  await expect(page.locator("#service-status, #header-status")).toHaveCount(0);
 });
