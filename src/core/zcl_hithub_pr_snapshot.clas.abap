@@ -17,6 +17,13 @@ CLASS zcl_hithub_pr_snapshot DEFINITION
       END OF ty_snapshot.
     TYPES ty_snapshots TYPE STANDARD TABLE OF ty_snapshot WITH DEFAULT KEY.
 
+    CLASS-METHODS is_valid
+      IMPORTING
+        is_snapshot     TYPE ty_snapshot
+        iv_require_id   TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(rv_valid) TYPE abap_bool.
+
     CLASS-METHODS open
       IMPORTING
         is_snapshot     TYPE ty_snapshot
@@ -33,18 +40,23 @@ ENDCLASS.
 
 CLASS zcl_hithub_pr_snapshot IMPLEMENTATION.
 
+  METHOD is_valid.
+    rv_valid = xsdbool(
+      is_snapshot-repository_id IS NOT INITIAL
+      AND ( iv_require_id = abap_false OR is_snapshot-id IS NOT INITIAL )
+      AND is_snapshot-source_ref IS NOT INITIAL
+      AND is_snapshot-target_ref IS NOT INITIAL
+      AND is_snapshot-base_oid IS NOT INITIAL
+      AND is_snapshot-head_oid IS NOT INITIAL
+      AND zcl_hithub_pull_request_state=>is_valid( is_snapshot-state ) = abap_true ).
+  ENDMETHOD.
+
   METHOD open.
     DATA ls_row TYPE zhi_pull_request.
     DATA ls_existing TYPE zhi_pull_request.
 
     CLEAR rv_saved.
-    IF is_snapshot-repository_id IS INITIAL
-        OR is_snapshot-id IS INITIAL
-        OR is_snapshot-source_ref IS INITIAL
-        OR is_snapshot-target_ref IS INITIAL
-        OR is_snapshot-base_oid IS INITIAL
-        OR is_snapshot-head_oid IS INITIAL
-        OR zcl_hithub_pull_request_state=>is_valid( is_snapshot-state ) = abap_false.
+    IF is_valid( is_snapshot ) = abap_false.
       RETURN.
     ENDIF.
     SELECT SINGLE * FROM zhi_pull_request INTO @ls_existing

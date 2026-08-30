@@ -2613,9 +2613,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               lo_issue_post_context->body( ) ).
             DATA ls_issue_post TYPE zcl_hithub_issues=>ty_issue.
             DATA lv_issue_post_valid TYPE abap_bool.
-            DATA lv_issue_post_id_seen TYPE abap_bool.
             DATA lv_issue_post_title_seen TYPE abap_bool.
             DATA ls_issue_post_member TYPE zcl_hithub_json=>ty_member.
+            DATA lv_issue_post_key TYPE string.
+            DATA lv_issue_post_replay TYPE string.
+            DATA lo_issue_post_store TYPE REF TO zif_hithub_metadata_store.
             lv_issue_post_valid = ls_issue_post_document-valid.
             ls_issue_post-repository_id = ls_issue_post_repository-id.
             ls_issue_post-actor = lo_issue_post_context->actor_label( ).
@@ -2625,13 +2627,6 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 CONTINUE.
               ENDIF.
               CASE ls_issue_post_member-name.
-                WHEN 'id'.
-                  IF lv_issue_post_id_seen = abap_true.
-                    lv_issue_post_valid = abap_false.
-                  ELSE.
-                    ls_issue_post-id = ls_issue_post_member-value.
-                    lv_issue_post_id_seen = abap_true.
-                  ENDIF.
                 WHEN 'title'.
                   IF lv_issue_post_title_seen = abap_true.
                     lv_issue_post_valid = abap_false.
@@ -2645,20 +2640,38 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_issue_post_valid = abap_false.
               ENDCASE.
             ENDLOOP.
-            IF lv_issue_post_id_seen = abap_false
-                OR lv_issue_post_title_seen = abap_false.
+            IF lv_issue_post_title_seen = abap_false.
               lv_issue_post_valid = abap_false.
+            ENDIF.
+            lv_issue_post_key = lo_issue_post_context->idempotency_key( ).
+            lo_issue_post_store = NEW zcl_hithub_local_meta_store( ).
+            IF lv_issue_post_valid = abap_true
+                AND lv_issue_post_key IS NOT INITIAL.
+              lv_issue_post_replay = lo_issue_post_store->read_idempotency(
+                iv_actor = ls_issue_post-actor
+                iv_key   = |issue:{ ls_issue_post_repository-id }:{ lv_issue_post_key }| ).
             ENDIF.
             IF lv_issue_post_valid = abap_false.
               ls_issue_post_problem = zcl_hithub_problem_response=>build(
                 iv_status   = 400
-                iv_detail   = 'Issue body must contain string id and title.'
+                iv_detail   = 'Issue body must contain a string title.'
                 iv_instance = lv_path ).
               server->response->set_status(
                 code = 400 reason = 'Bad Request' ).
               server->response->set_content_type(
                 ls_issue_post_problem-content_type ).
               server->response->set_data( ls_issue_post_problem-body ).
+            ELSEIF lv_issue_post_replay IS NOT INITIAL.
+              DATA(ls_issue_post_replayed) = zcl_hithub_issues=>read(
+                iv_repository_id = ls_issue_post_repository-id
+                iv_id            = lv_issue_post_replay ).
+              server->response->set_status( code = 201 reason = 'Created' ).
+              server->response->set_header_field(
+                name = 'Location' value = lv_path && '/' &&
+                ls_issue_post_replayed-id ).
+              server->response->set_content_type( 'application/json' ).
+              server->response->set_data(
+                zcl_hithub_issue_repr=>one( ls_issue_post_replayed ) ).
             ELSE.
               DATA(ls_issue_post_result) = zcl_hithub_issues=>create(
                 ls_issue_post ).
@@ -2679,6 +2692,12 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   ls_issue_post_problem-content_type ).
                 server->response->set_data( ls_issue_post_problem-body ).
               ELSE.
+                IF lv_issue_post_key IS NOT INITIAL.
+                  lo_issue_post_store->save_idempotency(
+                    iv_actor      = ls_issue_post-actor
+                    iv_key        = |issue:{ ls_issue_post_repository-id }:{ lv_issue_post_key }|
+                    iv_subject_id = ls_issue_post_result-issue-id ).
+                ENDIF.
                 zcl_hithub_audit_log=>record(
                   io_sink = lo_audit_sink io_context = lo_issue_post_context
                   iv_action = 'issue.create' iv_subject_type = 'issue'
@@ -2719,16 +2738,25 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               ls_pr_post_problem-content_type ).
             server->response->set_data( ls_pr_post_problem-body ).
           ELSE.
+            DATA(lo_pr_post_context) = zcl_hithub_rest_context=>for_local(
+              iv_method = lv_rest_method iv_path = lv_path
+              iv_body = server->request->get_data( )
+              iv_correlation_id = server->request->get_header_field(
+                'X-Request-ID' )
+              iv_idempotency_key = server->request->get_header_field(
+                'Idempotency-Key' ) ).
             DATA(ls_pr_post_document) = zcl_hithub_json=>parse_data(
-              server->request->get_data( ) ).
+              lo_pr_post_context->body( ) ).
             DATA ls_pr_post_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
             DATA lv_pr_post_valid TYPE abap_bool.
-            DATA lv_pr_post_id_seen TYPE abap_bool.
             DATA lv_pr_post_source_seen TYPE abap_bool.
             DATA lv_pr_post_target_seen TYPE abap_bool.
             DATA lv_pr_post_base_seen TYPE abap_bool.
             DATA lv_pr_post_head_seen TYPE abap_bool.
             DATA ls_pr_post_member TYPE zcl_hithub_json=>ty_member.
+            DATA lv_pr_post_key TYPE string.
+            DATA lv_pr_post_replay TYPE string.
+            DATA lo_pr_post_store TYPE REF TO zif_hithub_metadata_store.
             lv_pr_post_valid = ls_pr_post_document-valid.
             ls_pr_post_request-repository_id = ls_pr_post_repository-id.
             ls_pr_post_request-state = zcl_hithub_pull_request_state=>c_draft.
@@ -2738,9 +2766,6 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 CONTINUE.
               ENDIF.
               CASE ls_pr_post_member-name.
-                WHEN 'id'.
-                  ls_pr_post_request-id = ls_pr_post_member-value.
-                  lv_pr_post_id_seen = abap_true.
                 WHEN 'state'.
                   ls_pr_post_request-state = ls_pr_post_member-value.
                 WHEN 'source_ref'.
@@ -2759,12 +2784,18 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   lv_pr_post_valid = abap_false.
               ENDCASE.
             ENDLOOP.
-            IF lv_pr_post_id_seen = abap_false
-                OR lv_pr_post_source_seen = abap_false
+            IF lv_pr_post_source_seen = abap_false
                 OR lv_pr_post_target_seen = abap_false
                 OR lv_pr_post_base_seen = abap_false
                 OR lv_pr_post_head_seen = abap_false.
               lv_pr_post_valid = abap_false.
+            ENDIF.
+            lv_pr_post_key = lo_pr_post_context->idempotency_key( ).
+            lo_pr_post_store = NEW zcl_hithub_local_meta_store( ).
+            IF lv_pr_post_valid = abap_true AND lv_pr_post_key IS NOT INITIAL.
+              lv_pr_post_replay = lo_pr_post_store->read_idempotency(
+                iv_actor = lo_pr_post_context->actor_label( )
+                iv_key   = |pull:{ ls_pr_post_repository-id }:{ lv_pr_post_key }| ).
             ENDIF.
             IF lv_pr_post_valid = abap_false.
               ls_pr_post_problem = zcl_hithub_problem_response=>build(
@@ -2775,6 +2806,17 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               server->response->set_content_type(
                 ls_pr_post_problem-content_type ).
               server->response->set_data( ls_pr_post_problem-body ).
+            ELSEIF lv_pr_post_replay IS NOT INITIAL.
+              DATA(ls_pr_post_replayed) = zcl_hithub_pull_requests=>find(
+                iv_repository_id = ls_pr_post_repository-id
+                iv_id            = lv_pr_post_replay ).
+              server->response->set_status( code = 201 reason = 'Created' ).
+              server->response->set_header_field(
+                name  = 'Location'
+                value = |/api/repos/{ lv_pr_post_repo_name }/pulls/{ ls_pr_post_replayed-id }| ).
+              server->response->set_content_type( 'application/json' ).
+              server->response->set_data(
+                zcl_hithub_pr_repr=>one( ls_pr_post_replayed ) ).
             ELSE.
               DATA(ls_pr_post_result) = zcl_hithub_pull_requests=>create(
                 ls_pr_post_request ).
@@ -2787,10 +2829,16 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   ls_pr_post_problem-content_type ).
                 server->response->set_data( ls_pr_post_problem-body ).
               ELSE.
+                IF lv_pr_post_key IS NOT INITIAL.
+                  lo_pr_post_store->save_idempotency(
+                    iv_actor      = lo_pr_post_context->actor_label( )
+                    iv_key        = |pull:{ ls_pr_post_repository-id }:{ lv_pr_post_key }|
+                    iv_subject_id = ls_pr_post_result-pull_request-id ).
+                ENDIF.
                 server->response->set_status( code = 201 reason = 'Created' ).
                 server->response->set_header_field(
                   name  = 'Location'
-                  value = |/api/repos/{ lv_pr_post_repo_name }/pulls/{ ls_pr_post_request-id }| ).
+                  value = |/api/repos/{ lv_pr_post_repo_name }/pulls/{ ls_pr_post_result-pull_request-id }| ).
                 server->response->set_content_type( 'application/json' ).
                 server->response->set_data(
                   zcl_hithub_pr_repr=>one( ls_pr_post_result-pull_request ) ).

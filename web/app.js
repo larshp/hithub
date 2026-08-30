@@ -17,6 +17,12 @@ const iconPaths = {
   audit: "M8 0c.69 0 1.765.311 2.91.695 1.18.395 2.372.836 3.33 1.187a.75.75 0 0 1 .49.704v4.985c0 3.925-2.296 6.76-6.432 8.349a.75.75 0 0 1-.536 0C3.63 14.331 1.27 11.496 1.27 7.571V2.586a.75.75 0 0 1 .49-.704A71.7 71.7 0 0 1 5.09.695C6.235.31 7.31 0 8 0Zm0 1.5c-.45 0-1.39.25-2.433.6a68.2 68.2 0 0 0-2.797.985v4.486c0 3.15 1.785 5.438 5.23 6.842 3.445-1.404 5.23-3.693 5.23-6.842V3.085a68.2 68.2 0 0 0-2.797-.984C9.39 1.75 8.45 1.5 8 1.5Z",
   more: "M3.75 8a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5.5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5.5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Z",
   copy: "M0 6.75C0 5.784.784 5 1.75 5h6.5C9.216 5 10 5.784 10 6.75v7.5A1.75 1.75 0 0 1 8.25 16h-6.5A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Zm4-6.5h6.5C13.216 0 14 .784 14 1.75v7.5A1.75 1.75 0 0 1 12.25 11h-.5a.75.75 0 0 1 0-1.5h.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25h-6.5a.25.25 0 0 0-.25.25v.5a.75.75 0 0 1-1.5 0v-.5C4 .784 4.784 0 5.75 0Z",
+  branch: "M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z",
+  tag: "M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.75 1.75 0 0 1 1 7.775Zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z",
+  check: "M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z",
+  search: "M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z",
+  close: "M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z",
+  plus: "M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z",
 };
 
 function interfaceIcon(name, className = "octicon") {
@@ -524,6 +530,248 @@ async function copyText(value, control) {
   }
 }
 
+function referenceHref(encoded, name) {
+  return `/ui/repos/${encoded}/files/${encodeURIComponent(shortReference(name))}`;
+}
+
+function createReferenceSwitcher(options) {
+  const {encoded, branches, tags, current, defaultBranch} = options;
+  const menu = document.createElement("details");
+  menu.className = "ref-switcher";
+  const summary = document.createElement("summary");
+  summary.className = "button button-secondary ref-switcher-summary";
+  summary.id = "reference-switcher";
+  const summaryName = document.createElement("span");
+  summaryName.className = "ref-switcher-name";
+  summaryName.textContent = current ? shortReference(current.name) : "No branches yet";
+  summary.append(interfaceIcon("branch"), summaryName);
+
+  const popover = document.createElement("div");
+  popover.className = "ref-switcher-popover";
+  const header = document.createElement("div");
+  header.className = "ref-switcher-header";
+  const heading = document.createElement("strong");
+  heading.textContent = "Switch branches/tags";
+  const close = document.createElement("button");
+  close.className = "icon-button ref-switcher-close";
+  close.type = "button";
+  close.setAttribute("aria-label", "Close the branch and tag menu");
+  close.append(interfaceIcon("close"));
+  close.addEventListener("click", () => {
+    menu.open = false;
+    summary.focus();
+  });
+  header.append(heading, close);
+
+  const search = document.createElement("div");
+  search.className = "ref-search";
+  const filterLabel = document.createElement("label");
+  filterLabel.className = "sr-only";
+  filterLabel.htmlFor = "reference-filter";
+  filterLabel.textContent = "Find or create a branch";
+  const filter = document.createElement("input");
+  filter.id = "reference-filter";
+  filter.type = "text";
+  filter.autocomplete = "off";
+  filter.placeholder = "Find or create a branch...";
+  search.append(filterLabel, interfaceIcon("search", "ref-search-icon"), filter);
+
+  const tabs = document.createElement("div");
+  tabs.className = "ref-tabs";
+  tabs.setAttribute("role", "tablist");
+  tabs.setAttribute("aria-label", "Reference kind");
+  const panels = {};
+  const lists = {};
+  const tabButtons = {};
+  for (const kind of ["branches", "tags"]) {
+    const tab = document.createElement("button");
+    tab.className = "ref-tab";
+    tab.type = "button";
+    tab.id = `ref-tab-${kind}`;
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", `ref-panel-${kind}`);
+    tab.textContent = kind === "branches" ? "Branches" : "Tags";
+    tabs.append(tab);
+    tabButtons[kind] = tab;
+    const panel = document.createElement("div");
+    panel.className = "ref-panel";
+    panel.id = `ref-panel-${kind}`;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", tab.id);
+    const list = document.createElement("ul");
+    list.className = "ref-list";
+    panel.append(list);
+    panels[kind] = panel;
+    lists[kind] = list;
+  }
+
+  const empty = document.createElement("p");
+  empty.className = "muted-message ref-empty";
+  const create = document.createElement("button");
+  create.className = "ref-create";
+  create.type = "button";
+  create.hidden = true;
+  const createText = document.createElement("span");
+  create.append(interfaceIcon("plus"), createText);
+  const status = document.createElement("p");
+  status.className = "form-status ref-status";
+  status.setAttribute("role", "status");
+  popover.append(header, search, tabs, panels.branches, panels.tags, empty, create, status);
+  menu.append(summary, popover);
+
+  const rows = {branches: [], tags: []};
+  for (const [kind, references] of [["branches", branches], ["tags", tags]]) {
+    for (const reference of references) {
+      const short = shortReference(reference.name);
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      link.className = "ref-item";
+      link.href = referenceHref(encoded, reference.name);
+      if (reference.name === current?.name) link.setAttribute("aria-current", "true");
+      const mark = document.createElement("span");
+      mark.className = "ref-item-mark";
+      if (reference.name === current?.name) mark.append(interfaceIcon("check"));
+      const name = document.createElement("span");
+      name.className = "ref-item-name";
+      name.textContent = short;
+      link.append(mark, name);
+      if (kind === "branches" && short === defaultBranch) {
+        const badge = document.createElement("span");
+        badge.className = "ref-item-badge";
+        badge.textContent = "default";
+        link.append(badge);
+      }
+      item.append(link);
+      lists[kind].append(item);
+      rows[kind].push({short, item, link});
+    }
+  }
+
+  let active = "branches";
+  const render = () => {
+    const query = filter.value.trim();
+    const lowered = query.toLocaleLowerCase();
+    let visible = 0;
+    for (const kind of ["branches", "tags"]) {
+      panels[kind].hidden = kind !== active;
+      for (const row of rows[kind]) {
+        const matches = !lowered || row.short.toLocaleLowerCase().includes(lowered);
+        row.item.hidden = !matches;
+        if (matches && kind === active) visible += 1;
+      }
+    }
+    const exists = rows.branches.some((row) => row.short === query);
+    const offerCreate = active === "branches" && Boolean(query) && !exists
+      && Boolean(current?.oid);
+    create.hidden = !offerCreate;
+    createText.replaceChildren(
+      document.createTextNode("Create branch "),
+      Object.assign(document.createElement("strong"), {textContent: query}),
+      document.createTextNode(` from ${shortReference(current?.name)}`),
+    );
+    empty.hidden = visible > 0 || offerCreate;
+    empty.textContent = active === "branches"
+      ? "No matching branches." : "No matching tags.";
+  };
+  const selectTab = (kind) => {
+    active = kind;
+    for (const [name, tab] of Object.entries(tabButtons)) {
+      tab.classList.toggle("is-active", name === kind);
+      tab.setAttribute("aria-selected", String(name === kind));
+    }
+    filter.placeholder = kind === "branches"
+      ? "Find or create a branch..." : "Find a tag...";
+    filterLabel.textContent = kind === "branches"
+      ? "Find or create a branch" : "Find a tag";
+    render();
+  };
+  for (const [kind, tab] of Object.entries(tabButtons)) {
+    tab.addEventListener("click", () => {
+      selectTab(kind);
+      filter.focus();
+    });
+  }
+  filter.addEventListener("input", render);
+
+  const visibleTargets = () => {
+    const links = rows[active].filter((row) => !row.item.hidden).map((row) => row.link);
+    return create.hidden ? links : [...links, create];
+  };
+  filter.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      visibleTargets()[0]?.focus();
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      visibleTargets()[0]?.click();
+    }
+  });
+  popover.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      menu.open = false;
+      summary.focus();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    const targets = visibleTargets();
+    const index = targets.indexOf(document.activeElement);
+    if (index < 0) return;
+    event.preventDefault();
+    const next = event.key === "ArrowDown" ? index + 1 : index - 1;
+    if (next < 0) filter.focus();
+    else targets[next]?.focus();
+  });
+  let requested = null;
+  menu.addEventListener("toggle", () => {
+    if (!menu.open) return;
+    filter.value = "";
+    status.textContent = "";
+    status.className = "form-status ref-status";
+    selectTab(requested || "branches");
+    requested = null;
+    filter.focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+  const openAt = (kind) => {
+    if (menu.open) {
+      selectTab(kind);
+      filter.focus();
+      return;
+    }
+    requested = kind;
+    menu.open = true;
+  };
+
+  create.addEventListener("click", async () => {
+    const name = filter.value.trim();
+    create.disabled = true;
+    status.className = "form-status ref-status";
+    status.textContent = `Creating ${name}...`;
+    try {
+      const response = await fetch(`/api/repos/${encoded}/branches`, {
+        method: "POST",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({name, oid: current.oid}),
+      });
+      if (!response.ok) {
+        const problem = await response.json().catch(() => null);
+        throw new Error(problem?.detail || `branch create returned ${response.status}`);
+      }
+      const created = await response.json();
+      window.location.href = referenceHref(encoded, created.name);
+    } catch (error) {
+      create.disabled = false;
+      status.className = "form-status is-error ref-status";
+      status.textContent = error.message || "The branch could not be created.";
+    }
+  });
+
+  selectTab("branches");
+  return {menu, openAt};
+}
+
 function createCodeMenu(cloneUrl) {
   const menu = document.createElement("details");
   menu.className = "code-menu";
@@ -718,45 +966,36 @@ async function showRepositoryOverview(name) {
     selector.className = "reference-toolbar";
     const branchControl = document.createElement("div");
     branchControl.className = "branch-control";
-    const referenceChoice = document.createElement("select");
-    referenceChoice.id = "reference-choice";
-    referenceChoice.setAttribute("aria-label", "Select branch or tag");
-    const branchOptions = document.createElement("optgroup");
-    branchOptions.label = "Branches";
-    for (const reference of branches) {
-      const option = document.createElement("option");
-      option.value = reference.name;
-      option.textContent = reference.name.replace(/^refs\/(heads|tags)\//, "");
-      branchOptions.append(option);
-    }
-    referenceChoice.append(branchOptions);
-    if (tags.length) {
-      const tagOptions = document.createElement("optgroup");
-      tagOptions.label = "Tags";
-      for (const reference of tags) {
-        const option = document.createElement("option");
-        option.value = reference.name;
-        option.textContent = reference.name.replace(/^refs\/(heads|tags)\//, "");
-        tagOptions.append(option);
-      }
-      referenceChoice.append(tagOptions);
-    }
-    referenceChoice.addEventListener("change", () => {
-      const selected = referenceChoice.value.replace(/^refs\/(heads|tags)\//, "");
-      window.location.href = `/ui/repos/${encoded}/files/${encodeURIComponent(selected)}`;
+    const switcher = createReferenceSwitcher({
+      encoded,
+      branches,
+      tags,
+      current: branches.find((reference) => reference.name === defaultReference),
+      defaultBranch: defaultBranchName,
     });
-    if (defaultReference) referenceChoice.value = defaultReference;
-    branchControl.append(referenceChoice);
+    branchControl.append(switcher.menu);
+    const revealReferences = (event, kind) => {
+      event.stopPropagation();
+      switcher.openAt(kind);
+    };
     const branchCount = document.createElement("button");
     branchCount.className = "reference-count";
     branchCount.type = "button";
-    branchCount.textContent = `${branches.length} ${branches.length === 1 ? "Branch" : "Branches"}`;
-    branchCount.addEventListener("click", () => referenceChoice.focus());
+    branchCount.append(
+      interfaceIcon("branch"),
+      document.createTextNode(
+        `${branches.length} ${branches.length === 1 ? "Branch" : "Branches"}`,
+      ),
+    );
+    branchCount.addEventListener("click", (event) => revealReferences(event, "branches"));
     const tagCount = document.createElement("button");
     tagCount.className = "reference-count";
     tagCount.type = "button";
-    tagCount.textContent = `${tags.length} ${tags.length === 1 ? "Tag" : "Tags"}`;
-    tagCount.addEventListener("click", () => referenceChoice.focus());
+    tagCount.append(
+      interfaceIcon("tag"),
+      document.createTextNode(`${tags.length} ${tags.length === 1 ? "Tag" : "Tags"}`),
+    );
+    tagCount.addEventListener("click", (event) => revealReferences(event, "tags"));
     const contentsPanel = document.createElement("section");
     contentsPanel.className = "repository-contents";
     const latestEntry = Array.isArray(contents?.entries)
@@ -1388,6 +1627,7 @@ async function showCreateIssue(repository) {
   layout.append(createAvatar("H"), form);
   dashboard.append(layout);
   title.focus();
+  const submissionKey = generateInternalId();
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     submit.disabled = true;
@@ -1395,8 +1635,11 @@ async function showCreateIssue(repository) {
     try {
       const response = await fetch(`/api/repos/${encodeURIComponent(repository)}/issues`, {
         method: "POST",
-        headers: {"content-type": "application/json"},
-        body: JSON.stringify({id: generateInternalId(), title: title.value, body: body.value}),
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": submissionKey,
+        },
+        body: JSON.stringify({title: title.value, body: body.value}),
       });
       if (!response.ok) throw new Error(`issue create returned ${response.status}`);
       const issue = await response.json();
@@ -1673,6 +1916,7 @@ async function showCreatePullRequest(repository) {
   pageTitle.textContent = "Open a pull request";
   pageLede.textContent = `${repository} · compare changes across branches.`;
   dashboard.replaceChildren();
+  const submissionKey = generateInternalId();
   const form = document.createElement("form");
   form.className = "repository-form pull-request-form create-pull-form";
   const heading = document.createElement("h2");
@@ -1771,9 +2015,11 @@ async function showCreatePullRequest(repository) {
       try {
         const create = await fetch(`/api/repos/${encoded}/pulls`, {
           method: "POST",
-          headers: {"content-type": "application/json"},
+          headers: {
+            "content-type": "application/json",
+            "idempotency-key": submissionKey,
+          },
           body: JSON.stringify({
-            id: generateInternalId(),
             source_ref: sourceBranch.name,
             target_ref: baseBranch.name,
             base_oid: baseBranch.oid,

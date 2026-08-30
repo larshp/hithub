@@ -256,7 +256,6 @@ try {
   }
 
   const pullRequestPayload = {
-    id: "contract-pull-request",
     source_ref: "refs/heads/feature",
     target_ref: "refs/heads/main",
     base_oid: "base-contract",
@@ -271,27 +270,67 @@ try {
     },
   );
   if (pullRequest.response.status !== 201
-      || pullRequest.body?.id !== pullRequestPayload.id
+      || pullRequest.body?.id !== "1"
       || pullRequest.body?.state !== "draft") {
-    fail("pull-request create did not return a draft request");
+    fail("the first pull request was not numbered #1");
+  }
+  const pullId = pullRequest.body.id;
+  const rejectedPullId = await request(
+    "/api/repos/contract-repository/pulls",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({...pullRequestPayload, id: "chosen-by-client"}),
+    },
+  );
+  if (rejectedPullId.response.status !== 400) {
+    fail("a client-supplied pull-request id was accepted");
+  }
+  const pullRetryFirst = await request(
+    "/api/repos/contract-repository/pulls",
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "contract-pull-retry",
+      },
+      body: JSON.stringify({...pullRequestPayload, source_ref: "refs/heads/retry"}),
+    },
+  );
+  const pullRetrySecond = await request(
+    "/api/repos/contract-repository/pulls",
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "contract-pull-retry",
+      },
+      body: JSON.stringify({...pullRequestPayload, source_ref: "refs/heads/retry"}),
+    },
+  );
+  if (pullRetryFirst.response.status !== 201
+      || pullRetrySecond.response.status !== 201
+      || pullRetryFirst.body?.id !== "2"
+      || pullRetrySecond.body?.id !== "2") {
+    fail("a retried pull-request create consumed a second number");
   }
   const pullRequestList = await request(
     "/api/repos/contract-repository/pulls",
   );
   if (pullRequestList.response.status !== 200
       || !Array.isArray(pullRequestList.body)
-      || pullRequestList.body.some((item) => item.id !== pullRequestPayload.id)) {
-    fail("pull-request list did not return the created request");
+      || pullRequestList.body.map((item) => item.id).join(",") !== "2,1") {
+    fail("pull-request list was not ordered by descending number");
   }
   const pullRequestGet = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request",
+    `/api/repos/contract-repository/pulls/${pullId}`,
   );
   if (pullRequestGet.response.status !== 200
       || pullRequestGet.body?.head_oid !== pullRequestPayload.head_oid) {
     fail("pull-request retrieve did not return the created request");
   }
   const readyForReview = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request",
+    `/api/repos/contract-repository/pulls/${pullId}`,
     {
       method: "PATCH",
       headers: {
@@ -307,7 +346,7 @@ try {
     fail("pull-request ready-for-review transition failed");
   }
   const closedPullRequest = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request",
+    `/api/repos/contract-repository/pulls/${pullId}`,
     {
       method: "PATCH",
       headers: {
@@ -323,7 +362,7 @@ try {
     fail("pull-request close transition failed");
   }
   const reopenedPullRequest = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request",
+    `/api/repos/contract-repository/pulls/${pullId}`,
     {
       method: "PATCH",
       headers: {
@@ -339,7 +378,7 @@ try {
     fail("pull-request reopen transition failed");
   }
   const mergedPullRequest = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request",
+    `/api/repos/contract-repository/pulls/${pullId}`,
     {
       method: "PATCH",
       headers: {
@@ -355,7 +394,7 @@ try {
     fail("pull-request merge-state transition failed");
   }
 
-  const issuePayload = {id: "contract-issue", title: "Contract issue", body: "body"};
+  const issuePayload = {title: "Contract issue", body: "body"};
   const issue = await request(
     "/api/repos/contract-repository/issues",
     {
@@ -364,24 +403,87 @@ try {
       body: JSON.stringify(issuePayload),
     },
   );
-  if (issue.response.status !== 201 || issue.body?.id !== issuePayload.id
+  if (issue.response.status !== 201 || issue.body?.id !== "3"
       || issue.body?.state !== "open" || issue.body?.version !== 1) {
-    fail("issue create did not return an open issue");
+    fail("issues did not continue the sequence the pull requests started");
+  }
+  const issueId = issue.body.id;
+  if (issue.response.headers.get("location")
+      !== `/api/repos/contract-repository/issues/${issueId}`) {
+    fail("issue create did not point Location at the numbered issue");
+  }
+  const rejectedId = await request(
+    "/api/repos/contract-repository/issues",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({id: "chosen-by-client", title: "Rejected"}),
+    },
+  );
+  if (rejectedId.response.status !== 400) {
+    fail("a client-supplied issue id was accepted");
+  }
+  const secondIssue = await request(
+    "/api/repos/contract-repository/issues",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({title: "Second contract issue"}),
+    },
+  );
+  if (secondIssue.response.status !== 201 || secondIssue.body?.id !== "4") {
+    fail("issue numbering was not sequential");
+  }
+  const issueRetryFirst = await request(
+    "/api/repos/contract-repository/issues",
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "contract-issue-retry",
+      },
+      body: JSON.stringify({title: "Retried contract issue"}),
+    },
+  );
+  const issueRetrySecond = await request(
+    "/api/repos/contract-repository/issues",
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "contract-issue-retry",
+      },
+      body: JSON.stringify({title: "Retried contract issue"}),
+    },
+  );
+  if (issueRetryFirst.response.status !== 201
+      || issueRetrySecond.response.status !== 201
+      || issueRetryFirst.body?.id !== "5"
+      || issueRetrySecond.body?.id !== "5") {
+    fail("a retried issue create consumed a second number");
   }
   const issueList = await request("/api/repos/contract-repository/issues");
   if (issueList.response.status !== 200 || !Array.isArray(issueList.body)
-      || issueList.body.some((item) => item.id !== issuePayload.id)) {
-    fail("issue list did not return the created issue");
+      || issueList.body.map((item) => item.id).join(",") !== "5,4,3") {
+    fail("issue list was not ordered by descending issue number");
+  }
+  const numberedPulls = await request("/api/repos/contract-repository/pulls");
+  const takenNumbers = [
+    ...numberedPulls.body.map((item) => item.id),
+    ...issueList.body.map((item) => item.id),
+  ];
+  if (new Set(takenNumbers).size !== takenNumbers.length) {
+    fail("an issue and a pull request share the same number");
   }
   const issueGet = await request(
-    "/api/repos/contract-repository/issues/contract-issue",
+    `/api/repos/contract-repository/issues/${issueId}`,
   );
   if (issueGet.response.status !== 200
       || issueGet.body?.title !== issuePayload.title) {
     fail("issue retrieve did not return the created issue");
   }
   const issueUpdate = await request(
-    "/api/repos/contract-repository/issues/contract-issue",
+    `/api/repos/contract-repository/issues/${issueId}`,
     {
       method: "PATCH",
       headers: {
@@ -397,7 +499,7 @@ try {
     fail("issue update did not use the expected version");
   }
   const issueClose = await request(
-    "/api/repos/contract-repository/issues/contract-issue",
+    `/api/repos/contract-repository/issues/${issueId}`,
     {
       method: "PATCH",
       headers: {
@@ -413,7 +515,7 @@ try {
     fail("issue close transition failed");
   }
   const issueComment = await request(
-    "/api/repos/contract-repository/issues/contract-issue/comments",
+    `/api/repos/contract-repository/issues/${issueId}/comments`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -425,7 +527,7 @@ try {
     fail("issue comment create failed");
   }
   const issueComments = await request(
-    "/api/repos/contract-repository/issues/contract-issue/comments",
+    `/api/repos/contract-repository/issues/${issueId}/comments`,
   );
   if (issueComments.response.status !== 200
       || !Array.isArray(issueComments.body)
@@ -441,7 +543,7 @@ try {
     fail("repository activity did not include issue events");
   }
   const label = await request(
-    "/api/repos/contract-repository/issues/contract-issue/labels",
+    `/api/repos/contract-repository/issues/${issueId}/labels`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -452,7 +554,7 @@ try {
     fail("issue label create failed");
   }
   const duplicateLabel = await request(
-    "/api/repos/contract-repository/issues/contract-issue/labels",
+    `/api/repos/contract-repository/issues/${issueId}/labels`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -463,14 +565,14 @@ try {
     fail("duplicate issue label was not rejected");
   }
   const labels = await request(
-    "/api/repos/contract-repository/issues/contract-issue/labels",
+    `/api/repos/contract-repository/issues/${issueId}/labels`,
   );
   if (labels.response.status !== 200
       || labels.body?.length !== 1 || labels.body[0]?.label !== "contract") {
     fail("issue label list did not return the applied label");
   }
   const assignee = await request(
-    "/api/repos/contract-repository/issues/contract-issue/assignees",
+    `/api/repos/contract-repository/issues/${issueId}/assignees`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -482,19 +584,19 @@ try {
     fail("issue assignee create failed");
   }
   const assignees = await request(
-    "/api/repos/contract-repository/issues/contract-issue/assignees",
+    `/api/repos/contract-repository/issues/${issueId}/assignees`,
   );
   if (assignees.response.status !== 200 || assignees.body?.length !== 1
       || assignees.body[0]?.actor !== "contract-actor") {
     fail("issue assignee list did not return the added actor");
   }
   const removedLabel = await request(
-    "/api/repos/contract-repository/issues/contract-issue/labels/contract",
+    `/api/repos/contract-repository/issues/${issueId}/labels/contract`,
     {method: "DELETE"},
   );
   if (removedLabel.response.status !== 204) fail("issue label delete failed");
   const missingLabel = await request(
-    "/api/repos/contract-repository/issues/contract-issue/labels/contract",
+    `/api/repos/contract-repository/issues/${issueId}/labels/contract`,
     {method: "DELETE"},
   );
   if (missingLabel.response.status !== 404) {
@@ -502,7 +604,7 @@ try {
   }
 
   const review = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request/reviews",
+    `/api/repos/contract-repository/pulls/${pullId}/reviews`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -516,7 +618,7 @@ try {
     fail("pull-request review create failed");
   }
   const invalidReview = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request/reviews",
+    `/api/repos/contract-repository/pulls/${pullId}/reviews`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -527,14 +629,14 @@ try {
     fail("an unknown review state was not rejected");
   }
   const reviews = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request/reviews",
+    `/api/repos/contract-repository/pulls/${pullId}/reviews`,
   );
   if (reviews.response.status !== 200 || reviews.body?.length !== 1
       || reviews.body[0]?.id !== "contract-review") {
     fail("pull-request review list did not return the created review");
   }
   const pullComment = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request/comments",
+    `/api/repos/contract-repository/pulls/${pullId}/comments`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
@@ -543,7 +645,7 @@ try {
   );
   if (pullComment.response.status !== 201) fail("pull-request comment create failed");
   const pullComments = await request(
-    "/api/repos/contract-repository/pulls/contract-pull-request/comments",
+    `/api/repos/contract-repository/pulls/${pullId}/comments`,
   );
   if (pullComments.response.status !== 200 || pullComments.body?.length !== 1
       || pullComments.body[0]?.body !== "One remark") {

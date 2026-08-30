@@ -32,7 +32,10 @@ try {
       || !appSource.includes("showCreateForm")
       || !appSource.includes("showRepositoryOverview")
       || !appSource.includes("renderMarkdownSafe")
-      || !appSource.includes("reference-choice")
+      || !appSource.includes("createReferenceSwitcher")
+      || !appSource.includes("reference-filter")
+      || !appSource.includes("Switch branches/tags")
+      || !appSource.includes("Create branch ")
       || !appSource.includes("showTreeBrowser")
       || !appSource.includes("renderTreeEntry")
       || !appSource.includes("showBlobViewer")
@@ -101,7 +104,8 @@ try {
   await page.getByLabel("Title").fill("UI issue");
   await page.getByLabel("Description").fill("Initial description");
   await page.getByRole("button", {name: "Create issue"}).click();
-  await page.waitForURL(/\/issues\/[^/]+$/);
+  await page.waitForURL(/\/ui\/repos\/ui-issue-repository\/issues\/1$/);
+  await page.getByText("#1", {exact: true}).first().waitFor();
   await page.getByRole("button", {name: "Close issue"}).click();
   await page.getByLabel("State: closed").waitFor();
   await page.getByRole("button", {name: "Reopen issue"}).click();
@@ -155,13 +159,30 @@ try {
   }
   console.log(`UI clone URL points at ${overviewBody.name}.git`);
 
+  await page.locator(".ref-switcher-summary").click();
+  await page.getByRole("tab", {name: "Branches"}).waitFor();
+  await page.getByLabel("Find or create a branch").fill("main");
+  await page.locator(".ref-item", {hasText: "main"}).waitFor();
+  if (await page.locator(".ref-create").isVisible()) {
+    throw new Error("The switcher offered to create an existing branch");
+  }
+  await page.getByLabel("Find or create a branch").fill("release/ui");
+  await page.getByRole("button", {name: /Create branch release\/ui/}).click();
+  await page.waitForURL(/\/ui\/repos\/ui-issue-repository\/files\/release%2Fui$/);
+  const createdBranches = await (await fetch(
+    `http://127.0.0.1:${port}/api/repos/ui-issue-repository/branches`,
+  )).json();
+  if (!createdBranches.some((item) => item.name === "refs/heads/release/ui")) {
+    throw new Error("The switcher did not persist the new branch");
+  }
+  console.log("UI branch switcher created release/ui");
+
   const pullRequest = await fetch(
     `http://127.0.0.1:${port}/api/repos/ui-issue-repository/pulls`,
     {
       method: "POST",
       headers: {"content-type": "application/json"},
       body: JSON.stringify({
-        id: "ui-pull",
         source_ref: "refs/heads/main",
         target_ref: "refs/heads/main",
         base_oid: branches[0].oid,
@@ -170,10 +191,16 @@ try {
     },
   );
   if (pullRequest.status !== 201) throw new Error("UI pull-request fixture failed");
+  const pullId = (await pullRequest.json()).id;
+  // The issue above already took #1, so the pull request continues at #2.
+  if (pullId !== "2") {
+    throw new Error(`Issues and pull requests did not share numbering: ${pullId}`);
+  }
   await page.goto(
-    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/pulls/ui-pull`,
+    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/pulls/${pullId}`,
     {waitUntil: "networkidle"},
   );
+  await page.getByText(`#${pullId}`, {exact: true}).first().waitFor();
   await page.getByLabel("Add a comment").fill("Please take a look");
   await page.getByLabel("Review verdict").selectOption("approved");
   await page.getByRole("button", {name: "Submit"}).click();

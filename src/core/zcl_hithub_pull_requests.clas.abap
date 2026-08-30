@@ -4,6 +4,7 @@ CLASS zcl_hithub_pull_requests DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+    CONSTANTS c_number_attempts TYPE i VALUE 25.
     TYPES:
       BEGIN OF ty_result,
         success      TYPE abap_bool,
@@ -43,14 +44,50 @@ ENDCLASS.
 CLASS zcl_hithub_pull_requests IMPLEMENTATION.
 
   METHOD create.
+    DATA ls_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
+    DATA lv_assign_number TYPE abap_bool.
+    DATA lv_attempt TYPE i.
+    DATA lv_number TYPE i.
+
     CLEAR rs_result.
-    IF zcl_hithub_pr_snapshot=>open( is_pull_request ) = abap_false.
+    ls_request = is_pull_request.
+    lv_assign_number = xsdbool( ls_request-id IS INITIAL ).
+    IF zcl_hithub_pr_snapshot=>is_valid(
+        is_snapshot   = ls_request
+        iv_require_id = xsdbool( lv_assign_number = abap_false ) ) = abap_false.
       rs_result-reason = 'pull request is invalid or already exists'.
       RETURN.
     ENDIF.
-    rs_result-success = abap_true.
-    rs_result-pull_request = is_pull_request.
-    rs_result-pull_request-version = 1.
+    IF lv_assign_number = abap_false.
+      IF zcl_hithub_pr_snapshot=>open( ls_request ) = abap_false.
+        rs_result-reason = 'pull request is invalid or already exists'.
+        RETURN.
+      ENDIF.
+      rs_result-success = abap_true.
+      rs_result-pull_request = ls_request.
+      rs_result-pull_request-version = 1.
+      RETURN.
+    ENDIF.
+
+    " A concurrent writer can claim the same number between the scan and the
+    " insert; the primary key rejects the loser, which then takes the next one.
+    lv_attempt = 1.
+    WHILE lv_attempt <= c_number_attempts.
+      lv_number = zcl_hithub_work_number=>next( ls_request-repository_id ).
+      IF lv_number <= 0.
+        rs_result-reason = 'pull request number could not be assigned'.
+        RETURN.
+      ENDIF.
+      ls_request-id = |{ lv_number }|.
+      IF zcl_hithub_pr_snapshot=>open( ls_request ) = abap_true.
+        rs_result-success = abap_true.
+        rs_result-pull_request = ls_request.
+        rs_result-pull_request-version = 1.
+        RETURN.
+      ENDIF.
+      lv_attempt = lv_attempt + 1.
+    ENDWHILE.
+    rs_result-reason = 'pull request number could not be assigned'.
   ENDMETHOD.
 
   METHOD find.
@@ -59,9 +96,17 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD list.
+    TYPES:
+      BEGIN OF ty_ordered,
+        number       TYPE i,
+        id           TYPE string,
+        pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot,
+      END OF ty_ordered.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_pull_request.
     DATA ls_row TYPE zhi_pull_request.
     DATA ls_pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
+    DATA lt_ordered TYPE STANDARD TABLE OF ty_ordered WITH DEFAULT KEY.
+    DATA ls_ordered TYPE ty_ordered.
 
     CLEAR rt_pull_requests.
     IF iv_repository_id IS INITIAL.
@@ -79,9 +124,17 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
       ls_pull_request-base_oid = ls_row-base_oid.
       ls_pull_request-head_oid = ls_row-head_oid.
       ls_pull_request-version = ls_row-version.
-      APPEND ls_pull_request TO rt_pull_requests.
+      CLEAR ls_ordered.
+      ls_ordered-number = zcl_hithub_work_number=>parse( ls_pull_request-id ).
+      ls_ordered-id = ls_pull_request-id.
+      ls_ordered-pull_request = ls_pull_request.
+      APPEND ls_ordered TO lt_ordered.
     ENDLOOP.
-    SORT rt_pull_requests BY id.
+    " Newest first, and numerically so that #10 outranks #9.
+    SORT lt_ordered BY number DESCENDING id DESCENDING.
+    LOOP AT lt_ordered INTO ls_ordered.
+      APPEND ls_ordered-pull_request TO rt_pull_requests.
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD transition.

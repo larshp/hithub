@@ -22,14 +22,26 @@ test("repository Code page passes automated accessibility checks", async ({page}
   await expectAccessible(page, `/ui/repos/${name}`);
 });
 
+test("the open reference switcher passes automated accessibility checks", async ({page}, testInfo) => {
+  const name = `accessible-refs-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  await page.goto(`/ui/repos/${name}`);
+  await page.locator(".ref-switcher-summary").click();
+  await expect(page.getByLabel("Find or create a branch")).toBeVisible();
+  const results = await new AxeBuilder({page}).analyze();
+  expect(results.violations, "the open reference switcher has accessibility violations")
+    .toEqual([]);
+});
+
 test("issue list and detail pages pass automated accessibility checks", async ({page}, testInfo) => {
   const name = `accessible-issues-${Date.now()}-${testInfo.workerIndex}`;
   expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
   const created = await page.request.post(`/api/repos/${name}/issues`, {
-    data: {id: `issue-${Date.now()}`, title: "Accessible issue", body: "Issue details"},
+    data: {title: "Accessible issue", body: "Issue details"},
   });
   expect(created.status()).toBe(201);
   const issue = await created.json();
+  expect(issue.id).toBe("1");
   await expectAccessible(page, `/ui/repos/${name}/issues`);
   await expectAccessible(page, `/ui/repos/${name}/issues/${issue.id}`);
 });

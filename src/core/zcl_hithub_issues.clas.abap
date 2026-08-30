@@ -6,6 +6,7 @@ CLASS zcl_hithub_issues DEFINITION
   PUBLIC SECTION.
     CONSTANTS c_open TYPE string VALUE 'open'.
     CONSTANTS c_closed TYPE string VALUE 'closed'.
+    CONSTANTS c_number_attempts TYPE i VALUE 25.
     TYPES:
       BEGIN OF ty_issue,
         repository_id TYPE string,
@@ -70,11 +71,16 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
     DATA ls_row TYPE zhi_issue.
     DATA ls_existing TYPE zhi_issue.
     DATA ls_issue TYPE ty_issue.
+    DATA lv_assign_number TYPE abap_bool.
+    DATA lv_attempt TYPE i.
+    DATA lv_number TYPE i.
 
     CLEAR rs_result.
     ls_issue = is_issue.
-    IF ls_issue-repository_id IS INITIAL OR ls_issue-id IS INITIAL
-        OR strlen( ls_issue-id ) > 36 OR ls_issue-title IS INITIAL
+    lv_assign_number = xsdbool( ls_issue-id IS INITIAL ).
+    IF ls_issue-repository_id IS INITIAL
+        OR ( lv_assign_number = abap_false AND strlen( ls_issue-id ) > 36 )
+        OR ls_issue-title IS INITIAL
         OR strlen( ls_issue-title ) > 255 OR ls_issue-actor IS INITIAL
         OR strlen( ls_issue-actor ) > 100.
       rs_result-reason = 'issue identity, title, or actor is invalid'.
@@ -92,16 +98,7 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
     IF ls_issue-updated_at IS INITIAL.
       ls_issue-updated_at = ls_issue-created_at.
     ENDIF.
-    SELECT SINGLE * FROM zhi_issue INTO @ls_existing
-      WHERE repository_id = @ls_issue-repository_id
-        AND id = @ls_issue-id.
-    IF sy-subrc = 0.
-      rs_result-reason = 'issue already exists'.
-      RETURN.
-    ENDIF.
-
     ls_row-repository_id = ls_issue-repository_id.
-    ls_row-id = ls_issue-id.
     ls_row-title = ls_issue-title.
     ls_row-body = ls_issue-body.
     ls_row-state = ls_issue-state.
@@ -109,14 +106,45 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
     ls_row-created_at = ls_issue-created_at.
     ls_row-updated_at = ls_issue-updated_at.
     ls_row-version = 1.
-    INSERT zhi_issue FROM @ls_row.
-    IF sy-subrc <> 0.
-      rs_result-reason = 'issue could not be persisted'.
-      RETURN.
-    ENDIF.
-    ls_issue-version = 1.
-    rs_result-success = abap_true.
-    rs_result-issue = ls_issue.
+
+    " A concurrent writer can claim the same number between the scan and the
+    " insert; the primary key rejects the loser, which then takes the next one.
+    lv_attempt = 1.
+    WHILE lv_attempt <= c_number_attempts.
+      IF lv_assign_number = abap_true.
+        lv_number = zcl_hithub_work_number=>next( ls_issue-repository_id ).
+        IF lv_number <= 0.
+          rs_result-reason = 'issue number could not be assigned'.
+          RETURN.
+        ENDIF.
+        ls_issue-id = |{ lv_number }|.
+      ENDIF.
+      SELECT SINGLE * FROM zhi_issue INTO @ls_existing
+        WHERE repository_id = @ls_issue-repository_id
+          AND id = @ls_issue-id.
+      IF sy-subrc = 0.
+        IF lv_assign_number = abap_false.
+          rs_result-reason = 'issue already exists'.
+          RETURN.
+        ENDIF.
+        lv_attempt = lv_attempt + 1.
+        CONTINUE.
+      ENDIF.
+      ls_row-id = ls_issue-id.
+      INSERT zhi_issue FROM @ls_row.
+      IF sy-subrc = 0.
+        ls_issue-version = 1.
+        rs_result-success = abap_true.
+        rs_result-issue = ls_issue.
+        RETURN.
+      ENDIF.
+      IF lv_assign_number = abap_false.
+        rs_result-reason = 'issue could not be persisted'.
+        RETURN.
+      ENDIF.
+      lv_attempt = lv_attempt + 1.
+    ENDWHILE.
+    rs_result-reason = 'issue number could not be assigned'.
   ENDMETHOD.
 
   METHOD read.
@@ -144,9 +172,17 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD list.
+    TYPES:
+      BEGIN OF ty_ordered,
+        number TYPE i,
+        id     TYPE string,
+        issue  TYPE ty_issue,
+      END OF ty_ordered.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_issue.
     DATA ls_row TYPE zhi_issue.
     DATA ls_issue TYPE ty_issue.
+    DATA lt_ordered TYPE STANDARD TABLE OF ty_ordered WITH DEFAULT KEY.
+    DATA ls_ordered TYPE ty_ordered.
 
     CLEAR rt_issues.
     IF iv_repository_id IS INITIAL.
@@ -165,9 +201,17 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
       ls_issue-created_at = ls_row-created_at.
       ls_issue-updated_at = ls_row-updated_at.
       ls_issue-version = ls_row-version.
-      APPEND ls_issue TO rt_issues.
+      CLEAR ls_ordered.
+      ls_ordered-number = zcl_hithub_work_number=>parse( ls_issue-id ).
+      ls_ordered-id = ls_issue-id.
+      ls_ordered-issue = ls_issue.
+      APPEND ls_ordered TO lt_ordered.
     ENDLOOP.
-    SORT rt_issues BY id.
+    " Newest first, and numerically so that #10 outranks #9.
+    SORT lt_ordered BY number DESCENDING id DESCENDING.
+    LOOP AT lt_ordered INTO ls_ordered.
+      APPEND ls_ordered-issue TO rt_issues.
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD update.

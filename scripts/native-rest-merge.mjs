@@ -86,18 +86,19 @@ try {
     method: "POST",
     headers: {"content-type": "application/json"},
     body: JSON.stringify({
-      id: "rest-merge-request",
       source_ref: "refs/heads/feature",
       target_ref: "refs/heads/main",
       base_oid: base,
       head_oid: head,
     }),
   });
-  if (pull.response.status !== 201 || pull.body?.state !== "draft") {
+  if (pull.response.status !== 201 || pull.body?.state !== "draft"
+      || !/^[0-9]+$/.test(pull.body?.id || "")) {
     throw new Error("REST pull-request creation failed");
   }
+  const pullId = pull.body.id;
   const ready = await request(
-    `/api/repos/${repository}/pulls/rest-merge-request`,
+    `/api/repos/${repository}/pulls/${pullId}`,
     {
       method: "PATCH",
       headers: {"content-type": "application/json", "if-match": '"1"'},
@@ -108,7 +109,7 @@ try {
     throw new Error("REST pull-request ready transition failed");
   }
   const merged = await request(
-    `/api/repos/${repository}/pulls/rest-merge-request/merge`,
+    `/api/repos/${repository}/pulls/${pullId}/merge`,
     {
       method: "PUT",
       headers: {"content-type": "application/json"},
@@ -119,7 +120,7 @@ try {
     throw new Error(`REST merge returned ${merged.response.status}`);
   }
   const retried = await request(
-    `/api/repos/${repository}/pulls/rest-merge-request/merge`,
+    `/api/repos/${repository}/pulls/${pullId}/merge`,
     {
       method: "PUT",
       headers: {"content-type": "application/json"},

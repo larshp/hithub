@@ -130,15 +130,114 @@ test("browses a repository tree", async ({page}) => {
     ],
   }));
   await page.goto("/ui/repos/demo");
-  await expect(page.locator("#reference-choice")).toHaveValue("refs/heads/main");
+  await expect(page.locator(".ref-switcher-name")).toHaveText("main");
   await expect(page.locator(".contents-commit")).toContainText("Document the project");
   await expect(page.locator(".tree-entry-time")).toHaveCount(2);
   await expect(page.getByRole("button", {name: "Go to file"})).toHaveCount(0);
   await expect(page.getByRole("searchbox", {name: "Filter files"})).toHaveCount(0);
-  await page.locator("#reference-choice").selectOption("refs/heads/main");
-  await page.goto("/ui/repos/demo/files/main");
+  await page.locator(".ref-switcher-summary").click();
+  await page.locator("#ref-panel-branches .ref-item").click();
+  await expect(page).toHaveURL(/\/ui\/repos\/demo\/files\/main$/);
   await expect(page.locator(".tree-list")).toContainText("README.md");
   await expect(page.locator(".tree-list")).toContainText("src");
+});
+
+test("filters branches and tags in the reference switcher", async ({page}) => {
+  await page.route("**/api/repos/demo", async (route) => json(route, {
+    id: "repo-1", name: "demo", description: "Demo repository",
+    default_branch: "main", version: 1,
+  }));
+  await page.route("**/api/repos/demo/branches", async (route) => json(route, [
+    {name: "refs/heads/main", oid: "a".repeat(40), algorithm: "sha1", version: 1},
+    {name: "refs/heads/hvam/forms2408", oid: "b".repeat(40), algorithm: "sha1", version: 1},
+    {name: "refs/heads/hvam/generic2708", oid: "c".repeat(40), algorithm: "sha1", version: 1},
+  ]));
+  await page.route("**/api/repos/demo/tags", async (route) => json(route, [
+    {name: "refs/tags/v1.0.0", oid: "d".repeat(40), algorithm: "sha1", version: 1},
+  ]));
+  await page.route("**/api/repos/demo/contents/**", async (route) => json(route, {entries: []}));
+  await page.goto("/ui/repos/demo");
+  await page.locator(".ref-switcher-summary").click();
+  await expect(page.getByText("Switch branches/tags")).toBeVisible();
+  await expect(page.locator("#ref-panel-branches .ref-item:visible")).toHaveCount(3);
+  await expect(page.locator(".ref-item", {hasText: "main"}).locator(".ref-item-badge"))
+    .toHaveText("default");
+  await page.getByLabel("Find or create a branch").fill("forms");
+  await expect(page.locator("#ref-panel-branches .ref-item:visible")).toHaveCount(1);
+  await expect(page.locator("#ref-panel-branches .ref-item:visible"))
+    .toContainText("hvam/forms2408");
+  await expect(page.locator(".ref-create")).toBeVisible();
+  await expect(page.locator(".ref-create")).toContainText("Create branch forms from main");
+  await page.getByLabel("Find or create a branch").fill("main");
+  await expect(page.locator(".ref-create")).toBeHidden();
+  await page.getByRole("tab", {name: "Tags"}).click();
+  await expect(page.getByLabel("Find a tag")).toBeVisible();
+  await expect(page.locator(".ref-create")).toBeHidden();
+  await page.getByLabel("Find a tag").fill("v1");
+  await expect(page.locator("#ref-panel-tags .ref-item:visible")).toHaveCount(1);
+  await page.locator("#ref-panel-tags .ref-item:visible").click();
+  await expect(page).toHaveURL(/\/ui\/repos\/demo\/files\/v1\.0\.0$/);
+});
+
+test("creates a branch from the reference switcher", async ({page}) => {
+  let created = null;
+  await page.route("**/api/repos/demo", async (route) => json(route, {
+    id: "repo-1", name: "demo", description: "Demo repository",
+    default_branch: "main", version: 1,
+  }));
+  await page.route("**/api/repos/demo/branches", async (route) => {
+    if (route.request().method() === "POST") {
+      created = route.request().postDataJSON();
+      await json(route, {
+        name: `refs/heads/${created.name}`, oid: created.oid,
+        algorithm: "sha1", version: 1,
+      }, 201);
+      return;
+    }
+    await json(route, [
+      {name: "refs/heads/main", oid: "a".repeat(40), algorithm: "sha1", version: 1},
+    ]);
+  });
+  await page.route("**/api/repos/demo/tags", async (route) => json(route, []));
+  await page.route("**/api/repos/demo/contents/**", async (route) => json(route, {entries: []}));
+  await page.goto("/ui/repos/demo");
+  await page.locator(".ref-switcher-summary").click();
+  await page.getByLabel("Find or create a branch").fill("feature/switcher");
+  await page.getByRole("button", {name: /Create branch feature\/switcher/}).click();
+  await page.waitForURL(/\/ui\/repos\/demo\/files\/feature%2Fswitcher$/);
+  expect(created.name).toBe("feature/switcher");
+  expect(created.oid).toBe("a".repeat(40));
+});
+
+test("reports a rejected branch name in the reference switcher", async ({page}) => {
+  await page.route("**/api/repos/demo", async (route) => json(route, {
+    id: "repo-1", name: "demo", description: "Demo repository",
+    default_branch: "main", version: 1,
+  }));
+  await page.route("**/api/repos/demo/branches", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 400,
+        contentType: "application/problem+json",
+        body: JSON.stringify({
+          type: "about:blank", title: "Bad Request", status: 400,
+          detail: "Branch name is not valid.", instance: "/api/repos/demo/branches",
+        }),
+      });
+      return;
+    }
+    await json(route, [
+      {name: "refs/heads/main", oid: "a".repeat(40), algorithm: "sha1", version: 1},
+    ]);
+  });
+  await page.route("**/api/repos/demo/tags", async (route) => json(route, []));
+  await page.route("**/api/repos/demo/contents/**", async (route) => json(route, {entries: []}));
+  await page.goto("/ui/repos/demo");
+  await page.locator(".ref-switcher-summary").click();
+  await page.getByLabel("Find or create a branch").fill("bad..name");
+  await page.getByRole("button", {name: /Create branch bad\.\.name/}).click();
+  await expect(page.locator(".ref-status")).toContainText("Branch name is not valid.");
+  await expect(page).toHaveURL(/\/ui\/repos\/demo$/);
 });
 
 test("shows the supported repository navigation and pull requests", async ({page}) => {
@@ -193,6 +292,24 @@ test("filters compact issue rows by state and search", async ({page}) => {
   await expect(page.getByRole("link", {name: "Retired navigation"})).toBeVisible();
   await page.getByRole("searchbox", {name: "Search issues"}).fill("missing");
   await expect(page.getByRole("heading", {name: "No results matched your search"})).toBeVisible();
+});
+
+test("numbers issues sequentially through the real web UI", async ({page}, testInfo) => {
+  const name = `numbered-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  for (const [index, title] of [[1, "First reported"], [2, "Second reported"]]) {
+    await page.goto(`/ui/repos/${name}/issues/new`);
+    await page.getByLabel("Title").fill(title);
+    await page.getByRole("button", {name: "Create issue"}).click();
+    await page.waitForURL(new RegExp(`/ui/repos/${name}/issues/${index}$`));
+    await expect(page.locator(".detail-title-line")).toContainText(`#${index}`);
+  }
+  await page.goto(`/ui/repos/${name}/issues`);
+  const rows = page.locator(".work-row-content p");
+  await expect(rows.first()).toContainText("#2");
+  await expect(rows.last()).toContainText("#1");
+  await page.getByRole("link", {name: "First reported"}).click();
+  await expect(page).toHaveURL(new RegExp(`/ui/repos/${name}/issues/1$`));
 });
 
 test("shows pull request conversation and changed files tabs", async ({page}) => {
@@ -293,12 +410,18 @@ test("creates pull requests from branch selections without technical ID fields",
   ];
   await page.route("**/api/repos/demo/branches", async (route) => json(route, branches));
   let submitted;
+  let idempotencyKey;
   await page.route("**/api/repos/demo/pulls", async (route) => {
+    if (route.request().method() !== "POST") {
+      await json(route, submitted ? [{...submitted, id: "7", state: "draft", version: 1}] : []);
+      return;
+    }
     submitted = route.request().postDataJSON();
-    await json(route, {...submitted, state: "draft", version: 1}, 201);
+    idempotencyKey = route.request().headers()["idempotency-key"];
+    await json(route, {...submitted, id: "7", state: "draft", version: 1}, 201);
   });
   await page.route("**/api/repos/demo/pulls/*", async (route) => json(route, {
-    id: submitted?.id || "created", state: "draft", source_ref: "refs/heads/feature",
+    id: "7", state: "draft", source_ref: "refs/heads/feature",
     target_ref: "refs/heads/main", base_oid: "a".repeat(40), head_oid: "b".repeat(40), version: 1,
   }));
   await page.goto("/ui/repos/demo/pulls/new");
@@ -306,11 +429,43 @@ test("creates pull requests from branch selections without technical ID fields",
   await expect(page.getByLabel("Compare")).toHaveValue("refs/heads/feature");
   await expect(page.getByLabel(/object ID|pull request ID/i)).toHaveCount(0);
   await page.getByRole("button", {name: "Create pull request"}).click();
-  await page.waitForURL(/\/pulls\/[^/]+$/);
+  await page.waitForURL(/\/pulls\/7$/);
   expect(submitted.source_ref).toBe("refs/heads/feature");
   expect(submitted.target_ref).toBe("refs/heads/main");
   expect(submitted.base_oid).toBe("a".repeat(40));
   expect(submitted.head_oid).toBe("b".repeat(40));
+  expect(submitted.id).toBeUndefined();
+  expect(idempotencyKey).toBeTruthy();
+});
+
+test("shares one number sequence between issues and pull requests", async ({page}, testInfo) => {
+  const name = `shared-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  const branches = await (await page.request.get(`/api/repos/${name}/branches`)).json();
+  const main = branches[0].oid;
+  expect((await page.request.post(`/api/repos/${name}/branches`, {
+    data: {name: "feature", oid: main},
+  })).status()).toBe(201);
+
+  await page.goto(`/ui/repos/${name}/issues/new`);
+  await page.getByLabel("Title").fill("Reported first");
+  await page.getByRole("button", {name: "Create issue"}).click();
+  await page.waitForURL(new RegExp(`/ui/repos/${name}/issues/1$`));
+
+  await page.goto(`/ui/repos/${name}/pulls/new`);
+  await page.getByRole("button", {name: "Create pull request"}).click();
+  await page.waitForURL(new RegExp(`/ui/repos/${name}/pulls/2$`));
+  await expect(page.locator(".detail-title-line")).toContainText("#2");
+
+  await page.goto(`/ui/repos/${name}/issues/new`);
+  await page.getByLabel("Title").fill("Reported after the pull request");
+  await page.getByRole("button", {name: "Create issue"}).click();
+  await page.waitForURL(new RegExp(`/ui/repos/${name}/issues/3$`));
+
+  const issues = await (await page.request.get(`/api/repos/${name}/issues`)).json();
+  const pulls = await (await page.request.get(`/api/repos/${name}/pulls`)).json();
+  expect(issues.map((item) => item.id)).toEqual(["3", "1"]);
+  expect(pulls.map((item) => item.id)).toEqual(["2"]);
 });
 
 test("compares references through the real comparison API", async ({page}) => {

@@ -9,9 +9,83 @@ CLASS ltcl_issues DEFINITION
     METHODS rejects_invalid_issue FOR TESTING RAISING cx_static_check.
     METHODS edits_with_compare_and_swap FOR TESTING RAISING cx_static_check.
     METHODS closes_and_reopens_issue FOR TESTING RAISING cx_static_check.
+    METHODS numbers_issues_sequentially FOR TESTING RAISING cx_static_check.
+    METHODS skips_numbers_already_taken FOR TESTING RAISING cx_static_check.
+    METHODS lists_newest_number_first FOR TESTING RAISING cx_static_check.
+
+    METHODS open_issue
+      IMPORTING
+        iv_repository_id TYPE string
+        iv_title         TYPE string
+      RETURNING
+        VALUE(rv_id)     TYPE string.
 ENDCLASS.
 
 CLASS ltcl_issues IMPLEMENTATION.
+
+  METHOD open_issue.
+    DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.
+    ls_issue-repository_id = iv_repository_id.
+    ls_issue-title = iv_title.
+    ls_issue-actor = 'Alice'.
+    DATA(ls_result) = zcl_hithub_issues=>create( ls_issue ).
+    ASSERT ls_result-success = abap_true.
+    rv_id = ls_result-issue-id.
+  ENDMETHOD.
+
+  METHOD numbers_issues_sequentially.
+    DATA(lv_repository) = 'issue-numbering-1'.
+    ASSERT open_issue(
+      iv_repository_id = lv_repository iv_title = 'First' ) = '1'.
+    ASSERT open_issue(
+      iv_repository_id = lv_repository iv_title = 'Second' ) = '2'.
+    ASSERT open_issue(
+      iv_repository_id = lv_repository iv_title = 'Third' ) = '3'.
+    " Numbers restart per repository rather than continuing globally.
+    ASSERT open_issue(
+      iv_repository_id = 'issue-numbering-2' iv_title = 'Elsewhere' ) = '1'.
+  ENDMETHOD.
+
+  METHOD skips_numbers_already_taken.
+    DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.
+    DATA(lv_repository) = 'issue-numbering-3'.
+    ls_issue-repository_id = lv_repository.
+    ls_issue-id = '4'.
+    ls_issue-title = 'Imported with an explicit number'.
+    ls_issue-actor = 'Alice'.
+    ASSERT zcl_hithub_issues=>create( ls_issue )-success = abap_true.
+    " Legacy non-numeric identities never take part in the sequence.
+    CLEAR ls_issue.
+    ls_issue-repository_id = lv_repository.
+    ls_issue-id = 'legacy-uuid-identity'.
+    ls_issue-title = 'Imported before numbering'.
+    ls_issue-actor = 'Alice'.
+    ASSERT zcl_hithub_issues=>create( ls_issue )-success = abap_true.
+    ASSERT open_issue(
+      iv_repository_id = lv_repository iv_title = 'Next' ) = '5'.
+  ENDMETHOD.
+
+  METHOD lists_newest_number_first.
+    DATA(lv_repository) = 'issue-numbering-4'.
+    DATA lv_index TYPE i.
+    DATA lt_issues TYPE zcl_hithub_issues=>ty_issues.
+    DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.
+
+    lv_index = 1.
+    WHILE lv_index <= 11.
+      open_issue(
+        iv_repository_id = lv_repository iv_title = |Issue { lv_index }| ).
+      lv_index = lv_index + 1.
+    ENDWHILE.
+    lt_issues = zcl_hithub_issues=>list( lv_repository ).
+    ASSERT lines( lt_issues ) = 11.
+    READ TABLE lt_issues INDEX 1 INTO ls_issue.
+    ASSERT ls_issue-id = '11'.
+    READ TABLE lt_issues INDEX 2 INTO ls_issue.
+    ASSERT ls_issue-id = '10'.
+    READ TABLE lt_issues INDEX 11 INTO ls_issue.
+    ASSERT ls_issue-id = '1'.
+  ENDMETHOD.
 
   METHOD creates_open_issue.
     DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.

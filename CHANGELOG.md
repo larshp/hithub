@@ -30,6 +30,25 @@ the OpenAPI contract revision is tracked separately in
   review, comment, label and assignee domain classes to REST. The pull-request
   sidebar lists real reviewers and the issue sidebar edits labels and
   assignees in place, replacing the previous static placeholders.
+- The repository Code page replaces the branch/tag `<select>` with a search
+  dropdown: a filter over branches and tags on separate tabs, a check mark on
+  the current reference, a `default` badge, keyboard navigation, and a
+  "Create branch <name> from <ref>" row that posts to the branch API and opens
+  the new branch. The branch and tag counters open the dropdown on their tab.
+
+### Changed
+
+- **Breaking:** issues and pull requests are identified by a sequential,
+  human-readable number (`#1`, `#2`, …) instead of a client-supplied opaque
+  identifier. Both draw from **one sequence per repository**, so a repository
+  never has both an issue #5 and a pull request #5. `POST` to
+  `/api/repos/{repo}/issues` and `/api/repos/{repo}/pulls` no longer accepts an
+  `id` field — the server assigns the number and returns it in the body and the
+  `Location` header — and both lists are ordered by descending number so `#10`
+  sorts above `#9`. Send `Idempotency-Key` to make a retried create replay the
+  original record instead of consuming another number. Issues and pull requests
+  created before this change keep their existing identifiers; they take no part
+  in the sequence, and new numbers skip any that are already taken.
 
 ### Fixed
 

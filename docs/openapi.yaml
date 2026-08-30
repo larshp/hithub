@@ -153,6 +153,8 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
     post:
       operationId: createPullRequest
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
       requestBody:
         required: true
         content:
@@ -776,12 +778,16 @@ components:
       name: pull
       in: path
       required: true
-      schema: {type: string, pattern: '^[A-Za-z0-9._-]+$'}
+      description: >-
+        Sequential pull-request number within the repository, shared with the
+        issue numbering sequence.
+      schema: {type: string, pattern: '^[0-9]+$'}
     IssueId:
       name: issue
       in: path
       required: true
-      schema: {type: string, pattern: '^[A-Za-z0-9._-]+$'}
+      description: Sequential issue number within the repository.
+      schema: {type: string, pattern: '^[0-9]+$'}
     LabelName:
       name: label
       in: path
@@ -896,7 +902,13 @@ components:
       type: object
       required: [id, state, source_ref, target_ref, base_oid, head_oid, version]
       properties:
-        id: {type: string, format: uuid}
+        id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: >-
+            Sequential pull-request number, drawn from the same per-repository
+            sequence as issue numbers so the two never collide. Rendered as
+            #1, #2, and so on.
         state: {type: string, enum: [draft, open, closed, merged]}
         source_ref: {type: string}
         target_ref: {type: string}
@@ -905,10 +917,14 @@ components:
         version: {type: integer, minimum: 1}
     PullRequestCreate:
       type: object
-      required: [id, source_ref, target_ref, base_oid, head_oid]
+      required: [source_ref, target_ref, base_oid, head_oid]
       additionalProperties: false
+      description: >-
+        The pull-request number is assigned by the server from the same
+        per-repository sequence as issues. Send an Idempotency-Key header to
+        make a retried create return the original pull request instead of
+        consuming another number.
       properties:
-        id: {type: string, minLength: 1, maxLength: 36}
         state: {type: string, enum: [draft, open], default: draft}
         source_ref: {type: string, minLength: 1, maxLength: 160}
         target_ref: {type: string, minLength: 1, maxLength: 160}
@@ -924,7 +940,12 @@ components:
       type: object
       required: [id, title, body, state, actor, created_at, updated_at, version]
       properties:
-        id: {type: string}
+        id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: >-
+            Sequential issue number, unique and stable within the repository
+            and assigned by the server. Rendered as #1, #2, and so on.
         title: {type: string}
         body: {type: string}
         state: {type: string, enum: [open, closed]}
@@ -934,10 +955,13 @@ components:
         version: {type: integer, minimum: 1}
     IssueCreate:
       type: object
-      required: [id, title]
+      required: [title]
       additionalProperties: false
+      description: >-
+        The issue number is assigned by the server. Send an Idempotency-Key
+        header to make a retried create return the original issue instead of
+        consuming another number.
       properties:
-        id: {type: string, minLength: 1, maxLength: 36}
         title: {type: string, minLength: 1, maxLength: 255}
         body: {type: string}
     IssuePatch:
