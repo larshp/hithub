@@ -79,6 +79,14 @@ the OpenAPI contract revision is tracked separately in
   abaplint never needed those files, which is how the whole set stayed missing.
   `scripts/abapgit-metadata.mjs` generates them, `npm run serialize:check`
   fails when one is absent, and CI runs that check.
+- Seven of the fourteen tables could not have been activated: `ZHI_DE_LCHR` and
+  `ZHI_DE_LRAW` columns sat in the middle of the row with no preceding
+  `INT2`/`INT4` length field, which DDIC requires for `LCHR`/`LRAW`. Those
+  columns now use the `STRING` and `RAWSTRING` data elements `ZHI_DE_STRING`
+  and `ZHI_DE_RAWSTRING`, which are LOB columns with neither the length-field
+  nor the last-position requirement. This also removes a hard 32 000-byte
+  ceiling on stored Git object payloads, so the 100 MiB single-object limit in
+  the resource-limit table is now reachable on SAP rather than aspirational.
 - The ICF handler built the open-abap adapters, so an installed service would
   have driven SQLite `BEGIN TRANSACTION` / `COMMIT` statements through
   `cl_sql_statement` on the SAP database for every write, and would have held

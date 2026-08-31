@@ -16,10 +16,20 @@ names, OIDs, text, payloads, timestamps and versions. Keep the imported
 objects in the `ZHI_*` customer namespace and transport the executable ABAP
 classes with the same release revision.
 
-Before activation, create and activate lock object `EZHI_REPO` for
-`ZHI_REPOSITORY-REPOSITORY_ID`. The generated function modules must be
-available as `ENQUEUE_EZHI_REPO` and `DEQUEUE_EZHI_REPO`; the SAP lock adapter
-uses those names for repository ref transactions.
+Lock object `EZHI_REPO` ships with the persistence artifacts and is defined
+over `ZHI_REFERENCE-REPOSITORY_ID`, because that is the table whose first key
+field carries the repository id; `ZHI_REPOSITORY` keys on `ID` and `NAME` and
+cannot produce a `REPOSITORY_ID` lock parameter. Activate it with the tables
+and confirm the generated function modules are `ENQUEUE_EZHI_REPO` and
+`DEQUEUE_EZHI_REPO` with a `REPOSITORY_ID` parameter; `ZCL_HITHUB_SAP_ENQUEUE`
+calls them under exactly those names for repository ref transactions.
+
+Long text and byte columns use the `STRING` and `RAWSTRING` data elements
+`ZHI_DE_STRING` and `ZHI_DE_RAWSTRING`, so they are LOB columns with no
+declared maximum. They are not key fields and the tables are unbuffered,
+which is what LOB columns require. Do not convert them back to `LCHR` or
+`LRAW`: those demand a preceding `INT2`/`INT4` length field and the last
+position in the table, which the row layouts here do not provide.
 
 ## Change design
 

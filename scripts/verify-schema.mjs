@@ -20,7 +20,7 @@ const expected = {
     columns: {
       repository_id: "NCHAR(36)", algorithm: "NCHAR(16)", oid: "NCHAR(64)",
       object_type: "NCHAR(6)", object_size: "INT", created_at: "NCHAR(27)",
-      payload: "NCHAR(64000)",
+      payload: "TEXT",
     },
     primaryKey: ["repository_id", "algorithm", "oid"],
   },
@@ -28,7 +28,7 @@ const expected = {
     columns: {
       event_id: "NCHAR(36)", actor: "NCHAR(100)", action: "NCHAR(100)",
       subject_type: "NCHAR(32)", subject_id: "NCHAR(100)",
-      correlation_id: "NCHAR(36)", occurred_at: "NCHAR(27)", details: "NCHAR(32000)",
+      correlation_id: "NCHAR(36)", occurred_at: "NCHAR(27)", details: "TEXT",
     },
     primaryKey: ["event_id"],
   },
@@ -51,7 +51,7 @@ const expected = {
     columns: {
       repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
       comment_id: "NCHAR(36)", actor: "NCHAR(100)",
-      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+      body: "TEXT", created_at: "NCHAR(27)",
     },
     primaryKey: ["repository_id", "pull_request_id", "comment_id"],
   },
@@ -60,7 +60,7 @@ const expected = {
       repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
       comment_id: "NCHAR(36)", commit_oid: "NCHAR(64)",
       path: "NCHAR(160)", line_number: "INT", actor: "NCHAR(100)",
-      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+      body: "TEXT", created_at: "NCHAR(27)",
     },
     primaryKey: ["repository_id", "pull_request_id", "comment_id"],
   },
@@ -68,7 +68,7 @@ const expected = {
     columns: {
       repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
       review_id: "NCHAR(36)", actor: "NCHAR(100)", state: "NCHAR(16)",
-      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+      body: "TEXT", created_at: "NCHAR(27)",
     },
     primaryKey: ["repository_id", "pull_request_id", "review_id"],
   },
@@ -83,7 +83,7 @@ const expected = {
   zhi_issue: {
     columns: {
       repository_id: "NCHAR(36)", id: "NCHAR(36)", title: "NCHAR(255)",
-      body: "NCHAR(32000)", state: "NCHAR(16)", actor: "NCHAR(100)",
+      body: "TEXT", state: "NCHAR(16)", actor: "NCHAR(100)",
       created_at: "NCHAR(27)", updated_at: "NCHAR(27)", version: "INT",
     },
     primaryKey: ["repository_id", "id"],
@@ -92,7 +92,7 @@ const expected = {
     columns: {
       repository_id: "NCHAR(36)", issue_id: "NCHAR(36)",
       comment_id: "NCHAR(36)", actor: "NCHAR(100)",
-      body: "NCHAR(32000)", created_at: "NCHAR(27)",
+      body: "TEXT", created_at: "NCHAR(27)",
     },
     primaryKey: ["repository_id", "issue_id", "comment_id"],
   },
