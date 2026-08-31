@@ -56,7 +56,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
       DATA lv_receive_ok TYPE abap_bool.
       DATA lv_receive_sideband_requested TYPE abap_bool.
       DATA ls_receive_current TYPE zif_hithub_metadata_store=>ty_reference.
-      DATA(lo_upload_metadata) = NEW zcl_hithub_local_meta_store( ).
+      DATA(lo_upload_metadata) = zcl_hithub_persistence=>metadata_store( ).
 
       IF ls_route-kind = 'git-receive-pack'.
         lv_receive_request = abap_true.
@@ -65,7 +65,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
 
       lv_upload_repository_name = ls_route-repository_name.
       lt_upload_repositories =
-        lo_upload_metadata->zif_hithub_metadata_store~list_repositories( ).
+        lo_upload_metadata->list_repositories( ).
       LOOP AT lt_upload_repositories INTO ls_upload_repository.
         IF ls_upload_repository-name = lv_upload_repository_name.
           EXIT.
@@ -74,7 +74,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
       ENDLOOP.
       IF ls_upload_repository-id IS NOT INITIAL.
         lt_upload_references =
-          lo_upload_metadata->zif_hithub_metadata_store~list_references(
+          lo_upload_metadata->list_references(
             ls_upload_repository-id ).
       ENDIF.
       IF lv_receive_request = abap_true.
@@ -84,7 +84,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             AND ls_receive_request-valid = abap_true.
           lv_receive_ok = abap_true.
           IF lines( ls_receive_request-commands ) > 1.
-            DATA(lo_batch_store) = NEW zcl_hithub_local_object_store( ).
+            DATA(lo_batch_store) = zcl_hithub_persistence=>object_store( ).
             DATA(lo_batch_reader) = NEW zcl_hithub_object_reader(
               lo_batch_store ).
             DATA(lo_batch_base) = NEW zcl_hithub_pack_base_resolver(
@@ -94,7 +94,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             DATA(lo_batch_codec) = NEW zcl_hithub_pack_codec(
               io_compression   = lo_batch_compression
               io_base_resolver = lo_batch_base ).
-            DATA(lo_batch_transaction) = NEW zcl_hithub_local_unit_work( ).
+            DATA(lo_batch_transaction) = zcl_hithub_persistence=>transaction( ).
             DATA(lo_batch) = NEW zcl_hithub_receive_batch(
               io_store = lo_batch_store io_metadata = lo_upload_metadata
               io_codec = lo_batch_codec io_transaction = lo_batch_transaction ).
@@ -111,7 +111,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             CLEAR ls_receive_result.
             ls_receive_result-ref_name = ls_receive_command-ref_name.
             ls_receive_current =
-              lo_upload_metadata->zif_hithub_metadata_store~read_reference(
+              lo_upload_metadata->read_reference(
                 iv_repository_id = ls_upload_repository-id
                 iv_name          = ls_receive_command-ref_name ).
             IF zcl_hithub_ref_update_policy=>old_oid_matches(
@@ -128,17 +128,17 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 ls_receive_result-reason = 'reference not found'.
                 lv_receive_ok = abap_false.
               ELSE.
-                DATA(lo_delete_transaction) = NEW zcl_hithub_local_unit_work( ).
-                lo_delete_transaction->zif_hithub_transaction~start( ).
-                lo_upload_metadata->zif_hithub_metadata_store~delete_reference(
+                DATA(lo_delete_transaction) = zcl_hithub_persistence=>transaction( ).
+                lo_delete_transaction->start( ).
+                lo_upload_metadata->delete_reference(
                   iv_repository_id    = ls_upload_repository-id
                   iv_name             = ls_receive_command-ref_name
                   iv_expected_version = ls_receive_current-version ).
-                lo_delete_transaction->zif_hithub_transaction~commit( ).
+                lo_delete_transaction->commit( ).
                 ls_receive_result-ok = abap_true.
               ENDIF.
             ELSE.
-              DATA(lo_receive_store) = NEW zcl_hithub_local_object_store( ).
+              DATA(lo_receive_store) = zcl_hithub_persistence=>object_store( ).
               DATA ls_receive_key TYPE zif_hithub_object_store=>ty_object_key.
               DATA ls_receive_reference TYPE zif_hithub_metadata_store=>ty_reference.
               DATA ls_receive_header TYPE zcl_hithub_pack_header=>ty_header.
@@ -154,22 +154,22 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                   AND zcl_hithub_receive_target=>is_valid_target(
                     io_store = lo_receive_store is_key = ls_receive_key
                     iv_ref_name = ls_receive_command-ref_name ) = abap_true.
-                DATA(lo_existing_transaction) = NEW zcl_hithub_local_unit_work( ).
-                lo_existing_transaction->zif_hithub_transaction~start( ).
+                DATA(lo_existing_transaction) = zcl_hithub_persistence=>transaction( ).
+                lo_existing_transaction->start( ).
                 ls_receive_reference-repository_id = ls_upload_repository-id.
                 ls_receive_reference-name = ls_receive_command-ref_name.
                 ls_receive_reference-algorithm = 'sha1'.
                 ls_receive_reference-oid = ls_receive_command-new_oid.
                 lv_receive_version =
-                  lo_upload_metadata->zif_hithub_metadata_store~save_reference(
+                  lo_upload_metadata->save_reference(
                     is_reference        = ls_receive_reference
                     iv_expected_version = ls_receive_current-version ).
                 IF lv_receive_version IS INITIAL.
-                  lo_existing_transaction->zif_hithub_transaction~rollback( ).
+                  lo_existing_transaction->rollback( ).
                   ls_receive_result-reason = 'ref update failed'.
                   lv_receive_ok = abap_false.
                 ELSE.
-                  lo_existing_transaction->zif_hithub_transaction~commit( ).
+                  lo_existing_transaction->commit( ).
                   ls_receive_result-ok = abap_true.
                 ENDIF.
               ELSE.
@@ -182,7 +182,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 DATA(lo_receive_codec) = NEW zcl_hithub_pack_codec(
                   io_compression   = lo_receive_compression
                   io_base_resolver = lo_receive_base ).
-                DATA(lo_receive_transaction) = NEW zcl_hithub_local_unit_work( ).
+                DATA(lo_receive_transaction) = zcl_hithub_persistence=>transaction( ).
                 DATA(lo_receive_receiver) = NEW zcl_hithub_pack_receiver(
                   io_codec = lo_receive_codec io_store = lo_receive_store
                   io_metadata = lo_upload_metadata
@@ -257,7 +257,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ELSEIF lv_upload_head_ref NP 'refs/*'.
           lv_upload_head_ref = |refs/heads/{ lv_upload_head_ref }|.
         ENDIF.
-        ls_upload_head = lo_upload_metadata->zif_hithub_metadata_store~read_reference(
+        ls_upload_head = lo_upload_metadata->read_reference(
           iv_repository_id = ls_upload_repository-id
           iv_name          = lv_upload_head_ref ).
         IF ls_upload_head-oid IS NOT INITIAL.
@@ -279,7 +279,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           AND lv_upload_command CP 'command=fetch*'.
         DATA(ls_fetch_request) = zcl_hithub_v2_fetch=>parse( lv_upload_request ).
         IF ls_fetch_request-valid = abap_true.
-          DATA(lo_upload_store) = NEW zcl_hithub_local_object_store( ).
+          DATA(lo_upload_store) = zcl_hithub_persistence=>object_store( ).
           DATA(lo_upload_reader) = NEW zcl_hithub_object_reader( lo_upload_store ).
           DATA(lo_reachability) = NEW zcl_hithub_reachability( lo_upload_reader ).
           DATA lt_upload_objects TYPE zcl_hithub_pack_codec=>ty_objects.
@@ -316,7 +316,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ls_upload_key-repository_id = ls_upload_repository-id.
             ls_upload_key-algorithm = 'sha1'.
             ls_upload_key-oid = lv_upload_oid.
-            IF lo_upload_store->zif_hithub_object_store~contains(
+            IF lo_upload_store->contains(
                 ls_upload_key ) = abap_true.
               APPEND lv_upload_oid TO lt_upload_common_haves.
             ENDIF.
@@ -349,7 +349,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ls_legacy_request = zcl_hithub_upload_request=>parse(
           server->request->get_data( ) ).
         IF ls_legacy_request-valid = abap_true.
-          DATA(lo_legacy_store) = NEW zcl_hithub_local_object_store( ).
+          DATA(lo_legacy_store) = zcl_hithub_persistence=>object_store( ).
           DATA(lo_legacy_reader) = NEW zcl_hithub_object_reader( lo_legacy_store ).
           DATA(lo_legacy_reachability) = NEW zcl_hithub_reachability( lo_legacy_reader ).
           DATA(lo_legacy_compression) = NEW zcl_hithub_abap_compression( ).
@@ -381,7 +381,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ls_legacy_key-repository_id = ls_upload_repository-id.
             ls_legacy_key-algorithm = 'sha1'.
             ls_legacy_key-oid = lv_legacy_oid.
-            IF lo_legacy_store->zif_hithub_object_store~contains(
+            IF lo_legacy_store->contains(
                 is_key = ls_legacy_key ) = abap_true.
               APPEND lv_legacy_oid TO lt_legacy_common.
             ENDIF.
@@ -454,11 +454,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
       DATA ls_head TYPE zif_hithub_metadata_store=>ty_reference.
       DATA lt_repositories TYPE zif_hithub_metadata_store=>ty_repositories.
       DATA lt_references TYPE zif_hithub_metadata_store=>ty_references.
-      DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
+      DATA(lo_metadata) = zcl_hithub_persistence=>metadata_store( ).
 
       lv_repository_name = ls_route-repository_name.
       IF lv_repository_name IS NOT INITIAL.
-        lt_repositories = lo_metadata->zif_hithub_metadata_store~list_repositories( ).
+        lt_repositories = lo_metadata->list_repositories( ).
         LOOP AT lt_repositories INTO ls_repository.
           IF ls_repository-name = lv_repository_name.
             EXIT.
@@ -475,9 +475,9 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         ELSEIF lv_head_ref NP 'refs/*'.
           lv_head_ref = |refs/heads/{ lv_head_ref }|.
         ENDIF.
-        ls_head = lo_metadata->zif_hithub_metadata_store~read_reference(
+        ls_head = lo_metadata->read_reference(
           iv_repository_id = ls_repository-id iv_name = lv_head_ref ).
-        lt_references = lo_metadata->zif_hithub_metadata_store~list_references(
+        lt_references = lo_metadata->list_references(
           ls_repository-id ).
         lv_body = zcl_hithub_upload_discovery=>build(
           iv_service       = lv_service
@@ -503,8 +503,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
     ELSEIF ls_route-kind = 'rest'.
       DATA(lv_rest_method) = server->request->get_method( ).
       DATA(lo_rest_query) = NEW zcl_hithub_repository_query(
-        NEW zcl_hithub_local_meta_store( ) ).
-      DATA(lo_audit_sink) = NEW zcl_hithub_local_event_sink( ).
+        zcl_hithub_persistence=>metadata_store( ) ).
+      DATA(lo_audit_sink) = zcl_hithub_persistence=>event_sink( ).
       IF zcl_hithub_pr_discussion_api=>matches( lv_path ) = abap_true
           OR zcl_hithub_issue_meta_api=>matches( lv_path ) = abap_true
           OR ( lv_rest_method = 'PUT'
@@ -625,14 +625,14 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 ls_merge_problem-content_type ).
               server->response->set_data( ls_merge_problem-body ).
             ELSE.
-              DATA(lo_merge_store) = NEW zcl_hithub_local_object_store( ).
-              DATA(lo_merge_metadata) = NEW zcl_hithub_local_meta_store( ).
-              DATA(lo_merge_transaction) = NEW zcl_hithub_local_unit_work( ).
+              DATA(lo_merge_store) = zcl_hithub_persistence=>object_store( ).
+              DATA(lo_merge_metadata) = zcl_hithub_persistence=>metadata_store( ).
+              DATA(lo_merge_transaction) = zcl_hithub_persistence=>transaction( ).
               DATA(lo_merge_service) = NEW zcl_hithub_merge_service(
                 io_store = lo_merge_store io_metadata = lo_merge_metadata
                 io_transaction = lo_merge_transaction
-                io_lock = NEW zcl_hithub_local_repo_lock( )
-                io_event_sink = NEW zcl_hithub_local_event_sink( ) ).
+                io_lock = zcl_hithub_persistence=>repository_lock( )
+                io_event_sink = zcl_hithub_persistence=>event_sink( ) ).
               DATA(ls_merge_result) = lo_merge_service->execute(
                 iv_repository_id = ls_merge_repository-id
                 iv_pull_request_id = lv_merge_pr_id
@@ -936,8 +936,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_branch_get_problem-body ).
           ELSE.
             DATA(lo_branch_get_service) = NEW zcl_hithub_branch_service(
-              io_metadata    = NEW zcl_hithub_local_meta_store( )
-              io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+              io_metadata    = zcl_hithub_persistence=>metadata_store( )
+              io_transaction = zcl_hithub_persistence=>transaction( ) ).
             IF lv_branch_get_collection = abap_true.
               DATA(lt_branch_get_references) = lo_branch_get_service->list(
                 ls_branch_get_repository-id ).
@@ -1003,8 +1003,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_tag_get_problem-body ).
           ELSE.
             DATA(lo_tag_get_service) = NEW zcl_hithub_tag_service(
-              io_metadata    = NEW zcl_hithub_local_meta_store( )
-              io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+              io_metadata    = zcl_hithub_persistence=>metadata_store( )
+              io_transaction = zcl_hithub_persistence=>transaction( ) ).
             IF lv_tag_get_collection = abap_true.
               DATA(lt_tag_get_references) = lo_tag_get_service->list(
                 ls_tag_get_repository-id ).
@@ -1069,8 +1069,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data( ls_commit_problem-body ).
           ELSE.
             DATA(lo_commit_service) = NEW zcl_hithub_commit_service(
-              io_metadata = NEW zcl_hithub_local_meta_store( )
-              io_objects  = NEW zcl_hithub_local_object_store( ) ).
+              io_metadata = zcl_hithub_persistence=>metadata_store( )
+              io_objects  = zcl_hithub_persistence=>object_store( ) ).
             IF lv_commit_collection = abap_true.
               DATA(lv_commit_ref) = server->request->get_form_field( 'ref' ).
               IF lv_commit_ref IS INITIAL.
@@ -1139,8 +1139,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               lv_contents_ref = ls_contents_repository-default_branch.
             ENDIF.
             DATA(lo_contents_service) = NEW zcl_hithub_contents_service(
-              io_metadata = NEW zcl_hithub_local_meta_store( )
-              io_objects  = NEW zcl_hithub_local_object_store( ) ).
+              io_metadata = zcl_hithub_persistence=>metadata_store( )
+              io_objects  = zcl_hithub_persistence=>object_store( ) ).
             IF server->request->get_form_field( 'format' ) = 'raw'.
               DATA(ls_contents_object) = lo_contents_service->read(
                 iv_repository_id = ls_contents_repository-id
@@ -1203,8 +1203,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               lv_compare_head = ls_compare_repository-default_branch.
             ENDIF.
             DATA(lo_compare_service) = NEW zcl_hithub_compare_service(
-              io_metadata = NEW zcl_hithub_local_meta_store( )
-              io_objects  = NEW zcl_hithub_local_object_store( ) ).
+              io_metadata = zcl_hithub_persistence=>metadata_store( )
+              io_objects  = zcl_hithub_persistence=>object_store( ) ).
             DATA(ls_comparison) = lo_compare_service->compare(
               iv_repository_id = ls_compare_repository-id
               iv_base          = lv_compare_base
@@ -1259,8 +1259,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             server->response->set_data(
               zcl_hithub_repo_representation=>one_with_readme(
                 is_repository = ls_rest_repository
-                io_metadata   = NEW zcl_hithub_local_meta_store( )
-                io_objects    = NEW zcl_hithub_local_object_store( ) ) ).
+                io_metadata   = zcl_hithub_persistence=>metadata_store( )
+                io_objects    = zcl_hithub_persistence=>object_store( ) ) ).
           ENDIF.
         ENDIF.
       ELSEIF lv_rest_method = 'PATCH' AND lv_path CS '/pulls/'.
@@ -1577,8 +1577,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_branch_patch_repository) = lo_rest_query->find(
             lv_branch_patch_repo_name ).
           DATA(lo_branch_patch_service) = NEW zcl_hithub_branch_service(
-            io_metadata    = NEW zcl_hithub_local_meta_store( )
-            io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+            io_metadata    = zcl_hithub_persistence=>metadata_store( )
+            io_transaction = zcl_hithub_persistence=>transaction( ) ).
           DATA(ls_branch_patch_reference) = lo_branch_patch_service->find(
             iv_repository_id = ls_branch_patch_repository-id
             iv_name          = lv_branch_patch_name ).
@@ -1707,8 +1707,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_tag_patch_repository) = lo_rest_query->find(
             lv_tag_patch_repo_name ).
           DATA(lo_tag_patch_service) = NEW zcl_hithub_tag_service(
-            io_metadata    = NEW zcl_hithub_local_meta_store( )
-            io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+            io_metadata    = zcl_hithub_persistence=>metadata_store( )
+            io_transaction = zcl_hithub_persistence=>transaction( ) ).
           DATA(ls_tag_patch_reference) = lo_tag_patch_service->find(
             iv_repository_id = ls_tag_patch_repository-id
             iv_name          = lv_tag_patch_name ).
@@ -1911,8 +1911,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
                 server->response->set_data( ls_patch_problem-body ).
               ELSE.
                 DATA(lo_patch_update) = NEW zcl_hithub_repository_update(
-                  io_metadata    = NEW zcl_hithub_local_meta_store( )
-                  io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+                  io_metadata    = zcl_hithub_persistence=>metadata_store( )
+                  io_transaction = zcl_hithub_persistence=>transaction( ) ).
                 DATA(ls_patch_result) = lo_patch_update->update(
                   iv_repository_id           = ls_patch_repository-id
                   iv_description             = lv_patch_description
@@ -1974,8 +1974,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_branch_delete_repository) = lo_rest_query->find(
             lv_branch_delete_repo_name ).
           DATA(lo_branch_delete_service) = NEW zcl_hithub_branch_service(
-            io_metadata    = NEW zcl_hithub_local_meta_store( )
-            io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+            io_metadata    = zcl_hithub_persistence=>metadata_store( )
+            io_transaction = zcl_hithub_persistence=>transaction( ) ).
           DATA(ls_branch_delete_reference) = lo_branch_delete_service->find(
             iv_repository_id = ls_branch_delete_repository-id
             iv_name          = lv_branch_delete_name ).
@@ -2070,8 +2070,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           DATA(ls_tag_delete_repository) = lo_rest_query->find(
             lv_tag_delete_repo_name ).
           DATA(lo_tag_delete_service) = NEW zcl_hithub_tag_service(
-            io_metadata    = NEW zcl_hithub_local_meta_store( )
-            io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+            io_metadata    = zcl_hithub_persistence=>metadata_store( )
+            io_transaction = zcl_hithub_persistence=>transaction( ) ).
           DATA(ls_tag_delete_reference) = lo_tag_delete_service->find(
             iv_repository_id = ls_tag_delete_repository-id
             iv_name          = lv_tag_delete_name ).
@@ -2197,8 +2197,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               lv_delete_expected = lv_delete_if_match.
               DATA(lo_delete_service) = NEW zcl_hithub_repository_deletion(
-                io_metadata    = NEW zcl_hithub_local_meta_store( )
-                io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+                io_metadata    = zcl_hithub_persistence=>metadata_store( )
+                io_transaction = zcl_hithub_persistence=>transaction( ) ).
               DATA(ls_delete_result) = lo_delete_service->delete(
                 iv_repository_id    = ls_delete_repository-id
                 iv_expected_version = lv_delete_expected ).
@@ -2315,8 +2315,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               server->response->set_data( ls_tag_post_problem-body ).
             ELSE.
               DATA(lo_tag_post_service) = NEW zcl_hithub_tag_service(
-                io_metadata    = NEW zcl_hithub_local_meta_store( )
-                io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+                io_metadata    = zcl_hithub_persistence=>metadata_store( )
+                io_transaction = zcl_hithub_persistence=>transaction( ) ).
               DATA(ls_tag_post_result) = lo_tag_post_service->create(
                 iv_repository_id = ls_tag_post_repository-id
                 iv_name = lv_tag_post_name iv_oid = lv_tag_post_oid
@@ -2442,8 +2442,8 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               server->response->set_data( ls_branch_post_problem-body ).
             ELSE.
               DATA(lo_branch_post_service) = NEW zcl_hithub_branch_service(
-                io_metadata    = NEW zcl_hithub_local_meta_store( )
-                io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+                io_metadata    = zcl_hithub_persistence=>metadata_store( )
+                io_transaction = zcl_hithub_persistence=>transaction( ) ).
               DATA(ls_branch_post_result) = lo_branch_post_service->create(
                 iv_repository_id = ls_branch_post_repository-id
                 iv_name          = lv_branch_post_name
@@ -2649,7 +2649,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               lv_issue_post_valid = abap_false.
             ENDIF.
             lv_issue_post_key = lo_issue_post_context->idempotency_key( ).
-            lo_issue_post_store = NEW zcl_hithub_local_meta_store( ).
+            lo_issue_post_store = zcl_hithub_persistence=>metadata_store( ).
             IF lv_issue_post_valid = abap_true
                 AND lv_issue_post_key IS NOT INITIAL.
               lv_issue_post_replay = lo_issue_post_store->read_idempotency(
@@ -2796,7 +2796,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
               lv_pr_post_valid = abap_false.
             ENDIF.
             lv_pr_post_key = lo_pr_post_context->idempotency_key( ).
-            lo_pr_post_store = NEW zcl_hithub_local_meta_store( ).
+            lo_pr_post_store = zcl_hithub_persistence=>metadata_store( ).
             IF lv_pr_post_valid = abap_true AND lv_pr_post_key IS NOT INITIAL.
               lv_pr_post_replay = lo_pr_post_store->read_idempotency(
                 iv_actor = lo_pr_post_context->actor_label( )
@@ -2907,9 +2907,9 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             ELSE.
               lv_purge_expected = lv_purge_if_match.
               DATA(lo_purge_service) = NEW zcl_hithub_repository_purge(
-                io_metadata    = NEW zcl_hithub_local_meta_store( )
-                io_objects     = NEW zcl_hithub_local_object_store( )
-                io_transaction = NEW zcl_hithub_local_unit_work( ) ).
+                io_metadata    = zcl_hithub_persistence=>metadata_store( )
+                io_objects     = zcl_hithub_persistence=>object_store( )
+                io_transaction = zcl_hithub_persistence=>transaction( ) ).
               DATA(ls_purge_result) = lo_purge_service->purge(
                 iv_repository_id    = ls_purge_repository-id
                 iv_expected_version = lv_purge_expected ).
@@ -2991,12 +2991,12 @@ CLASS zcl_hithub_http IMPLEMENTATION.
           lv_rest_body_valid = abap_false.
         ENDIF.
         IF lv_rest_body_valid = abap_true.
-          DATA(lo_rest_metadata) = NEW zcl_hithub_local_meta_store( ).
-          DATA(lo_rest_transaction) = NEW zcl_hithub_local_unit_work( ).
+          DATA(lo_rest_metadata) = zcl_hithub_persistence=>metadata_store( ).
+          DATA(lo_rest_transaction) = zcl_hithub_persistence=>transaction( ).
           DATA(lo_rest_identity) = NEW zcl_hithub_system_identity( ).
           DATA(lo_rest_creation) = NEW zcl_hithub_repository_creation(
             io_metadata    = lo_rest_metadata
-            io_objects     = NEW zcl_hithub_local_object_store( )
+            io_objects     = zcl_hithub_persistence=>object_store( )
             io_transaction = lo_rest_transaction
             io_identity    = lo_rest_identity ).
           DATA(ls_rest_result) = lo_rest_creation->create(

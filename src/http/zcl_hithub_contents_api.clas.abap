@@ -101,7 +101,7 @@ CLASS zcl_hithub_contents_api IMPLEMENTATION.
     DATA lv_file_path TYPE string.
     DATA lo_sink TYPE REF TO zif_hithub_event_sink.
     DATA lo_query TYPE REF TO zcl_hithub_repository_query.
-    DATA lo_metadata TYPE REF TO zcl_hithub_local_meta_store.
+    DATA lo_metadata TYPE REF TO zif_hithub_metadata_store.
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     DATA ls_request TYPE ty_request.
     DATA lt_members TYPE zcl_hithub_json=>ty_members.
@@ -125,7 +125,7 @@ CLASS zcl_hithub_contents_api IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_metadata = NEW zcl_hithub_local_meta_store( ).
+    lo_metadata = zcl_hithub_persistence=>metadata_store( ).
     lo_query = NEW zcl_hithub_repository_query( lo_metadata ).
     ls_repository = lo_query->find( lv_repository_name ).
     IF ls_repository-id IS INITIAL.
@@ -147,13 +147,13 @@ CLASS zcl_hithub_contents_api IMPLEMENTATION.
 
     lo_sink = io_sink.
     IF lo_sink IS INITIAL.
-      lo_sink = NEW zcl_hithub_local_event_sink( ).
+      lo_sink = zcl_hithub_persistence=>event_sink( ).
     ENDIF.
     DATA(lo_editor) = NEW zcl_hithub_file_editor(
       io_metadata    = lo_metadata
-      io_objects     = NEW zcl_hithub_local_object_store( )
-      io_transaction = NEW zcl_hithub_local_unit_work( )
-      io_lock        = NEW zcl_hithub_local_repo_lock( ) ).
+      io_objects     = zcl_hithub_persistence=>object_store( )
+      io_transaction = zcl_hithub_persistence=>transaction( )
+      io_lock        = zcl_hithub_persistence=>repository_lock( ) ).
     DATA(ls_result) = lo_editor->save(
       iv_repository_id     = ls_repository-id
       iv_ref               = ls_request-ref

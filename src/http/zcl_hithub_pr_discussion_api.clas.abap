@@ -91,7 +91,7 @@ CLASS zcl_hithub_pr_discussion_api IMPLEMENTATION.
     ENDIF.
 
     lo_query = NEW zcl_hithub_repository_query(
-      NEW zcl_hithub_local_meta_store( ) ).
+      zcl_hithub_persistence=>metadata_store( ) ).
     ls_repository = lo_query->find( lv_repository_name ).
     IF ls_repository-id IS INITIAL.
       rs_response = zcl_hithub_rest_response=>problem(
@@ -136,7 +136,7 @@ CLASS zcl_hithub_pr_discussion_api IMPLEMENTATION.
 
     lo_sink = io_sink.
     IF lo_sink IS INITIAL.
-      lo_sink = NEW zcl_hithub_local_event_sink( ).
+      lo_sink = zcl_hithub_persistence=>event_sink( ).
     ENDIF.
     IF lv_resource = 'reviews'.
       rs_response = create_review(

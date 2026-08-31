@@ -1,6 +1,8 @@
 # hithub
 HitHub
 
+For Demo purposes, don't use this for real production deployments.
+
 [Changelog](CHANGELOG.md)
 
 Deployment guides:

@@ -13,6 +13,45 @@ the [DDIC activation runbook](ddic-schema-runbook.md). Do not expose the ICF
 node until the schema verifier and the basic repository/object persistence
 checks have passed in the target system.
 
+## Package structure
+
+The repository is serialized for abapGit with `STARTING_FOLDER` `/src/` and
+`PREFIX` folder logic, so the target packages have to be created with these
+names before the pull:
+
+| Package | Folder | Contents |
+| --- | --- | --- |
+| `ZHITHUB` | `/src/` | Root package |
+| `ZHITHUB_CORE` | `/src/core/` | Domain and Git object model |
+| `ZHITHUB_HTTP` | `/src/http/` | ICF handler and REST routes |
+| `ZHITHUB_INFRA` | `/src/infrastructure/` | Persistence selection |
+| `ZHITHUB_INFRA_LOCAL` | `/src/infrastructure/local/` | open-abap adapters |
+| `ZHITHUB_INFRA_SAP` | `/src/infrastructure/sap/` | SAP adapters |
+| `ZHITHUB_PERSISTENCE` | `/src/persistence/` | DDIC artifacts |
+
+`npm run serialize:check` fails when a class, interface, or package is missing
+its serialized metadata, and CI runs it, so a new object cannot reach the
+repository in a state abapGit would skip on import.
+
+## Persistence adapters
+
+`ZCL_HITHUB_PERSISTENCE` selects the adapters the handler runs on and defaults
+to the SAP set, so an installed service needs no configuration:
+
+- `ZCL_HITHUB_SAP_UNIT_WORK` commits through `COMMIT WORK AND WAIT`.
+- `ZCL_HITHUB_SAP_REPO_LOCK` serializes writers through the enqueue server
+  using lock object `EZHI_REPO` over `ZHI_REFERENCE`. Confirm the lock object
+  activated and that `ENQUEUE_EZHI_REPO` was generated with a `REPOSITORY_ID`
+  parameter before the first merge or browser file edit; the lock is what keeps
+  two application servers from racing on the same reference.
+- `ZCL_HITHUB_SAP_META_STORE` and `ZCL_HITHUB_SAP_OBJECT_STORE` inherit the
+  Open SQL implementations unchanged.
+
+The open-abap deployment calls `ZCL_HITHUB_PERSISTENCE=>USE_OPEN_ABAP` during
+startup, because its adapters drive SQLite transactions and hold the repository
+lock in process memory. Never select that mode on an application server: the
+lock would not serialize anything beyond a single work process.
+
 ## Create the ICF service
 
 1. In transaction `SICF`, create or select a dedicated HTTPS service below the

@@ -71,6 +71,24 @@ the OpenAPI contract revision is tracked separately in
 
 ### Fixed
 
+- The repository could not be installed on an ABAP server: not one of the 130
+  classes or 17 interfaces carried the `.clas.xml` / `.intf.xml` that abapGit
+  needs to create an object, and there was no root `.abapgit.xml` and no
+  `package.devc.xml` for any package folder. Only the DDIC artifacts were
+  serialized, so a pull would have imported the tables and none of the code.
+  abaplint never needed those files, which is how the whole set stayed missing.
+  `scripts/abapgit-metadata.mjs` generates them, `npm run serialize:check`
+  fails when one is absent, and CI runs that check.
+- The ICF handler built the open-abap adapters, so an installed service would
+  have driven SQLite `BEGIN TRANSACTION` / `COMMIT` statements through
+  `cl_sql_statement` on the SAP database for every write, and would have held
+  its repository lock in work-process memory instead of the enqueue server —
+  serializing nothing across work processes or application servers. The SAP
+  adapters existed but were never instantiated anywhere.
+  `ZCL_HITHUB_PERSISTENCE` now selects them, defaults to SAP so an installed
+  service needs no configuration, and the open-abap deployment opts out at
+  startup. Lock object `EZHI_REPO` over `ZHI_REFERENCE` is added for the
+  enqueue path `ZCL_HITHUB_SAP_ENQUEUE` already expected.
 - The Code menu advertised `/git/{repo}.git`, which the Git router never
   served; it now shows `/{repo}.git`, and UI tests fetch the advertised URL to
   keep it reachable.

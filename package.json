@@ -5,6 +5,8 @@
   "description": "HitHub",
   "scripts": {
     "lint": "abaplint",
+    "serialize": "node scripts/abapgit-metadata.mjs",
+    "serialize:check": "node scripts/abapgit-metadata.mjs --check",
     "transpile": "abap_transpile abap_transpile.json",
     "unit": "npm run transpile && node scripts/run-unit.mjs",
     "smoke": "npm run transpile && node scripts/http-smoke.mjs",
@@ -30,7 +32,7 @@
     "native-race": "npm run transpile && node scripts/native-race.mjs",
     "fixtures": "node --test integration/fixtures/*.test.mjs",
     "start": "node server/index.mjs",
-    "verify": "npm run lint && npm run unit && npm run fixtures && npm run anomalies && npm run smoke",
+    "verify": "npm run lint && npm run serialize:check && npm run unit && npm run fixtures && npm run anomalies && npm run smoke",
     "test": "npm run verify"
   },
   "repository": {

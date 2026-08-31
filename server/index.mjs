@@ -5,6 +5,7 @@ import {fileURLToPath} from "node:url";
 import {createLocalDatabase} from "../scripts/local-database.mjs";
 import {initializeABAP} from "../output/init.mjs";
 import {cl_express_icf_shim} from "../output/cl_express_icf_shim.clas.mjs";
+import {zcl_hithub_persistence} from "../output/zcl_hithub_persistence.clas.mjs";
 import {logEvent} from "./logger.mjs";
 import {metricsSnapshot, observeRequest} from "./metrics.mjs";
 import {createGitAdmission} from "./git-admission.mjs";
@@ -17,6 +18,10 @@ const statements = generated.split("\n")
   .map((line) => line.slice(line.indexOf(tick) + 1, line.lastIndexOf(tick)));
 const database = await createLocalDatabase(statements);
 globalThis.abap.context.databaseConnections.DEFAULT = database;
+// ZCL_HITHUB_PERSISTENCE defaults to the SAP adapters, which is right for an
+// installed ICF service but wrong here: this process drives SQLite and holds
+// its repository lock in memory. Opt out before serving a single request.
+await zcl_hithub_persistence.use_open_abap();
 const seedRepository = process.env.HITHUB_EMPTY_REPOSITORY;
 if (seedRepository && /^[A-Za-z0-9._-]+$/.test(seedRepository)) {
   const escapedRepository = seedRepository.replaceAll("'", "''");
