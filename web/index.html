@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="HitHub repository browser">
+    <title>HitHub</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="app-shell">
+      <header class="site-header">
+        <div class="header-inner">
+          <button class="mobile-menu-toggle icon-button" type="button"
+            aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation">
+            <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16">
+              <path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75Zm.75 4.25a.75.75 0 0 0 0 1.5h12.5a.75.75 0 0 0 0-1.5Z"/>
+            </svg>
+          </button>
+          <a class="brand" href="/" aria-label="HitHub home">
+            <span class="brand-mark" aria-hidden="true">H</span>
+            <span class="brand-label">HitHub</span>
+          </a>
+          <form class="global-search" role="search" action="/">
+            <label class="sr-only" for="global-search-input">Search repositories</label>
+            <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16">
+              <path d="M10.5 6.5a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-.78 4.28a5.5 5.5 0 1 1 1.06-1.06l3.75 3.75a.75.75 0 1 1-1.06 1.06Z"/>
+            </svg>
+            <input id="global-search-input" name="q" type="search"
+              placeholder="Search repositories" autocomplete="off">
+            <kbd>/</kbd>
+          </form>
+          <nav class="primary-nav" id="primary-navigation" aria-label="Primary navigation">
+            <a href="/">Repositories</a>
+          </nav>
+        </div>
+      </header>
+      <main id="main-content" class="site-main">
+        <nav id="repository-navigation" class="repository-navigation" aria-label="Repository navigation" hidden></nav>
+        <section class="page-intro" aria-labelledby="page-title">
+          <div>
+            <h1 id="page-title">Repositories</h1>
+            <p class="lede" hidden></p>
+          </div>
+          <a class="button" href="/ui/create">New repository</a>
+        </section>
+        <section class="content-panel" aria-label="Repository list">
+          <div id="repository-dashboard" class="repository-list" aria-live="polite">
+            <p class="muted-message">Loading repositories…</p>
+          </div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <span>HitHub</span>
+          <span>Git-compatible repository hosting on ABAP</span>
+        </div>
+        <div class="footer-links">
+          <a href="/api/repos">API</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

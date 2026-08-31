@@ -1,0 +1,24 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: repository-workflow.spec.mjs >> filters compact issue rows by state and search
+- Location: e2e\repository-workflow.spec.mjs:174:1
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\Lars\AppData\Local\ms-playwright\firefox-1538\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     npx playwright install                                 ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```

@@ -10,7 +10,7 @@
   ],
   "syntax": {
     "version": {
-      "release": "open-abap",
+      "release": "v752",
       "language": "Normal"
     },
     "errorNamespace": "."
@@ -26,6 +26,8 @@
     "global_class": true,
     "identical_form_names": true,
     "implement_methods": true,
+    "align_parameters": true,
+    "align_type_expressions": true,
     "local_testclass_consistency": true,
     "message_exists": true,
     "method_implemented_twice": true,

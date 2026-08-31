@@ -1,0 +1,1195 @@
+openapi: 3.1.0
+info:
+  title: HitHub HTTP API
+  version: 0.1.0
+  description: Repository metadata and reference management for HitHub.
+servers:
+  - url: http://localhost
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        '200':
+          description: Service health
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, runtime]
+                properties:
+                  status: {type: string}
+                  runtime: {type: string}
+  /live:
+    get:
+      operationId: liveness
+      responses:
+        '200':
+          description: Process is alive
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Probe'}
+  /ready:
+    get:
+      operationId: readiness
+      responses:
+        '200':
+          description: Persistence is ready
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Probe'}
+        '503':
+          description: Persistence is unavailable
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Probe'}
+  /api/repos:
+    get:
+      operationId: listRepositories
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/PerPage'}
+      responses:
+        '200':
+          description: Visible repositories
+          headers:
+            Link: {$ref: '#/components/headers/Link'}
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Repository'}
+              example:
+                - id: 01234567-89ab-cdef-0123-456789abcdef
+                  name: demo
+                  description: Example repository
+                  default_branch: refs/heads/main
+                  version: 1
+    post:
+      operationId: createRepository
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RepositoryCreate'}
+      responses:
+        '201':
+          description: Repository created
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Repository'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: getRepository
+      responses:
+        '200':
+          description: Repository
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Repository'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: updateRepository
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RepositoryPatch'}
+      responses:
+        '200':
+          description: Updated repository
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Repository'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+    delete:
+      operationId: softDeleteRepository
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      responses:
+        '204': {description: Repository hidden}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+  /api/repos/{repo}/purge:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    post:
+      operationId: purgeRepository
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      responses:
+        '204': {description: Repository permanently purged}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+  /api/repos/{repo}/pulls:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listPullRequests
+      responses:
+        '200':
+          description: Pull requests for the repository
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/PullRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createPullRequest
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PullRequestCreate'}
+      responses:
+        '201':
+          description: Pull request created
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PullRequest'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/pulls/{pull}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/PullRequestId'}
+    get:
+      operationId: getPullRequest
+      responses:
+        '200':
+          description: Pull request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PullRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: updatePullRequestState
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PullRequestStatePatch'}
+      responses:
+        '200':
+          description: Updated pull-request state
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PullRequest'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/Conflict'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+  /api/repos/{repo}/pulls/{pull}/merge:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/PullRequestId'}
+    put:
+      operationId: mergePullRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MergeRequest'}
+      responses:
+        '200':
+          description: Merge result
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MergeResult'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+  /api/repos/{repo}/pulls/{pull}/reviews:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/PullRequestId'}
+    get:
+      operationId: listPullRequestReviews
+      responses:
+        '200':
+          description: Reviews recorded on the pull request
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Review'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createPullRequestReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReviewCreate'}
+      responses:
+        '201':
+          description: Review created
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Review'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/pulls/{pull}/comments:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/PullRequestId'}
+    get:
+      operationId: listPullRequestComments
+      responses:
+        '200':
+          description: Comments on the pull request
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/IssueComment'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createPullRequestComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/IssueCommentCreate'}
+      responses:
+        '201':
+          description: Comment created
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/IssueComment'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/issues:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listIssues
+      responses:
+        '200':
+          description: Issues for the repository
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Issue'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createIssue
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/IssueCreate'}
+      responses:
+        '201':
+          description: Issue created
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Issue'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/issues/{issue}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/IssueId'}
+    get:
+      operationId: getIssue
+      responses:
+        '200':
+          description: Issue
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Issue'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: updateIssue
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/IssuePatch'}
+      responses:
+        '200':
+          description: Updated issue
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Issue'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/Conflict'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+  /api/repos/{repo}/issues/{issue}/comments:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/IssueId'}
+    get:
+      operationId: listIssueComments
+      responses:
+        '200':
+          description: Comments on the issue
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/IssueComment'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createIssueComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/IssueCommentCreate'}
+      responses:
+        '201':
+          description: Comment created
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/IssueComment'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/issues/{issue}/labels:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/IssueId'}
+    get:
+      operationId: listIssueLabels
+      responses:
+        '200':
+          description: Labels applied to the issue
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Label'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: addIssueLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Label'}
+      responses:
+        '201':
+          description: Label applied
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Label'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/issues/{issue}/labels/{label}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/IssueId'}
+      - {$ref: '#/components/parameters/LabelName'}
+    delete:
+      operationId: removeIssueLabel
+      responses:
+        '204': {description: Label removed}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/issues/{issue}/assignees:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/IssueId'}
+    get:
+      operationId: listIssueAssignees
+      responses:
+        '200':
+          description: Actors assigned to the issue
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Assignee'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: addIssueAssignee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Assignee'}
+      responses:
+        '201':
+          description: Assignee added
+          headers:
+            Location: {$ref: '#/components/headers/Location'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Assignee'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/issues/{issue}/assignees/{actor}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/IssueId'}
+      - {$ref: '#/components/parameters/ActorName'}
+    delete:
+      operationId: removeIssueAssignee
+      responses:
+        '204': {description: Assignee removed}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/activity:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listRepositoryActivity
+      responses:
+        '200':
+          description: Repository activity events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/TimelineEntry'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/audit:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listRepositoryAudit
+      responses:
+        '200':
+          description: Repository audit events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/TimelineEntry'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/commits:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listCommits
+      parameters:
+        - {$ref: '#/components/parameters/CommitRef'}
+      responses:
+        '200':
+          description: Commits reachable from the requested reference
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Commit'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/commits/{oid}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/CommitOid'}
+    get:
+      operationId: getCommit
+      responses:
+        '200':
+          description: Commit
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Commit'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/contents/{path}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/ContentPath'}
+    get:
+      operationId: getContents
+      description: >-
+        Lists the tree entries at the requested path. An empty path lists the
+        repository root. With format=raw the blob at the path is returned
+        verbatim instead.
+      parameters:
+        - {$ref: '#/components/parameters/CommitRef'}
+        - {$ref: '#/components/parameters/ContentFormat'}
+      responses:
+        '200':
+          description: Directory listing, or the raw blob when format=raw
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Contents'}
+            text/plain:
+              schema: {type: string}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: updateContents
+      description: >-
+        Replaces the text of an existing file on a branch with a single commit
+        that rewrites every tree between the repository root and the file. Only
+        branches can be written; tags and raw commit references are rejected.
+        Send expected_head_oid to make the write fail rather than overwrite a
+        branch that moved since the file was read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ContentsUpdate'}
+      responses:
+        '200':
+          description: The commit that carries the new file content
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ContentsCommit'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/UnprocessableContent'}
+  /api/repos/{repo}/compare:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: compareReferences
+      description: >-
+        Compares two references. When the two commits share a merge base the
+        diff is taken from that merge base to head, matching three-dot compare
+        semantics; otherwise the base commit itself is used.
+      parameters:
+        - {$ref: '#/components/parameters/CompareBase'}
+        - {$ref: '#/components/parameters/CompareHead'}
+      responses:
+        '200':
+          description: Comparison between the two references
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Comparison'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/repos/{repo}/branches:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listBranches
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/PerPage'}
+      responses:
+        '200':
+          description: Repository branches
+          headers:
+            Link: {$ref: '#/components/headers/Link'}
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Reference'}
+              example:
+                - name: refs/heads/main
+                  algorithm: sha1
+                  oid: 1111111111111111111111111111111111111111
+                  version: 1
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReferenceCreate'}
+      responses:
+        '201':
+          description: Branch created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reference'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/branches/{branch}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/ReferenceName'}
+    get:
+      operationId: getBranch
+      responses:
+        '200':
+          description: Branch
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reference'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: updateBranch
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReferencePatch'}
+      responses:
+        '200':
+          description: Updated branch
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reference'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+    delete:
+      operationId: deleteBranch
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      responses:
+        '204': {description: Branch deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+  /api/repos/{repo}/tags:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+    get:
+      operationId: listTags
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/PerPage'}
+      responses:
+        '200':
+          description: Repository tags
+          headers:
+            Link: {$ref: '#/components/headers/Link'}
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Reference'}
+              example:
+                - name: refs/tags/v1.0.0
+                  algorithm: sha1
+                  oid: 2222222222222222222222222222222222222222
+                  version: 1
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: createTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReferenceCreate'}
+      responses:
+        '201':
+          description: Tag created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reference'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/repos/{repo}/tags/{tag}:
+    parameters:
+      - {$ref: '#/components/parameters/RepositoryName'}
+      - {$ref: '#/components/parameters/TagName'}
+    get:
+      operationId: getTag
+      responses:
+        '200':
+          description: Tag
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reference'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: updateTag
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReferencePatch'}
+      responses:
+        '200':
+          description: Updated tag
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reference'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+    delete:
+      operationId: deleteTag
+      parameters:
+        - {$ref: '#/components/parameters/IfMatch'}
+      responses:
+        '204': {description: Tag deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      required: false
+      schema: {type: integer, minimum: 1, default: 1}
+    PerPage:
+      name: per_page
+      in: query
+      required: false
+      schema: {type: integer, minimum: 1, maximum: 100, default: 30}
+    RepositoryName:
+      name: repo
+      in: path
+      required: true
+      schema: {type: string, pattern: '^[A-Za-z0-9._-]+$'}
+    CommitRef:
+      name: ref
+      in: query
+      required: false
+      schema: {type: string, minLength: 1}
+    CommitOid:
+      name: oid
+      in: path
+      required: true
+      schema: {type: string, pattern: '^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$'}
+    ReferenceName:
+      name: branch
+      in: path
+      required: true
+      schema: {type: string, minLength: 1}
+    TagName:
+      name: tag
+      in: path
+      required: true
+      schema: {type: string, minLength: 1}
+    PullRequestId:
+      name: pull
+      in: path
+      required: true
+      description: >-
+        Sequential pull-request number within the repository, shared with the
+        issue numbering sequence.
+      schema: {type: string, pattern: '^[0-9]+$'}
+    IssueId:
+      name: issue
+      in: path
+      required: true
+      description: Sequential issue number within the repository.
+      schema: {type: string, pattern: '^[0-9]+$'}
+    LabelName:
+      name: label
+      in: path
+      required: true
+      schema: {type: string, minLength: 1, maxLength: 100}
+    ActorName:
+      name: actor
+      in: path
+      required: true
+      schema: {type: string, minLength: 1, maxLength: 100}
+    ContentPath:
+      name: path
+      in: path
+      required: true
+      description: Path inside the tree; use an empty value for the root.
+      schema: {type: string, default: ''}
+    ContentFormat:
+      name: format
+      in: query
+      required: false
+      schema: {type: string, enum: [raw]}
+    CompareBase:
+      name: base
+      in: query
+      required: false
+      description: Reference to compare from; defaults to the default branch.
+      schema: {type: string, minLength: 1}
+    CompareHead:
+      name: head
+      in: query
+      required: false
+      description: Reference to compare to; defaults to the default branch.
+      schema: {type: string, minLength: 1}
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema: {type: string, pattern: '^"?[0-9]+"?$'}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: {type: string, minLength: 1}
+  headers:
+    Location:
+      schema: {type: string}
+    Link:
+      description: RFC 8288 pagination links for first, previous, next, and last pages.
+      schema: {type: string}
+  schemas:
+    Repository:
+      type: object
+      required: [id, name, description, default_branch, version]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        description: {type: string}
+        default_branch: {type: string}
+        version: {type: integer, minimum: 1}
+    RepositoryCreate:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        description: {type: string, maxLength: 255}
+        default_branch: {type: string, minLength: 1, maxLength: 160}
+    RepositoryPatch:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        description: {type: string, maxLength: 255}
+        default_branch: {type: string, minLength: 1, maxLength: 160}
+    Reference:
+      type: object
+      required: [name, algorithm, oid, version]
+      properties:
+        name: {type: string}
+        algorithm: {type: string, enum: [sha1]}
+        oid: {type: string, pattern: '^[0-9a-fA-F]{40}$'}
+        version: {type: integer, minimum: 1}
+    ReferenceCreate:
+      type: object
+      required: [name, oid]
+      additionalProperties: false
+      properties:
+        name: {type: string, minLength: 1}
+        algorithm: {type: string, enum: [sha1], default: sha1}
+        oid: {type: string, pattern: '^[0-9a-fA-F]{40}$'}
+    ReferencePatch:
+      type: object
+      required: [oid]
+      additionalProperties: false
+      properties:
+        oid: {type: string, pattern: '^[0-9a-fA-F]{40}$'}
+    Commit:
+      type: object
+      required: [oid, algorithm, tree, parents, author, committer, message]
+      properties:
+        oid: {type: string, pattern: '^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$'}
+        algorithm: {type: string, enum: [sha1, sha256]}
+        tree: {type: string}
+        parents:
+          type: array
+          items: {type: string}
+        author: {type: string}
+        committer: {type: string}
+        message: {type: string}
+        authored_at: {type: string}
+    PullRequest:
+      type: object
+      required: [id, state, source_ref, target_ref, base_oid, head_oid, version]
+      properties:
+        id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: >-
+            Sequential pull-request number, drawn from the same per-repository
+            sequence as issue numbers so the two never collide. Rendered as
+            #1, #2, and so on.
+        state: {type: string, enum: [draft, open, closed, merged]}
+        source_ref: {type: string}
+        target_ref: {type: string}
+        base_oid: {type: string}
+        head_oid: {type: string}
+        version: {type: integer, minimum: 1}
+    PullRequestCreate:
+      type: object
+      required: [source_ref, target_ref, base_oid, head_oid]
+      additionalProperties: false
+      description: >-
+        The pull-request number is assigned by the server from the same
+        per-repository sequence as issues. Send an Idempotency-Key header to
+        make a retried create return the original pull request instead of
+        consuming another number.
+      properties:
+        state: {type: string, enum: [draft, open], default: draft}
+        source_ref: {type: string, minLength: 1, maxLength: 160}
+        target_ref: {type: string, minLength: 1, maxLength: 160}
+        base_oid: {type: string, minLength: 1, maxLength: 64}
+        head_oid: {type: string, minLength: 1, maxLength: 64}
+    PullRequestStatePatch:
+      type: object
+      required: [state]
+      additionalProperties: false
+      properties:
+        state: {type: string, enum: [draft, open, closed, merged]}
+    Issue:
+      type: object
+      required: [id, title, body, state, actor, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: >-
+            Sequential issue number, unique and stable within the repository
+            and assigned by the server. Rendered as #1, #2, and so on.
+        title: {type: string}
+        body: {type: string}
+        state: {type: string, enum: [open, closed]}
+        actor: {type: string}
+        created_at: {type: string}
+        updated_at: {type: string}
+        version: {type: integer, minimum: 1}
+    IssueCreate:
+      type: object
+      required: [title]
+      additionalProperties: false
+      description: >-
+        The issue number is assigned by the server. Send an Idempotency-Key
+        header to make a retried create return the original issue instead of
+        consuming another number.
+      properties:
+        title: {type: string, minLength: 1, maxLength: 255}
+        body: {type: string}
+    IssuePatch:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        title: {type: string, minLength: 1, maxLength: 255}
+        body: {type: string}
+        state: {type: string, enum: [open, closed]}
+    IssueComment:
+      type: object
+      required: [id, actor, body, created_at]
+      properties:
+        id: {type: string}
+        actor: {type: string}
+        body: {type: string}
+        created_at: {type: string}
+    IssueCommentCreate:
+      type: object
+      required: [id, body]
+      additionalProperties: false
+      properties:
+        id: {type: string, minLength: 1, maxLength: 36}
+        body: {type: string, minLength: 1}
+    TimelineEntry:
+      type: object
+      required: [event_id, actor, action, subject_type, subject_id,
+        correlation_id, occurred_at, details]
+      properties:
+        event_id: {type: string}
+        actor: {type: string}
+        action: {type: string}
+        subject_type: {type: string}
+        subject_id: {type: string}
+        correlation_id: {type: string}
+        occurred_at: {type: string}
+        details: {type: string}
+    Review:
+      type: object
+      required: [id, actor, state, body, created_at]
+      properties:
+        id: {type: string}
+        actor: {type: string}
+        state: {type: string, enum: [approved, request_changes, commented]}
+        body: {type: string}
+        created_at: {type: string}
+    ReviewCreate:
+      type: object
+      required: [id, state]
+      additionalProperties: false
+      properties:
+        id: {type: string, minLength: 1, maxLength: 36}
+        state: {type: string, enum: [approved, request_changes, commented]}
+        body: {type: string}
+    Label:
+      type: object
+      required: [label]
+      additionalProperties: false
+      properties:
+        label: {type: string, minLength: 1, maxLength: 100}
+    Assignee:
+      type: object
+      required: [actor]
+      additionalProperties: false
+      properties:
+        actor: {type: string, minLength: 1, maxLength: 100}
+    Contents:
+      type: object
+      required: [entries]
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+            required: [name, type, mode, algorithm, oid, size]
+            properties:
+              name: {type: string}
+              type: {type: string, enum: [blob, tree]}
+              mode: {type: string}
+              algorithm: {type: string, enum: [sha1, sha256]}
+              oid: {type: string}
+              size: {type: integer}
+              last_commit: {type: string}
+              last_commit_at: {type: string}
+    ContentsUpdate:
+      type: object
+      required: [ref, content, message]
+      additionalProperties: false
+      properties:
+        ref: {type: string, minLength: 1, maxLength: 160}
+        content: {type: string, maxLength: 1048576}
+        message: {type: string, minLength: 1, maxLength: 255}
+        expected_head_oid:
+          type: string
+          description: >-
+            Commit the edit was based on. When it no longer matches the branch
+            head the write is rejected with 409 instead of discarding the
+            commits that landed in between.
+    ContentsCommit:
+      type: object
+      required: [ref, path, commit_oid, tree_oid, blob_oid]
+      properties:
+        ref: {type: string}
+        path: {type: string}
+        commit_oid: {type: string}
+        tree_oid: {type: string}
+        blob_oid: {type: string}
+    Comparison:
+      type: object
+      required: [base_ref, head_ref, base_oid, head_oid, merge_base_oid,
+        additions, deletions, summary, files]
+      properties:
+        base_ref: {type: string}
+        head_ref: {type: string}
+        base_oid: {type: string}
+        head_oid: {type: string}
+        merge_base_oid: {type: string}
+        additions: {type: integer, minimum: 0}
+        deletions: {type: integer, minimum: 0}
+        summary:
+          type: object
+          required: [added, modified, deleted, total]
+          properties:
+            added: {type: integer, minimum: 0}
+            modified: {type: integer, minimum: 0}
+            deleted: {type: integer, minimum: 0}
+            total: {type: integer, minimum: 0}
+        files:
+          type: array
+          items: {$ref: '#/components/schemas/ComparisonFile'}
+    ComparisonFile:
+      type: object
+      required: [path, status, old_oid, new_oid, additions, deletions,
+        binary, truncated, patch]
+      properties:
+        path: {type: string}
+        status: {type: string, enum: [added, modified, deleted]}
+        old_oid: {type: string}
+        new_oid: {type: string}
+        additions: {type: integer, minimum: 0}
+        deletions: {type: integer, minimum: 0}
+        binary: {type: boolean}
+        truncated: {type: boolean}
+        patch:
+          type: string
+          description: Unified diff for the file; empty when there is no textual change.
+    MergeRequest:
+      type: object
+      required: [expected_head_oid, clean]
+      additionalProperties: false
+      properties:
+        expected_head_oid: {type: string, minLength: 1, maxLength: 64}
+        clean: {type: boolean}
+        message: {type: string, minLength: 1, maxLength: 255}
+        author: {type: string, minLength: 1, maxLength: 255}
+        committer: {type: string, minLength: 1, maxLength: 255}
+    MergeResult:
+      type: object
+      required: [merge_id, commit_oid]
+      properties:
+        merge_id: {type: string}
+        commit_oid: {type: string}
+    Problem:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type: {type: string, format: uri-reference}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        instance: {type: string}
+    Probe:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string}
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    Conflict:
+      description: Request conflicts with current state
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    PreconditionFailed:
+      description: If-Match did not match the current version
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    PreconditionRequired:
+      description: If-Match is required
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    UnprocessableContent:
+      description: The request is well formed but cannot be applied
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
