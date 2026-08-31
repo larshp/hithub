@@ -537,6 +537,7 @@ function referenceHref(encoded, name) {
 
 function createReferenceSwitcher(options) {
   const {encoded, branches, tags, current, defaultBranch} = options;
+  const hrefFor = options.hrefFor || ((name) => referenceHref(encoded, name));
   const menu = document.createElement("details");
   menu.className = "ref-switcher";
   const summary = document.createElement("summary");
@@ -627,7 +628,7 @@ function createReferenceSwitcher(options) {
       const item = document.createElement("li");
       const link = document.createElement("a");
       link.className = "ref-item";
-      link.href = referenceHref(encoded, reference.name);
+      link.href = hrefFor(reference.name);
       if (reference.name === current?.name) link.setAttribute("aria-current", "true");
       const mark = document.createElement("span");
       mark.className = "ref-item-mark";
@@ -761,7 +762,7 @@ function createReferenceSwitcher(options) {
         throw new Error(problem?.detail || `branch create returned ${response.status}`);
       }
       const created = await response.json();
-      window.location.href = referenceHref(encoded, created.name);
+      window.location.href = hrefFor(created.name);
     } catch (error) {
       create.disabled = false;
       status.className = "form-status is-error ref-status";
@@ -2583,48 +2584,174 @@ async function showBlobViewer(repository, branch, path) {
   }
 }
 
+function commitAuthorName(author) {
+  const identity = String(author || "").trim();
+  if (!identity) return "unknown";
+  const named = identity.match(/^(.*?)\s*<[^>]*>/);
+  return (named ? named[1].trim() : identity) || "unknown";
+}
+
+function commitDateHeading(value) {
+  const date = commitTimestampDate(value);
+  if (!date) return "Undated commits";
+  return `Commits on ${new Intl.DateTimeFormat(undefined, {
+    dateStyle: "long",
+  }).format(date)}`;
+}
+
+function groupCommitsByDate(commits) {
+  const groups = [];
+  for (const commit of commits) {
+    const heading = commitDateHeading(commit.authored_at);
+    const current = groups[groups.length - 1];
+    if (current && current.heading === heading) current.commits.push(commit);
+    else groups.push({heading, commits: [commit]});
+  }
+  return groups;
+}
+
+function createCommitRow(commit, repository) {
+  const encoded = encodeURIComponent(repository);
+  const oid = String(commit.oid || "");
+  const detailHref = `/ui/repos/${encoded}/commit/${encodeURIComponent(oid)}`;
+  const [subject, ...rest] = String(commit.message || oid).split("\n");
+  const body = rest.join("\n").trim();
+
+  const row = document.createElement("article");
+  row.className = "commit-row";
+  const main = document.createElement("div");
+  main.className = "commit-row-main";
+  const heading = document.createElement("h3");
+  const link = document.createElement("a");
+  link.className = "commit-subject";
+  link.href = detailHref;
+  link.textContent = subject || oid;
+  heading.append(link);
+  if (body) {
+    const expand = document.createElement("button");
+    expand.className = "commit-expand";
+    expand.type = "button";
+    expand.textContent = "…";
+    expand.setAttribute("aria-label", "Show the full commit message");
+    expand.setAttribute("aria-expanded", "false");
+    const details = document.createElement("pre");
+    details.className = "commit-body";
+    details.hidden = true;
+    details.textContent = body;
+    expand.addEventListener("click", () => {
+      details.hidden = !details.hidden;
+      expand.setAttribute("aria-expanded", String(!details.hidden));
+    });
+    heading.append(expand);
+    main.append(heading, details);
+  } else {
+    main.append(heading);
+  }
+  const meta = document.createElement("p");
+  meta.className = "commit-meta";
+  const name = commitAuthorName(commit.author);
+  meta.append(createAvatar(name));
+  const who = document.createElement("strong");
+  who.textContent = name;
+  meta.append(who, document.createTextNode(" committed "));
+  const when = document.createElement("time");
+  const date = commitTimestampDate(commit.authored_at);
+  if (date) when.dateTime = date.toISOString();
+  when.title = formatCommitTimestamp(commit.authored_at);
+  when.textContent = formatRelativeTimestamp(commit.authored_at);
+  meta.append(when);
+  main.append(meta);
+
+  const trailing = document.createElement("div");
+  trailing.className = "commit-actions";
+  const short = document.createElement("a");
+  short.className = "commit-oid";
+  short.href = detailHref;
+  short.textContent = oid.slice(0, 7);
+  const copy = document.createElement("button");
+  copy.className = "icon-button commit-copy";
+  copy.type = "button";
+  copy.setAttribute("aria-label", `Copy the full commit id ${oid}`);
+  copy.append(interfaceIcon("copy"));
+  copy.addEventListener("click", () => copyText(oid, copy));
+  const browse = document.createElement("a");
+  browse.className = "icon-button commit-browse";
+  browse.href = `/ui/repos/${encoded}/files/${encodeURIComponent(oid)}`;
+  browse.setAttribute("aria-label", "Browse the repository at this commit");
+  browse.title = "Browse the repository at this commit";
+  browse.append(interfaceIcon("code"));
+  trailing.append(short, copy, browse);
+  row.append(main, trailing);
+  return row;
+}
+
 async function showCommitHistory(repository, branch) {
-  pageTitle.textContent = "Commit history";
+  pageTitle.textContent = "Commits";
   pageLede.textContent = `${repository} · ${branch}`;
   dashboard.replaceChildren();
-  const list = document.createElement("ol");
+  const encoded = encodeURIComponent(repository);
+  const toolbar = document.createElement("div");
+  toolbar.className = "commit-toolbar";
+  const list = document.createElement("div");
   list.className = "commit-list";
-  const loading = document.createElement("li");
+  const loading = document.createElement("p");
   loading.className = "muted-message";
   loading.textContent = "Loading commits…";
   list.append(loading);
-  dashboard.append(list);
+  dashboard.append(toolbar, list);
   try {
-    const response = await fetch(
-      `/api/repos/${encodeURIComponent(repository)}/commits?ref=${encodeURIComponent(branch)}`,
-    );
+    const [response, branchesResponse, tagsResponse] = await Promise.all([
+      fetch(`/api/repos/${encoded}/commits?ref=${encodeURIComponent(branch)}`),
+      fetch(`/api/repos/${encoded}/branches`),
+      fetch(`/api/repos/${encoded}/tags`),
+    ]);
     if (!response.ok) throw new Error(`commits returned ${response.status}`);
     const commits = await response.json();
+    const branches = branchesResponse.ok ? await branchesResponse.json() : [];
+    const tags = tagsResponse.ok ? await tagsResponse.json() : [];
+    const current = [...branches, ...tags].find((reference) =>
+      reference.name === branch || shortReference(reference.name) === branch);
+    if (branches.length) {
+      const switcher = createReferenceSwitcher({
+        encoded,
+        branches,
+        tags,
+        current: current || branches[0],
+        defaultBranch: shortReference(branches[0].name),
+        hrefFor: (name) =>
+          `/ui/repos/${encoded}/commits/${encodeURIComponent(shortReference(name))}`,
+      });
+      toolbar.append(switcher.menu);
+    }
+    const count = document.createElement("p");
+    count.className = "commit-count muted-message";
+    count.textContent = `${commits.length} ${commits.length === 1 ? "commit" : "commits"} on ${branch}`;
+    toolbar.append(count);
+
     list.replaceChildren();
     if (!Array.isArray(commits) || !commits.length) {
-      const empty = document.createElement("li");
+      const empty = document.createElement("p");
       empty.className = "muted-message";
       empty.textContent = "No commits are available for this reference.";
       list.append(empty);
       return;
     }
-    commits.forEach((commit) => {
-      const item = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = `/ui/repos/${encodeURIComponent(repository)}/commit/${encodeURIComponent(commit.oid)}`;
-      link.textContent = commit.message || commit.oid;
-      item.append(link);
-      if (commit.author) {
-        const author = document.createElement("span");
-        author.className = "entry-summary";
-        author.textContent = ` — ${commit.author}`;
-        item.append(author);
-      }
-      list.append(item);
-    });
+    for (const group of groupCommitsByDate(commits)) {
+      const section = document.createElement("section");
+      section.className = "commit-group";
+      const heading = document.createElement("h2");
+      heading.className = "commit-group-heading";
+      heading.textContent = group.heading;
+      const rows = document.createElement("div");
+      rows.className = "commit-group-rows";
+      group.commits.forEach((commit) =>
+        rows.append(createCommitRow(commit, repository)));
+      section.append(heading, rows);
+      list.append(section);
+    }
   } catch (_error) {
     list.replaceChildren();
-    const failure = document.createElement("li");
+    const failure = document.createElement("p");
     failure.className = "muted-message";
     failure.textContent = "Commit history could not be loaded.";
     list.append(failure);

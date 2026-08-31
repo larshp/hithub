@@ -571,7 +571,7 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             DATA lv_merge_clean_seen TYPE abap_bool.
             DATA ls_merge_member TYPE zcl_hithub_json=>ty_member.
             lv_merge_valid = ls_merge_document-valid.
-            lv_merge_author = 'HitHub <hithub@localhost> 0 +0000'.
+            lv_merge_author = zcl_hithub_commit_signature=>build( 'HitHub' ).
             lv_merge_committer = lv_merge_author.
             lv_merge_message = |Merge pull request { lv_merge_pr_id }|.
             LOOP AT ls_merge_document-members INTO ls_merge_member.

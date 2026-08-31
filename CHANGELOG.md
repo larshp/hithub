@@ -30,6 +30,16 @@ the OpenAPI contract revision is tracked separately in
   review, comment, label and assignee domain classes to REST. The pull-request
   sidebar lists real reviewers and the issue sidebar edits labels and
   assignees in place, replacing the previous static placeholders.
+- The commits page is rebuilt to match the shape of a hosted Git service:
+  commits are grouped under a dated heading on a timeline rail, each row shows
+  the subject line with an expander for the message body, the author name and a
+  relative time, and a trailing short commit id with copy and
+  "browse the repository at this commit" actions. The branch/tag switcher from
+  the Code page is reused at the top, and the raw committer identity no longer
+  leaks into the row.
+- Browsing file contents now accepts a plain commit id, and resolves annotated
+  tags by peeling them to their commit, so the commits page can link each row
+  at its own tree and `refs/tags/*` browsing works for annotated tags.
 - Text files can be edited in the browser. The blob page shows an "Edit this
   file" button on branches, and committing rewrites every tree between the
   repository root and the file, writes a commit whose parent is the previous
@@ -64,6 +74,15 @@ the OpenAPI contract revision is tracked separately in
 - The Code menu advertised `/git/{repo}.git`, which the Git router never
   served; it now shows `/{repo}.git`, and UI tests fetch the advertised URL to
   keep it reachable.
+- Server-generated commits carried the Unix epoch as their author date, so the
+  initial commit and every merge commit were dated 1970. They now carry the
+  time they were made, which also stops the commits page from filing them under
+  an undated heading.
+- The browser test suite gated readiness on `/health`, which answers from a
+  static branch that never touches the REST dispatch or the database. Tests
+  therefore started against a server whose code paths were still loading, and
+  the heaviest ones intermittently exceeded their timeout. The suite now waits
+  for a REST route and warms the paths it exercises before the first test.
 
 ### Documentation
 

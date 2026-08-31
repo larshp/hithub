@@ -81,6 +81,9 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
   METHOD commit_for_ref.
     DATA lv_ref TYPE string.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+    DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_tag TYPE zcl_hithub_tag_codec=>ty_tag.
+    DATA lv_peel TYPE i.
 
     CLEAR rs_key.
     IF mo_metadata IS INITIAL OR iv_repository_id IS INITIAL OR iv_ref IS INITIAL.
@@ -98,11 +101,39 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
         iv_repository_id = iv_repository_id iv_name = lv_ref ).
     ENDIF.
     IF ls_reference-oid IS INITIAL.
-      RETURN.
+      " Browsing history means asking for a plain commit id as well as a ref.
+      IF zcl_hithub_oid_validator=>is_valid(
+          iv_algorithm = 'sha1' iv_oid = iv_ref ) = abap_true.
+        ls_reference-algorithm = 'sha1'.
+      ELSEIF zcl_hithub_oid_validator=>is_valid(
+          iv_algorithm = 'sha256' iv_oid = iv_ref ) = abap_true.
+        ls_reference-algorithm = 'sha256'.
+      ELSE.
+        RETURN.
+      ENDIF.
+      ls_reference-oid = iv_ref.
     ENDIF.
     rs_key-repository_id = iv_repository_id.
     rs_key-algorithm = ls_reference-algorithm.
     rs_key-oid = ls_reference-oid.
+    IF mo_objects IS INITIAL.
+      RETURN.
+    ENDIF.
+    WHILE lv_peel < 5.
+      ls_object = mo_objects->read( rs_key ).
+      IF ls_object-type <> 'tag'.
+        EXIT.
+      ENDIF.
+      ls_tag = zcl_hithub_tag_codec=>decode( ls_object-payload ).
+      IF ls_tag-object IS INITIAL.
+        EXIT.
+      ENDIF.
+      rs_key-oid = ls_tag-object.
+      lv_peel = lv_peel + 1.
+    ENDWHILE.
+    IF ls_object-type <> 'commit'.
+      CLEAR rs_key.
+    ENDIF.
   ENDMETHOD.
 
   METHOD constructor.

@@ -498,6 +498,58 @@ test("reports an unchanged comparison without a diff", async ({page}) => {
   );
 });
 
+test("lists commits grouped by date with copy and browse actions", async ({page}, testInfo) => {
+  const name = `commits-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  expect((await page.request.put(`/api/repos/${name}/contents/README.md`, {
+    data: {
+      ref: "main",
+      message: "Describe the layout\n\nExplains where things live\nand why.",
+      content: `# ${name}\n\ndescribed\n`,
+    },
+  })).status()).toBe(200);
+  const commits = await (await page.request.get(`/api/repos/${name}/commits?ref=main`)).json();
+  const newest = commits[0];
+
+  await page.goto(`/ui/repos/${name}/commits/main`);
+  await expect(page.locator(".commit-count")).toContainText("2 commits on main");
+  await expect(page.locator(".commit-group")).toHaveCount(1);
+  await expect(page.locator(".commit-group-heading")).toContainText(/^Commits on /);
+  await expect(page.locator(".commit-row")).toHaveCount(2);
+
+  // Newest first, subject line only, author name without the raw identity.
+  const first = page.locator(".commit-row").first();
+  await expect(first.locator(".commit-subject")).toHaveText("Describe the layout");
+  await expect(first.locator(".commit-meta")).toContainText("local-development committed");
+  await expect(first.locator(".commit-meta")).not.toContainText("@hithub.invalid");
+  await expect(first.locator(".commit-oid")).toHaveText(newest.oid.slice(0, 7));
+
+  // The trailing body is hidden until the expander is used.
+  await expect(first.locator(".commit-body")).toBeHidden();
+  await first.locator(".commit-expand").click();
+  await expect(first.locator(".commit-body")).toContainText("Explains where things live");
+
+  // Browsing at a commit resolves the tree for that exact commit id.
+  await first.locator(".commit-browse").click();
+  await expect(page).toHaveURL(new RegExp(`/files/${newest.oid}$`));
+  await expect(page.locator(".tree-list")).toContainText("README.md");
+});
+
+test("switches branches from the commits page", async ({page}, testInfo) => {
+  const name = `commit-refs-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  const branches = await (await page.request.get(`/api/repos/${name}/branches`)).json();
+  expect((await page.request.post(`/api/repos/${name}/branches`, {
+    data: {name: "release", oid: branches[0].oid},
+  })).status()).toBe(201);
+  await page.goto(`/ui/repos/${name}/commits/main`);
+  await expect(page.locator(".ref-switcher-name")).toHaveText("main");
+  await page.locator(".ref-switcher-summary").click();
+  await page.locator(".ref-item", {hasText: "release"}).click();
+  await expect(page).toHaveURL(new RegExp(`/ui/repos/${name}/commits/release$`));
+  await expect(page.locator(".commit-count")).toContainText("1 commit on release");
+});
+
 test("edits a text file and commits it to the branch", async ({page}, testInfo) => {
   const name = `editing-${Date.now()}-${testInfo.workerIndex}`;
   expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);

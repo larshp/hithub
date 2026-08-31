@@ -151,7 +151,7 @@ CLASS zcl_hithub_repository_creation IMPLEMENTATION.
       iv_type = 'tree' iv_payload = lv_tree_payload ).
 
     ls_commit-tree = lv_tree_oid.
-    ls_commit-author = 'HitHub <hithub@localhost> 0 +0000'.
+    ls_commit-author = zcl_hithub_commit_signature=>build( 'HitHub' ).
     ls_commit-committer = ls_commit-author.
     ls_commit-message = 'Initial commit'.
     lv_commit_payload = zcl_hithub_commit_codec=>encode( ls_commit ).
