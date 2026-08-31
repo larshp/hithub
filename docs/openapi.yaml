@@ -556,6 +556,29 @@ paths:
             text/plain:
               schema: {type: string}
         '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: updateContents
+      description: >-
+        Replaces the text of an existing file on a branch with a single commit
+        that rewrites every tree between the repository root and the file. Only
+        branches can be written; tags and raw commit references are rejected.
+        Send expected_head_oid to make the write fail rather than overwrite a
+        branch that moved since the file was read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ContentsUpdate'}
+      responses:
+        '200':
+          description: The commit that carries the new file content
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ContentsCommit'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/UnprocessableContent'}
   /api/repos/{repo}/compare:
     parameters:
       - {$ref: '#/components/parameters/RepositoryName'}
@@ -1047,6 +1070,29 @@ components:
               size: {type: integer}
               last_commit: {type: string}
               last_commit_at: {type: string}
+    ContentsUpdate:
+      type: object
+      required: [ref, content, message]
+      additionalProperties: false
+      properties:
+        ref: {type: string, minLength: 1, maxLength: 160}
+        content: {type: string, maxLength: 1048576}
+        message: {type: string, minLength: 1, maxLength: 255}
+        expected_head_oid:
+          type: string
+          description: >-
+            Commit the edit was based on. When it no longer matches the branch
+            head the write is rejected with 409 instead of discarding the
+            commits that landed in between.
+    ContentsCommit:
+      type: object
+      required: [ref, path, commit_oid, tree_oid, blob_oid]
+      properties:
+        ref: {type: string}
+        path: {type: string}
+        commit_oid: {type: string}
+        tree_oid: {type: string}
+        blob_oid: {type: string}
     Comparison:
       type: object
       required: [base_ref, head_ref, base_oid, head_oid, merge_base_oid,
@@ -1139,6 +1185,11 @@ components:
           schema: {$ref: '#/components/schemas/Problem'}
     PreconditionRequired:
       description: If-Match is required
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    UnprocessableContent:
+      description: The request is well formed but cannot be applied
       content:
         application/problem+json:
           schema: {$ref: '#/components/schemas/Problem'}

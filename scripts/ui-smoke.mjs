@@ -80,6 +80,10 @@ try {
       || !appSource.includes("/labels")
       || !appSource.includes("/assignees")
       || !appSource.includes("createCompareSummary")
+      || !appSource.includes("createFileEditor")
+      || !appSource.includes("Edit this file")
+      || !appSource.includes("file-editor-content")
+      || !appSource.includes("Commit changes")
       || !appSource.includes("textContent")
       || appSource.includes("/git/")
       || appSource.includes("innerHTML")) {
@@ -176,6 +180,30 @@ try {
     throw new Error("The switcher did not persist the new branch");
   }
   console.log("UI branch switcher created release/ui");
+
+  await page.goto(
+    `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/blob/main/README.md`,
+    {waitUntil: "networkidle"},
+  );
+  await page.getByRole("button", {name: "Edit this file"}).click();
+  await page.locator("#file-editor-content").fill("# ui-issue-repository\n\nEdited in the browser.\n");
+  await page.getByLabel("Commit message").fill("Edit README from the browser");
+  await page.getByRole("button", {name: "Commit changes"}).click();
+  await page.locator(".blob-viewer").getByText("Edited in the browser.").waitFor();
+  const editedRaw = await (await fetch(
+    `http://127.0.0.1:${port}/api/repos/ui-issue-repository/contents/README.md?ref=main&format=raw`,
+  )).text();
+  if (editedRaw !== "# ui-issue-repository\n\nEdited in the browser.\n") {
+    throw new Error(`The edited file was not committed: ${JSON.stringify(editedRaw)}`);
+  }
+  const historyAfterEdit = await (await fetch(
+    `http://127.0.0.1:${port}/api/repos/ui-issue-repository/commits?ref=main`,
+  )).json();
+  if (historyAfterEdit.length !== 2
+      || historyAfterEdit[0].message !== "Edit README from the browser") {
+    throw new Error("The browser edit did not add a commit to the branch");
+  }
+  console.log("UI file edit committed to refs/heads/main");
 
   const pullRequest = await fetch(
     `http://127.0.0.1:${port}/api/repos/ui-issue-repository/pulls`,

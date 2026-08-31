@@ -506,7 +506,9 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         NEW zcl_hithub_local_meta_store( ) ).
       DATA(lo_audit_sink) = NEW zcl_hithub_local_event_sink( ).
       IF zcl_hithub_pr_discussion_api=>matches( lv_path ) = abap_true
-          OR zcl_hithub_issue_meta_api=>matches( lv_path ) = abap_true.
+          OR zcl_hithub_issue_meta_api=>matches( lv_path ) = abap_true
+          OR ( lv_rest_method = 'PUT'
+            AND zcl_hithub_contents_api=>matches( lv_path ) = abap_true ).
         DATA ls_delegated TYPE zcl_hithub_rest_response=>ty_response.
         DATA(lo_delegated_context) = zcl_hithub_rest_context=>for_local(
           iv_method = lv_rest_method iv_path = lv_path
@@ -516,8 +518,11 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         IF zcl_hithub_pr_discussion_api=>matches( lv_path ) = abap_true.
           ls_delegated = zcl_hithub_pr_discussion_api=>handle(
             io_context = lo_delegated_context io_sink = lo_audit_sink ).
-        ELSE.
+        ELSEIF zcl_hithub_issue_meta_api=>matches( lv_path ) = abap_true.
           ls_delegated = zcl_hithub_issue_meta_api=>handle(
+            io_context = lo_delegated_context io_sink = lo_audit_sink ).
+        ELSE.
+          ls_delegated = zcl_hithub_contents_api=>handle(
             io_context = lo_delegated_context io_sink = lo_audit_sink ).
         ENDIF.
         server->response->set_status(

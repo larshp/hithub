@@ -23,6 +23,7 @@ const iconPaths = {
   search: "M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z",
   close: "M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z",
   plus: "M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z",
+  pencil: "M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Z",
 };
 
 function interfaceIcon(name, className = "octicon") {
@@ -2427,26 +2428,118 @@ async function showTreeBrowser(repository, branch, path) {
   }
 }
 
+function createFileEditor(context) {
+  const {repository, branch, path, source, head, onCancel} = context;
+  const encoded = encodeURIComponent(repository);
+  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+  const form = document.createElement("form");
+  form.className = "file-editor";
+  const editorLabel = document.createElement("label");
+  editorLabel.htmlFor = "file-editor-content";
+  editorLabel.className = "sr-only";
+  editorLabel.textContent = `Contents of ${path}`;
+  const editor = document.createElement("textarea");
+  editor.id = "file-editor-content";
+  editor.className = "file-editor-content";
+  editor.spellcheck = false;
+  editor.rows = Math.min(Math.max(source.split("\n").length + 2, 12), 40);
+  editor.value = source;
+  const commitBox = document.createElement("section");
+  commitBox.className = "commit-box";
+  const commitHeading = document.createElement("h2");
+  commitHeading.textContent = "Commit changes";
+  const messageLabel = document.createElement("label");
+  messageLabel.htmlFor = "file-editor-message";
+  messageLabel.textContent = "Commit message";
+  const message = document.createElement("input");
+  message.id = "file-editor-message";
+  message.required = true;
+  message.maxLength = 255;
+  message.value = `Update ${path.split("/").pop()}`;
+  const target = document.createElement("p");
+  target.className = "muted-message";
+  target.textContent = `Commits directly to the ${branch} branch.`;
+  const actions = document.createElement("div");
+  actions.className = "form-actions";
+  const cancel = document.createElement("button");
+  cancel.className = "button button-secondary";
+  cancel.type = "button";
+  cancel.textContent = "Cancel";
+  cancel.addEventListener("click", onCancel);
+  const submit = document.createElement("button");
+  submit.className = "button";
+  submit.type = "submit";
+  submit.textContent = "Commit changes";
+  actions.append(cancel, submit);
+  const status = document.createElement("p");
+  status.className = "form-status";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  commitBox.append(commitHeading, messageLabel, message, target, actions, status);
+  form.append(editorLabel, editor, commitBox);
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (editor.value === source) {
+      status.className = "form-status is-error";
+      status.textContent = "This file has no changes to commit.";
+      return;
+    }
+    submit.disabled = true;
+    status.className = "form-status";
+    status.textContent = "Committing…";
+    try {
+      const response = await fetch(`/api/repos/${encoded}/contents/${encodedPath}`, {
+        method: "PUT",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({
+          ref: branch,
+          content: editor.value,
+          message: message.value,
+          expected_head_oid: head,
+        }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(body?.detail || `commit returned ${response.status}`);
+      window.location.href =
+        `/ui/repos/${encoded}/blob/${encodeURIComponent(branch)}/${encodedPath}`;
+    } catch (error) {
+      submit.disabled = false;
+      status.className = "form-status is-error";
+      status.textContent = error.message || "The file could not be committed.";
+    }
+  });
+  return {form, focus: () => editor.focus()};
+}
+
 async function showBlobViewer(repository, branch, path) {
   pageTitle.textContent = path.split("/").pop() || "Blob";
   pageLede.textContent = `${repository} · ${branch} · ${path}`;
   dashboard.replaceChildren();
+  const encoded = encodeURIComponent(repository);
   const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-  const rawUrl = `/api/repos/${encodeURIComponent(repository)}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}&format=raw`;
+  const rawUrl = `/api/repos/${encoded}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}&format=raw`;
   const actions = document.createElement("p");
   actions.className = "blob-actions";
+  const edit = document.createElement("button");
+  edit.className = "button button-secondary edit-file";
+  edit.type = "button";
+  edit.hidden = true;
+  edit.append(interfaceIcon("pencil"), document.createTextNode("Edit this file"));
   const download = document.createElement("a");
   download.className = "button raw-download";
   download.href = rawUrl;
   download.download = path.split("/").pop() || "download";
   download.textContent = "Download raw";
-  actions.append(download);
+  actions.append(edit, download);
   const viewer = document.createElement("pre");
   viewer.className = "blob-viewer";
   viewer.textContent = "Loading file…";
   dashboard.append(actions, viewer);
   try {
-    const response = await fetch(rawUrl);
+    const [response, branchesResponse] = await Promise.all([
+      fetch(rawUrl),
+      fetch(`/api/repos/${encoded}/branches`),
+    ]);
     if (!response.ok) throw new Error(`blob returned ${response.status}`);
     const contentType = response.headers.get("content-type") || "";
     const contentLength = Number(response.headers.get("content-length") || 0);
@@ -2459,7 +2552,31 @@ async function showBlobViewer(repository, branch, path) {
         : "This file is too large to preview. Use Download raw instead.";
       return;
     }
-    renderSourceSafe(viewer, await response.text(), path);
+    const source = await response.text();
+    renderSourceSafe(viewer, source, path);
+    // Only branches can be committed to, so tags and detached refs stay read-only.
+    const branches = branchesResponse.ok ? await branchesResponse.json() : [];
+    const head = branches.find((reference) => reference.name === branch
+      || reference.name === `refs/heads/${branch}`);
+    if (!head) return;
+    edit.hidden = false;
+    edit.addEventListener("click", () => {
+      const editor = createFileEditor({
+        repository,
+        branch,
+        path,
+        source,
+        head: head.oid,
+        onCancel: () => {
+          editor.form.replaceWith(viewer);
+          edit.hidden = false;
+          edit.focus();
+        },
+      });
+      edit.hidden = true;
+      viewer.replaceWith(editor.form);
+      editor.focus();
+    });
   } catch (_error) {
     viewer.className = "blob-viewer muted-message";
     viewer.textContent = "This file could not be loaded.";

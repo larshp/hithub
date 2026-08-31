@@ -36,6 +36,7 @@ const operations = [
   ["/api/repos/{repo}/commits", "get", "listCommits"],
   ["/api/repos/{repo}/commits/{oid}", "get", "getCommit"],
   ["/api/repos/{repo}/contents/{path}", "get", "getContents"],
+  ["/api/repos/{repo}/contents/{path}", "put", "updateContents"],
   ["/api/repos/{repo}/compare", "get", "compareReferences"],
   ["/api/repos/{repo}/branches", "get", "listBranches"],
   ["/api/repos/{repo}/branches", "post", "createBranch"],
@@ -692,6 +693,115 @@ try {
   if (missingComparison.response.status !== 404
       || missingComparison.body?.status !== 404) {
     fail("comparing an unknown reference did not return the documented 404");
+  }
+
+  const editRepository = "edit-contract-repository";
+  if ((await request("/api/repos", {
+    method: "POST",
+    headers: {"content-type": "application/json"},
+    body: JSON.stringify({name: editRepository}),
+  })).response.status !== 201) {
+    fail("could not create the file-edit repository");
+  }
+  const editBranches = await request(`/api/repos/${editRepository}/branches`);
+  const editHead = editBranches.body[0]?.oid;
+  const edited = await request(
+    `/api/repos/${editRepository}/contents/README.md`,
+    {
+      method: "PUT",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({
+        ref: "main",
+        message: "Edit through the contents API",
+        content: `# ${editRepository}\n\nSecond line.\n`,
+        expected_head_oid: editHead,
+      }),
+    },
+  );
+  if (edited.response.status !== 200
+      || edited.body?.ref !== "refs/heads/main"
+      || !/^[0-9a-f]{40}$/.test(edited.body?.commit_oid || "")
+      || edited.body.commit_oid === editHead) {
+    fail("editing a file did not return a new commit");
+  }
+  const editedRaw = await fetch(
+    `http://127.0.0.1:${port}/api/repos/${editRepository}/contents/README.md?ref=main&format=raw`,
+  );
+  if (await editedRaw.text() !== `# ${editRepository}\n\nSecond line.\n`) {
+    fail("the edited file content was not persisted");
+  }
+  const editedHistory = await request(
+    `/api/repos/${editRepository}/commits?ref=main`,
+  );
+  if (editedHistory.body?.length !== 2
+      || editedHistory.body[0].message !== "Edit through the contents API"
+      || editedHistory.body[0].parents?.[0] !== editHead) {
+    fail("the edit did not extend the branch history");
+  }
+  editedHistory.body.forEach(assertCommit);
+  const editedDiff = await request(
+    `/api/repos/${editRepository}/compare?base=${editHead}&head=refs/heads/main`,
+  );
+  if (editedDiff.body?.files?.length !== 1
+      || editedDiff.body.files[0].path !== "README.md"
+      || !editedDiff.body.files[0].patch.includes("+Second line.")) {
+    fail("the edit is not visible as a comparison diff");
+  }
+  const staleEdit = await request(
+    `/api/repos/${editRepository}/contents/README.md`,
+    {
+      method: "PUT",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({
+        ref: "main", message: "Stale edit", content: "overwrite\n",
+        expected_head_oid: editHead,
+      }),
+    },
+  );
+  if (staleEdit.response.status !== 409 || staleEdit.body?.status !== 409) {
+    fail("an edit based on a stale head was not rejected");
+  }
+  const unchangedEdit = await request(
+    `/api/repos/${editRepository}/contents/README.md`,
+    {
+      method: "PUT",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({
+        ref: "main", message: "No change",
+        content: `# ${editRepository}\n\nSecond line.\n`,
+      }),
+    },
+  );
+  if (unchangedEdit.response.status !== 422) {
+    fail("an edit without changes was not rejected");
+  }
+  const missingFileEdit = await request(
+    `/api/repos/${editRepository}/contents/absent.md`,
+    {
+      method: "PUT",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({ref: "main", message: "Create", content: "x\n"}),
+    },
+  );
+  if (missingFileEdit.response.status !== 404) {
+    fail("editing a file that does not exist was not rejected");
+  }
+  const tagEdit = await request(
+    `/api/repos/${editRepository}/contents/README.md`,
+    {
+      method: "PUT",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({
+        ref: "refs/tags/v1", message: "Edit a tag", content: "x\n",
+      }),
+    },
+  );
+  if (tagEdit.response.status !== 422) {
+    fail("editing a tag was not rejected");
+  }
+  const editAudit = await request(`/api/repos/${editRepository}/audit`);
+  if (!editAudit.body?.some((item) => item.action === "contents.update")) {
+    fail("the file edit was not recorded in the audit trail");
   }
 
   const audit = await request("/api/repos/contract-repository/audit");

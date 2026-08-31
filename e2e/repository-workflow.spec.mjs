@@ -498,6 +498,70 @@ test("reports an unchanged comparison without a diff", async ({page}) => {
   );
 });
 
+test("edits a text file and commits it to the branch", async ({page}, testInfo) => {
+  const name = `editing-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  await page.goto(`/ui/repos/${name}/blob/main/README.md`);
+  await expect(page.locator(".blob-viewer")).toContainText(name);
+
+  await page.getByRole("button", {name: "Edit this file"}).click();
+  await expect(page.locator("#file-editor-content")).toHaveValue(`# ${name}\n`);
+  await expect(page.getByLabel("Commit message")).toHaveValue("Update README.md");
+
+  // Cancelling puts the read-only viewer back without touching the branch.
+  await page.getByRole("button", {name: "Cancel"}).click();
+  await expect(page.locator("#file-editor-content")).toHaveCount(0);
+  await expect(page.locator(".blob-viewer")).toBeVisible();
+
+  await page.getByRole("button", {name: "Edit this file"}).click();
+  await page.locator("#file-editor-content").fill(`# ${name}\n\nDocumented.\n`);
+  await page.getByLabel("Commit message").fill("Document the repository");
+  await page.getByRole("button", {name: "Commit changes"}).click();
+  await expect(page.locator(".blob-viewer")).toContainText("Documented.");
+
+  await page.goto(`/ui/repos/${name}/commits/main`);
+  await expect(page.locator(".commit-list")).toContainText("Document the repository");
+  await expect(page.locator(".commit-list")).toContainText("Initial commit");
+});
+
+test("refuses a file edit that would overwrite a moved branch", async ({page}, testInfo) => {
+  const name = `stale-edit-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  await page.goto(`/ui/repos/${name}/blob/main/README.md`);
+  await page.getByRole("button", {name: "Edit this file"}).click();
+  await page.locator("#file-editor-content").fill("mine\n");
+
+  // Someone else commits to the branch while the editor is open.
+  const behindTheBack = await page.request.put(
+    `/api/repos/${name}/contents/README.md`,
+    {data: {ref: "main", message: "Landed first", content: "theirs\n"}},
+  );
+  expect(behindTheBack.status()).toBe(200);
+
+  await page.getByRole("button", {name: "Commit changes"}).click();
+  await expect(page.locator(".file-editor .form-status")).toContainText(
+    "the branch moved while the file was being edited",
+  );
+  await expect(page.locator("#file-editor-content")).toHaveValue("mine\n");
+  const raw = await page.request.get(
+    `/api/repos/${name}/contents/README.md?ref=main&format=raw`,
+  );
+  expect(await raw.text()).toBe("theirs\n");
+});
+
+test("offers no file editing on a tag", async ({page}, testInfo) => {
+  const name = `tag-readonly-${Date.now()}-${testInfo.workerIndex}`;
+  expect((await page.request.post("/api/repos", {data: {name}})).status()).toBe(201);
+  const branches = await (await page.request.get(`/api/repos/${name}/branches`)).json();
+  expect((await page.request.post(`/api/repos/${name}/tags`, {
+    data: {name: "v1", oid: branches[0].oid},
+  })).status()).toBe(201);
+  await page.goto(`/ui/repos/${name}/blob/v1/README.md`);
+  await expect(page.locator(".blob-viewer")).toContainText(name);
+  await expect(page.getByRole("button", {name: "Edit this file"})).toBeHidden();
+  await expect(page.getByRole("link", {name: "Download raw"})).toBeVisible();
+});
+
 test("falls back for binary and oversized blobs", async ({page}) => {
   await page.route("**/api/repos/demo/contents/**", async (route) => {
     if (route.request().url().includes("binary.bin")) {

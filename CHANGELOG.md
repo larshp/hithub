@@ -30,6 +30,15 @@ the OpenAPI contract revision is tracked separately in
   review, comment, label and assignee domain classes to REST. The pull-request
   sidebar lists real reviewers and the issue sidebar edits labels and
   assignees in place, replacing the previous static placeholders.
+- Text files can be edited in the browser. The blob page shows an "Edit this
+  file" button on branches, and committing rewrites every tree between the
+  repository root and the file, writes a commit whose parent is the previous
+  head, and advances the branch — all in one transaction under the repository
+  lock. `PUT /api/repos/{repo}/contents/{path}` exposes the same operation;
+  `expected_head_oid` makes a write fail with `409` rather than discard commits
+  that landed while the file was open. Tags and raw commit references stay
+  read-only, and an edit that changes nothing is rejected instead of producing
+  an empty commit.
 - The repository Code page replaces the branch/tag `<select>` with a search
   dropdown: a filter over branches and tags on separate tabs, a check mark on
   the current reference, a `default` badge, keyboard navigation, and a

@@ -602,7 +602,36 @@ h2 { margin-bottom: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.25; 
   background: var(--canvas);
 }
 .audit-entry h2 { margin: 0 0 .75rem; color: var(--accent); font-size: 1rem; }
-.blob-actions { display: flex; justify-content: flex-end; margin: 0 0 .5rem; }
+.blob-actions { display: flex; justify-content: flex-end; gap: .5rem; margin: 0 0 .5rem; }
+.edit-file { display: inline-flex; align-items: center; gap: .375rem; }
+.edit-file[hidden] { display: none; }
+.file-editor { display: grid; gap: 1rem; }
+.file-editor-content {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: .375rem;
+  background: var(--canvas-inset);
+  color: var(--text);
+  font: .8125rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+  resize: vertical;
+  tab-size: 2;
+  white-space: pre;
+}
+.file-editor-content:focus { border-color: var(--accent); }
+.commit-box { display: grid; gap: .5rem; padding: 1rem; border: 1px solid var(--line); border-radius: .375rem; background: var(--canvas); }
+.commit-box h2 { margin: 0; font-size: 1rem; }
+.commit-box label { font-weight: 600; font-size: .8125rem; }
+.commit-box input {
+  width: 100%;
+  height: 2rem;
+  padding: 0 .625rem;
+  border: 1px solid var(--line);
+  border-radius: .375rem;
+  background: var(--canvas-inset);
+  color: var(--text);
+}
+.commit-box .muted-message { margin: 0; font-size: .75rem; }
 .blob-viewer { overflow: auto; margin: 0; padding: 1rem; border: 1px solid var(--line); border-radius: .375rem; background: var(--canvas-inset); color: var(--text); font: .8125rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
 .source-line { display: block; min-width: max-content; }
 .blob-fallback { white-space: normal; }
