@@ -40,10 +40,10 @@
     "url": "git+https://github.com/larshp/hithub.git"
   },
   "devDependencies": {
-    "@abaplint/cli": "^2.120.33",
+    "@abaplint/cli": "^2.120.45",
     "@abaplint/database-sqlite": "^2.13.40",
-    "@abaplint/runtime": "^2.13.60",
-    "@abaplint/transpiler-cli": "^2.13.60",
+    "@abaplint/runtime": "^2.13.81",
+    "@abaplint/transpiler-cli": "^2.13.81",
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
     "express": "^4.22.2"
