@@ -10,7 +10,9 @@ CLASS zcl_hithub_ref_update_policy DEFINITION
         iv_algorithm      TYPE string
         iv_old_oid        TYPE string
       RETURNING
-        VALUE(rv_matches) TYPE abap_bool.
+        VALUE(rv_matches) TYPE abap_bool
+      RAISING
+        cx_static_check.
 
 ENDCLASS.
 

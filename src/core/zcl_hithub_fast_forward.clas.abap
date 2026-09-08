@@ -8,7 +8,9 @@ CLASS zcl_hithub_fast_forward DEFINITION
         is_old            TYPE zif_hithub_object_store=>ty_object_key
         is_new            TYPE zif_hithub_object_store=>ty_object_key
       RETURNING
-        VALUE(rv_allowed) TYPE abap_bool.
+        VALUE(rv_allowed) TYPE abap_bool
+      RAISING
+        cx_static_check.
 
 ENDCLASS.
 

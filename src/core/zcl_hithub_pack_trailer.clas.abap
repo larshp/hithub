@@ -6,7 +6,9 @@ CLASS zcl_hithub_pack_trailer DEFINITION
       IMPORTING
         iv_data         TYPE xstring
       RETURNING
-        VALUE(rv_valid) TYPE abap_bool.
+        VALUE(rv_valid) TYPE abap_bool
+      RAISING
+        cx_static_check.
 
 ENDCLASS.
 

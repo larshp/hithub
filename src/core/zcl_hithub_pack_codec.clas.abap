@@ -19,7 +19,9 @@ CLASS zcl_hithub_pack_codec DEFINITION
         iv_max_pack_size   TYPE int8 DEFAULT 524288000
         iv_max_objects     TYPE i DEFAULT 100000
       RETURNING
-        VALUE(rt_objects)  TYPE ty_objects.
+        VALUE(rt_objects)  TYPE ty_objects
+      RAISING
+        cx_static_check.
 
     METHODS repack
       IMPORTING

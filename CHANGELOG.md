@@ -122,6 +122,20 @@ the OpenAPI contract revision is tracked separately in
   therefore started against a server whose code paths were still loading, and
   the heaviest ones intermittently exceeded their timeout. The suite now waits
   for a REST route and warms the paths it exercises before the first test.
+- `ZCL_HITHUB_HTTP` could not have been activated on an ABAP server: it called
+  reference, object, pack and policy methods that declare
+  `RAISING cx_static_check` from `IF_HTTP_EXTENSION~HANDLE_REQUEST`, which can
+  neither catch nor declare an exception, and the ABAP compiler rejects that.
+  The routing moved into a private `DISPATCH` that propagates, and the
+  interface method wraps it in the boundary that turns a failure into a `500`
+  `application/problem+json` response instead of an unhandled exception. Six
+  core methods that swallowed the same exception in a `RAISING`-less signature
+  now declare it: `ZCL_HITHUB_PACK_CODEC=>UNPACK`,
+  `ZCL_HITHUB_PACK_BASE_RESOLVER=>READ`, `ZCL_HITHUB_PACK_TRAILER=>IS_VALID`,
+  `ZCL_HITHUB_RECEIVE_TARGET=>IS_VALID_TARGET`,
+  `ZCL_HITHUB_REF_UPDATE_POLICY=>OLD_OID_MATCHES` and
+  `ZCL_HITHUB_FAST_FORWARD=>ALLOWS_UPDATE`. abaplint's `uncaught_exception`
+  rule is enabled, so the 99 findings this uncovered cannot come back.
 
 ### Documentation
 
@@ -143,6 +157,10 @@ the OpenAPI contract revision is tracked separately in
 - ABAP lint, transpilation, unit, schema, fixture, REST contract, security,
   limits, logging, metrics, readiness, timeout, back-pressure, restore,
   load/soak, native Git fsck, native merge, and race suites pass locally.
+- abaplint enforces `uncaught_exception` and `align_pseudo_comments` in
+  addition to the existing syntax, DDIC and consistency rules, so an
+  exception that the ABAP compiler would reject fails CI instead of an
+  activation attempt in the target system.
 - The current local native Git baseline is Git 2.43.0. Older native Git and
   external SAP deployment runs remain environment-dependent release work.
 

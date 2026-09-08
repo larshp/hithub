@@ -10,7 +10,9 @@ CLASS zcl_hithub_pack_base_resolver DEFINITION
       IMPORTING
         is_key           TYPE zif_hithub_object_store=>ty_object_key
       RETURNING
-        VALUE(rs_object) TYPE zif_hithub_object_store=>ty_object.
+        VALUE(rs_object) TYPE zif_hithub_object_store=>ty_object
+      RAISING
+        cx_static_check.
 
   PRIVATE SECTION.
     DATA mo_reader TYPE REF TO zcl_hithub_object_reader.

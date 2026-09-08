@@ -8,7 +8,9 @@ CLASS zcl_hithub_receive_target DEFINITION
         is_key          TYPE zif_hithub_object_store=>ty_object_key
         iv_ref_name     TYPE string
       RETURNING
-        VALUE(rv_valid) TYPE abap_bool.
+        VALUE(rv_valid) TYPE abap_bool
+      RAISING
+        cx_static_check.
 
 ENDCLASS.
 

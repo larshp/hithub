@@ -5,11 +5,41 @@ CLASS zcl_hithub_http DEFINITION
 
   PUBLIC SECTION.
     INTERFACES if_http_extension.
+
+  PRIVATE SECTION.
+    "! Routes one request. Everything below the HTTP boundary reports failure
+    "! by exception, and handle_request cannot propagate one, so the routing
+    "! lives here and the boundary turns what is left into a response.
+    METHODS dispatch
+      IMPORTING
+        server TYPE REF TO if_http_server
+      RAISING
+        cx_static_check.
 ENDCLASS.
 
 CLASS zcl_hithub_http IMPLEMENTATION.
 
   METHOD if_http_extension~handle_request.
+    TRY.
+        dispatch( server ).
+      CATCH cx_static_check.
+        " The exception text can carry technical detail, so the response says
+        " no more than the local error middleware does about a failed request.
+        DATA(ls_error_problem) = zcl_hithub_problem_response=>build(
+          iv_status   = 500
+          iv_type     = 'https://hithub.invalid/problems/internal-error'
+          iv_detail   = 'The request could not be completed.'
+          iv_instance = server->request->get_header_field( '~path_info' ) ).
+        server->response->set_status(
+          code   = ls_error_problem-status
+          reason = 'Internal Server Error' ).
+        server->response->set_content_type(
+          ls_error_problem-content_type ).
+        server->response->set_data( ls_error_problem-body ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD dispatch.
     " The path info is the request path below the ICF service node, so the
     " routes resolve the same way whether the service is installed at
     " /default_host/hithub or served by the local express shim at the root.
