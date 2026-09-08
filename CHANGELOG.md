@@ -57,6 +57,19 @@ the OpenAPI contract revision is tracked separately in
 
 ### Changed
 
+- The browser UI is installed and served by ABAP instead of the local Node
+  process. `index.html`, `app.js` and `styles.css` moved from `web/` into
+  `src/frontend/` as abapGit `SMIM` objects in the new `ZHITHUB_FRONTEND`
+  package, so an import creates them in the MIME repository under
+  `/SAP/PUBLIC/zhithub`. `ZCL_HITHUB_STATIC_FILES` resolves the asset and the
+  single-page routes and answers with an `ETag` and `Cache-Control:
+  no-cache`; `ZCL_HITHUB_SAP_ASSET_STORE` reads the MIME objects, and
+  `ZCL_HITHUB_LOCAL_ASSET_STORE` serves the same serialized bytes in the local
+  runtime, which no longer mounts a static file directory. The UI still
+  addresses `/api` and `/ui` from the host root, see
+  [`docs/sap-icf-access.md`](docs/sap-icf-access.md).
+- `ZCL_HITHUB_HTTP` routes on the ICF path info rather than the full path, so
+  the same routes resolve below a service node and at the local root.
 - **Breaking:** issues and pull requests are identified by a sequential,
   human-readable number (`#1`, `#2`, …) instead of a client-supplied opaque
   identifier. Both draw from **one sequence per repository**, so a repository

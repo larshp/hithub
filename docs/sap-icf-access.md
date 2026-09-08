@@ -23,6 +23,7 @@ names before the pull:
 | --- | --- | --- |
 | `ZHITHUB` | `/src/` | Root package |
 | `ZHITHUB_CORE` | `/src/core/` | Domain and Git object model |
+| `ZHITHUB_FRONTEND` | `/src/frontend/` | Browser UI MIME objects |
 | `ZHITHUB_HTTP` | `/src/http/` | ICF handler and REST routes |
 | `ZHITHUB_INFRA` | `/src/infrastructure/` | Persistence selection |
 | `ZHITHUB_INFRA_LOCAL` | `/src/infrastructure/local/` | open-abap adapters |
@@ -51,6 +52,39 @@ The open-abap deployment calls `ZCL_HITHUB_PERSISTENCE=>USE_OPEN_ABAP` during
 startup, because its adapters drive SQLite transactions and hold the repository
 lock in process memory. Never select that mode on an application server: the
 lock would not serialize anything beyond a single work process.
+
+## Browser UI assets
+
+The browser UI is part of the installed service. `/src/frontend/` holds the
+assets as abapGit `SMIM` objects, so the import creates the MIME repository
+folder `/SAP/PUBLIC/zhithub` and the objects `index.html`, `app.js` and
+`styles.css` below it. There is no separate web server, build step or file
+system copy: `ZCL_HITHUB_SAP_ASSET_STORE` reads the objects back through
+`CL_MIME_REPOSITORY_API` and `ZCL_HITHUB_STATIC_FILES` answers with them.
+
+1. Confirm after the import that the folder and the three objects exist, for
+   example in the MIME repository browser of transaction `SE80`. abapGit
+   serializes the folder as its own object next to the files; if an import
+   reports a missing folder, repeat the pull once so the folder object is
+   created first.
+2. `ZHITHUB_FRONTEND` transports like any other package. Assets and ABAP
+   classes belong in the same transport, because the shell and the REST
+   routes it calls are released together.
+3. The handler resolves requests from the ICF path info, so the service node
+   prefix does not have to be stripped anywhere:
+   - `<node>/` and `<node>/ui/...` answer with `index.html`,
+   - `<node>/app.js` and `<node>/styles.css` answer with those objects,
+   - anything else keeps the `404` of the REST and Git routes.
+4. Responses carry an `ETag` over the asset bytes and `Cache-Control:
+   no-cache`, so a browser revalidates and a transported asset change takes
+   effect on the next request. A repeated request with `If-None-Match`
+   answers `304`.
+
+The assets request `/api/...` and route on `/ui/...` as absolute paths, so the
+service has to be reachable at a host root. Publish it through the reverse
+proxy or Web Dispatcher rule that maps the host root to the ICF node, and see
+the [known limitations](known-limitations.md) before exposing the UI on a
+prefixed path.
 
 ## Create the ICF service
 

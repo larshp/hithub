@@ -10,7 +10,13 @@ ENDCLASS.
 CLASS zcl_hithub_http IMPLEMENTATION.
 
   METHOD if_http_extension~handle_request.
-    DATA(lv_path) = server->request->get_header_field( '~path' ).
+    " The path info is the request path below the ICF service node, so the
+    " routes resolve the same way whether the service is installed at
+    " /default_host/hithub or served by the local express shim at the root.
+    DATA(lv_path) = server->request->get_header_field( '~path_info' ).
+    IF lv_path IS INITIAL.
+      lv_path = '/'.
+    ENDIF.
     DATA(lv_service) = server->request->get_form_field( 'service' ).
     DATA(lv_git_protocol) = server->request->get_header_field( 'Git-Protocol' ).
     DATA(ls_route) = zcl_hithub_http_router=>resolve(
@@ -3088,11 +3094,41 @@ CLASS zcl_hithub_http IMPLEMENTATION.
         server->response->set_data( ls_method_problem-body ).
       ENDIF.
     ELSE.
-      server->response->set_status(
-        code   = 404
-        reason = 'Not Found' ).
-      server->response->set_content_type( 'application/json' ).
-      server->response->set_cdata( '{"status":"not-found"}' ).
+      " What is left is the browser UI: an asset that abapGit installed as a
+      " MIME object, a single page application route that answers with the
+      " shell, or a path that belongs to nothing and keeps the 404.
+      DATA(lo_static) = NEW zcl_hithub_static_files(
+        zcl_hithub_persistence=>asset_store( ) ).
+      DATA(ls_static) = lo_static->serve(
+        iv_path          = lv_path
+        iv_if_none_match = server->request->get_header_field(
+          'If-None-Match' ) ).
+      IF ls_static-status = 404.
+        server->response->set_status(
+          code   = 404
+          reason = 'Not Found' ).
+        server->response->set_content_type( 'application/json' ).
+        server->response->set_cdata( '{"status":"not-found"}' ).
+      ELSE.
+        server->response->set_status(
+          code   = ls_static-status
+          reason = ls_static-reason ).
+        IF ls_static-etag IS NOT INITIAL.
+          server->response->set_header_field(
+            name  = 'ETag'
+            value = ls_static-etag ).
+        ENDIF.
+        IF ls_static-cache_control IS NOT INITIAL.
+          server->response->set_header_field(
+            name  = 'Cache-Control'
+            value = ls_static-cache_control ).
+        ENDIF.
+        IF ls_static-status = 200.
+          server->response->set_content_type( ls_static-content_type ).
+          server->response->set_compression( ).
+          server->response->set_data( ls_static-body ).
+        ENDIF.
+      ENDIF.
     ENDIF.
   ENDMETHOD.
 

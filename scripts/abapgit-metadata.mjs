@@ -3,6 +3,7 @@
 // package folder a package.devc.xml, and the repository root an .abapgit.xml.
 // abaplint does not need any of it, which is how the whole set went missing
 // without CI noticing. Run with --check in the verify pipeline to keep it so.
+import {createHash} from "node:crypto";
 import {readdir, readFile, writeFile} from "node:fs/promises";
 import {join, relative} from "node:path";
 
@@ -10,11 +11,33 @@ const root = "src";
 const master = "E";
 const rootPackage = "ZHITHUB";
 
+// MIME repository folder the browser assets are installed into. abapGit names
+// an SMIM object after its LOIO GUID, so the GUID is derived from the URL to
+// keep the file name, the URL and ZCL_HITHUB_SAP_ASSET_STORE in agreement.
+const mimeFolder = "/SAP/PUBLIC/zhithub";
+const mimeTypes = new Map(Object.entries({
+  css: {type: "text/css", class: "M_TEXT_L"},
+  html: {type: "text/html", class: "M_TEXT_L"},
+  js: {type: "text/javascript", class: "M_APP_L"},
+  json: {type: "application/json", class: "M_APP_L"},
+  png: {type: "image/png", class: "M_APP_L"},
+  svg: {type: "image/svg+xml", class: "M_APP_L"},
+  txt: {type: "text/plain", class: "M_TEXT_L"},
+}));
+
+function mimeGuid(url) {
+  return createHash("md5").update(url).digest("hex");
+}
+
 // Folder name -> package suffix and description. PREFIX folder logic derives the
 // folder from the package name, so these have to agree with the directory tree.
 const packages = {
   "": {name: rootPackage, text: "HitHub Git-compatible repository hosting"},
   core: {name: `${rootPackage}_CORE`, text: "HitHub domain and Git object model"},
+  frontend: {
+    name: `${rootPackage}_FRONTEND`,
+    text: "HitHub browser UI MIME objects",
+  },
   http: {name: `${rootPackage}_HTTP`, text: "HitHub ICF handler and REST routes"},
   infrastructure: {
     name: `${rootPackage}_INFRA`,
@@ -104,6 +127,24 @@ function packageDocument(text) {
       </DEVC>`);
 }
 
+// abapGit creates the MIME folder from a serialized SMIM object of its own,
+// and PUT on a file below a missing folder fails, so the folder ships too.
+function mimeFolderDocument(url) {
+  return document("LCL_OBJECT_SMIM", `      <URL>${url}</URL>
+      <FOLDER>X</FOLDER>`);
+}
+
+// EXTRA carries the file name and mime type into SMIMPHF. Without it abapGit
+// leaves whatever SDOK_MIMETYPE_GET derived from the URL extension in place.
+function mimeFileDocument(url, fileName, definition) {
+  return document("LCL_OBJECT_SMIM", `      <URL>${url}</URL>
+      <CLASS>${definition.class}</CLASS>
+      <EXTRA>
+        <FILE_NAME>${fileName}</FILE_NAME>
+        <MIMETYPE>${definition.type}</MIMETYPE>
+      </EXTRA>`);
+}
+
 const repositoryDocument = `<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0">
   <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
@@ -155,6 +196,28 @@ export async function collect() {
     expected.set(join(directory, "package.devc.xml"), packageDocument(definition.text));
   }
   const sources = files.map((file) => file.split("\\").join("/"));
+  const assets = sources.filter((file) => /\.smim\.[^/]+$/.test(file)
+    && !file.endsWith(".smim.xml"));
+  if (assets.length) {
+    expected.set(`${root}/frontend/${mimeGuid(mimeFolder)}.smim.xml`,
+      mimeFolderDocument(mimeFolder));
+  }
+  for (const file of assets) {
+    const fileName = file.replace(/^.*\.smim\./, "");
+    const extension = fileName.replace(/^.*\./, "").toLowerCase();
+    const definition = mimeTypes.get(extension);
+    if (!definition) {
+      throw new Error(`No mime type is declared for .${extension}; add it to scripts/abapgit-metadata.mjs`);
+    }
+    const url = `${mimeFolder}/${fileName}`;
+    const guid = mimeGuid(url);
+    const expectedName = `${guid}.smim.${fileName}`;
+    if (!file.endsWith(`/${expectedName}`)) {
+      throw new Error(`${file} has to be named ${expectedName}, the GUID abapGit derives from ${url}`);
+    }
+    expected.set(file.replace(`.smim.${fileName}`, ".smim.xml"),
+      mimeFileDocument(url, fileName, definition));
+  }
   for (const file of sources) {
     const classMatch = file.match(/\/(z[a-z0-9_]+)\.clas\.abap$/);
     if (classMatch) {
@@ -197,6 +260,12 @@ for (const [path, content] of expected) {
   const name = path.match(/([a-z0-9_]+)\.(clas|intf)\.xml$/)?.[1]?.toUpperCase();
   if (name && !current.includes(`<CLSNAME>${name}</CLSNAME>`)) {
     missing.push(`${path} does not declare <CLSNAME>${name}</CLSNAME>`);
+  }
+  // An SMIM object is identified by the URL it deserializes into, so that is
+  // the line the check has to enforce.
+  const url = content.match(/<URL>([^<]+)<\/URL>/)?.[1];
+  if (url && !current.includes(`<URL>${url}</URL>`)) {
+    missing.push(`${path} does not declare <URL>${url}</URL>`);
   }
 }
 

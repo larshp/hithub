@@ -3,9 +3,13 @@ import {createHash, randomUUID} from "node:crypto";
 import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {createLocalDatabase} from "../scripts/local-database.mjs";
+import {readSerializedAssets} from "../scripts/local-assets.mjs";
 import {initializeABAP} from "../output/init.mjs";
 import {cl_express_icf_shim} from "../output/cl_express_icf_shim.clas.mjs";
 import {zcl_hithub_persistence} from "../output/zcl_hithub_persistence.clas.mjs";
+import {
+  zcl_hithub_local_asset_store,
+} from "../output/zcl_hithub_local_asset_store.clas.mjs";
 import {logEvent} from "./logger.mjs";
 import {metricsSnapshot, observeRequest} from "./metrics.mjs";
 import {createGitAdmission} from "./git-admission.mjs";
@@ -22,6 +26,17 @@ globalThis.abap.context.databaseConnections.DEFAULT = database;
 // installed ICF service but wrong here: this process drives SQLite and holds
 // its repository lock in memory. Opt out before serving a single request.
 await zcl_hithub_persistence.use_open_abap();
+// ZCL_HITHUB_HTTP serves the browser UI from the asset store in both runtimes.
+// An installed service finds the assets in the MIME repository; here they have
+// to be handed over from the serialized SMIM files before the first request.
+const frontendRoot = fileURLToPath(new URL("../src/frontend", import.meta.url));
+for (const asset of await readSerializedAssets(frontendRoot)) {
+  await zcl_hithub_local_asset_store.register({
+    iv_name: asset.name,
+    iv_mime_type: asset.mimeType,
+    iv_content: asset.content,
+  });
+}
 const seedRepository = process.env.HITHUB_EMPTY_REPOSITORY;
 if (seedRepository && /^[A-Za-z0-9._-]+$/.test(seedRepository)) {
   const escapedRepository = seedRepository.replaceAll("'", "''");
@@ -82,7 +97,6 @@ if (fixtureRepository && /^[A-Za-z0-9._-]+$/.test(fixtureRepository)) {
 
 const app = express();
 const port = Number(process.env.HITHUB_PORT || 3000);
-const webRoot = fileURLToPath(new URL("../web", import.meta.url));
 const configuredCorsOrigins = (process.env.HITHUB_CORS_ORIGIN || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -316,10 +330,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.raw({type: "*/*", limit: requestBodyLimit}));
-app.use(express.static(webRoot, {index: "index.html"}));
-app.get("/ui/*", (req, res) => {
-  res.sendFile(`${webRoot}/index.html`);
-});
 
 app.all(["/health", "/health/*"], async (req, res) => {
   await cl_express_icf_shim.run({

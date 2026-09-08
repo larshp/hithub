@@ -41,6 +41,13 @@ CLASS zcl_hithub_persistence DEFINITION
       RETURNING
         VALUE(ro_sink) TYPE REF TO zif_hithub_event_sink.
 
+    "! The browser assets follow the same deployment switch: an installed
+    "! service reads the MIME objects abapGit deserialized, the local runtime
+    "! reads what it registered from the serialized SMIM files at startup.
+    CLASS-METHODS asset_store
+      RETURNING
+        VALUE(ro_store) TYPE REF TO zif_hithub_asset_store.
+
   PRIVATE SECTION.
     CLASS-DATA gv_mode TYPE string.
 ENDCLASS.
@@ -99,6 +106,14 @@ CLASS zcl_hithub_persistence IMPLEMENTATION.
     " The event sink writes ZHI_EVENT through Open SQL, which both runtimes
     " support, so there is nothing to vary here.
     ro_sink = NEW zcl_hithub_local_event_sink( ).
+  ENDMETHOD.
+
+  METHOD asset_store.
+    IF mode( ) = c_open_abap.
+      ro_store = NEW zcl_hithub_local_asset_store( ).
+    ELSE.
+      ro_store = NEW zcl_hithub_sap_asset_store( ).
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.

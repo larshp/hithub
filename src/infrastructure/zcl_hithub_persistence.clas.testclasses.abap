@@ -9,6 +9,7 @@ CLASS ltcl_persistence DEFINITION
     METHODS serves_sap_adapters FOR TESTING RAISING cx_static_check.
     METHODS serves_open_abap_adapters FOR TESTING RAISING cx_static_check.
     METHODS shares_the_event_sink FOR TESTING RAISING cx_static_check.
+    METHODS serves_the_asset_store FOR TESTING RAISING cx_static_check.
 
     CLASS-METHODS is_sap_transaction
       IMPORTING
@@ -127,6 +128,25 @@ CLASS ltcl_persistence IMPLEMENTATION.
     ASSERT zcl_hithub_persistence=>event_sink( ) IS BOUND.
     zcl_hithub_persistence=>use_open_abap( ).
     ASSERT zcl_hithub_persistence=>event_sink( ) IS BOUND.
+  ENDMETHOD.
+
+  METHOD serves_the_asset_store.
+    DATA lo_sap TYPE REF TO zcl_hithub_sap_asset_store.
+
+    " An installed service has to read the MIME repository, because that is
+    " where abapGit put the browser assets; the local runtime never can.
+    zcl_hithub_persistence=>use_sap( ).
+    lo_sap ?= zcl_hithub_persistence=>asset_store( ).
+    ASSERT lo_sap IS BOUND.
+    zcl_hithub_persistence=>use_open_abap( ).
+    CLEAR lo_sap.
+    TRY.
+        lo_sap ?= zcl_hithub_persistence=>asset_store( ).
+      CATCH cx_sy_move_cast_error.
+        CLEAR lo_sap.
+    ENDTRY.
+    ASSERT lo_sap IS NOT BOUND.
+    ASSERT zcl_hithub_persistence=>asset_store( ) IS BOUND.
   ENDMETHOD.
 
 ENDCLASS.

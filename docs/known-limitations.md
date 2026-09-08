@@ -29,6 +29,16 @@ no applicable open-abap or transpiler anomalies to carry into this document.
   configured SAP test system.
 - The SAP ICF, DDIC activation, and multi-application-server lock procedures
   are documented but cannot be fully exercised in the local open-abap runtime.
+- The browser assets ship as MIME repository objects and are served by the
+  ABAP handler, but they address `/api/...` and `/ui/...` from the host root.
+  A service published below a path prefix serves the shell and returns its
+  own assets, while the shell's API calls and route links resolve against the
+  host root. Until the frontend derives a base path, expose the UI at a host
+  root through the reverse proxy or Web Dispatcher; a prefixed path is
+  supported for the REST and Git endpoints only.
+- MIME repository reads are not exercised by the local runtime, which
+  registers the same serialized assets into its own in-memory adapter.
+  Confirm the assets after the first import in the target system.
 - The selected Git GUI client and all supported browsers require their
   binaries and host dependencies to be installed before CI execution.
 
