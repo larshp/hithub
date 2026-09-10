@@ -25,8 +25,10 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_response = zcl_hithub_shallow_negotiation=>build(
       it_start_oids = lt_start it_commits = lt_commits iv_depth = 1 ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = |shallow { lv_tip }| && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = |shallow { lv_tip }| && cl_abap_char_utilities=>newline ) ).
   ENDMETHOD.
 
   METHOD builds_depth_two_boundary.
@@ -47,17 +49,20 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_response = zcl_hithub_shallow_negotiation=>build(
       it_start_oids = lt_start it_commits = lt_commits iv_depth = 2 ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'shallow 2222222222222222222222222222222222222222' &&
-        cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'shallow 2222222222222222222222222222222222222222' &&
+        cl_abap_char_utilities=>newline ) ).
   ENDMETHOD.
 
   METHOD rejects_non_positive_depth.
     DATA lt_start TYPE zcl_hithub_upload_request=>ty_lines.
 
     APPEND '1111111111111111111111111111111111111111' TO lt_start.
-    ASSERT zcl_hithub_shallow_negotiation=>build(
-      it_start_oids = lt_start it_commits = VALUE #( ) iv_depth = 0 ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_shallow_negotiation=>build(
+        it_start_oids = lt_start it_commits = VALUE #( ) iv_depth = 0 ) ).
   ENDMETHOD.
 
 ENDCLASS.

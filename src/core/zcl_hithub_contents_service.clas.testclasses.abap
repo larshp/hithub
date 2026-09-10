@@ -69,8 +69,9 @@ CLASS ltcl_contents_service IMPLEMENTATION.
     ls_object-type = iv_type.
     ls_object-size = xstrlen( iv_payload ).
     ls_object-payload = iv_payload.
-    ASSERT NEW zcl_hithub_object_writer( mo_objects )->write(
-      ls_object ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = NEW zcl_hithub_object_writer( mo_objects )->write(
+        ls_object ) ).
   ENDMETHOD.
 
   METHOD reference.
@@ -132,37 +133,54 @@ CLASS ltcl_contents_service IMPLEMENTATION.
 
   METHOD browses_a_branch.
     seed( ).
-    ASSERT lines( mo_service->list(
-      iv_repository_id = mv_repository_id iv_ref = 'main' ) ) = 1.
-    ASSERT readme_at( 'main' ) = |readme{ cl_abap_char_utilities=>newline }|.
-    ASSERT readme_at( 'refs/heads/main' ) =
-      |readme{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mo_service->list(
+        iv_repository_id = mv_repository_id iv_ref = 'main' ) )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = readme_at( 'main' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = readme_at( 'refs/heads/main' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
   ENDMETHOD.
 
   METHOD browses_a_commit_id.
     seed( ).
     " The commits page links every row at its own commit id.
-    ASSERT lines( mo_service->list(
-      iv_repository_id = mv_repository_id iv_ref = mv_commit ) ) = 1.
-    ASSERT readme_at( mv_commit ) = |readme{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mo_service->list(
+        iv_repository_id = mv_repository_id iv_ref = mv_commit ) )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = readme_at( mv_commit )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
   ENDMETHOD.
 
   METHOD browses_an_annotated_tag.
     seed( ).
     " refs/tags/v1 points at a tag object that has to be peeled to a commit.
-    ASSERT lines( mo_service->list(
-      iv_repository_id = mv_repository_id iv_ref = 'v1' ) ) = 1.
-    ASSERT readme_at( 'v1' ) = |readme{ cl_abap_char_utilities=>newline }|.
-    ASSERT readme_at( 'refs/tags/v1' ) =
-      |readme{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mo_service->list(
+        iv_repository_id = mv_repository_id iv_ref = 'v1' ) )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = readme_at( 'v1' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = readme_at( 'refs/tags/v1' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
   ENDMETHOD.
 
   METHOD rejects_unknown_reference.
     seed( ).
-    ASSERT lines( mo_service->list(
-      iv_repository_id = mv_repository_id iv_ref = 'absent' ) ) = 0.
-    ASSERT readme_at( 'absent' ) IS INITIAL.
-    ASSERT readme_at( '1111111111111111111111111111111111111111' ) IS INITIAL.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mo_service->list(
+        iv_repository_id = mv_repository_id iv_ref = 'absent' ) )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_initial( act = readme_at( 'absent' ) ).
+    cl_abap_unit_assert=>assert_initial(
+      act = readme_at( '1111111111111111111111111111111111111111' ) ).
   ENDMETHOD.
 
 ENDCLASS.

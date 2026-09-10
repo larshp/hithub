@@ -95,7 +95,7 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     ls_object-type = iv_type.
     ls_object-size = xstrlen( iv_payload ).
     ls_object-payload = iv_payload.
-    ASSERT mo_writer->write( ls_object ) = abap_true.
+    cl_abap_unit_assert=>assert_true( act = mo_writer->write( ls_object ) ).
   ENDMETHOD.
 
   METHOD blob.
@@ -193,33 +193,48 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     reference( iv_name = 'refs/heads/topic' iv_oid = lv_head_commit ).
 
     DATA(ls_comparison) = compare( iv_base = 'main' iv_head = 'topic' ).
-    ASSERT ls_comparison-found = abap_true.
-    ASSERT ls_comparison-merge_base_oid = lv_base_commit.
-    ASSERT ls_comparison-summary-total = 3.
-    ASSERT ls_comparison-summary-added = 1.
-    ASSERT ls_comparison-summary-modified = 1.
-    ASSERT ls_comparison-summary-deleted = 1.
-    ASSERT ls_comparison-additions = 2.
-    ASSERT ls_comparison-deletions = 2.
+    cl_abap_unit_assert=>assert_true( act = ls_comparison-found ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-merge_base_oid
+      exp = lv_base_commit ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-summary-total
+      exp = 3 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-summary-added
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-summary-modified
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-summary-deleted
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_comparison-additions exp = 2 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_comparison-deletions exp = 2 ).
 
     READ TABLE ls_comparison-files WITH KEY path = 'src/code.txt'
       INTO ls_file.
-    ASSERT sy-subrc = 0.
-    ASSERT ls_file-status = 'modified'.
-    ASSERT ls_file-patch CS '--- a/src/code.txt'.
-    ASSERT ls_file-patch CS '-alpha'.
-    ASSERT ls_file-patch CS '+beta'.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( act = ls_file-status exp = 'modified' ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '--- a/src/code.txt' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '-alpha' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '+beta' ) ).
     READ TABLE ls_comparison-files WITH KEY path = 'src/added.txt'
       INTO ls_file.
-    ASSERT sy-subrc = 0.
-    ASSERT ls_file-status = 'added'.
-    ASSERT ls_file-patch CS '--- /dev/null'.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( act = ls_file-status exp = 'added' ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '--- /dev/null' ) ).
     READ TABLE ls_comparison-files WITH KEY path = 'gone.txt' INTO ls_file.
-    ASSERT sy-subrc = 0.
-    ASSERT ls_file-status = 'deleted'.
-    ASSERT ls_file-patch CS '+++ /dev/null'.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( act = ls_file-status exp = 'deleted' ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '+++ /dev/null' ) ).
     READ TABLE ls_comparison-files WITH KEY path = 'README' INTO ls_file.
-    ASSERT sy-subrc <> 0.
+    cl_abap_unit_assert=>assert_differs( act = sy-subrc exp = 0 ).
   ENDMETHOD.
 
   METHOD diffs_from_the_merge_base.
@@ -246,13 +261,21 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     reference( iv_name = 'refs/heads/topic' iv_oid = lv_head ).
 
     DATA(ls_comparison) = compare( iv_base = 'main' iv_head = 'topic' ).
-    ASSERT ls_comparison-found = abap_true.
-    ASSERT ls_comparison-merge_base_oid = lv_root.
-    ASSERT ls_comparison-base_oid = lv_base.
-    ASSERT lines( ls_comparison-files ) = 1.
+    cl_abap_unit_assert=>assert_true( act = ls_comparison-found ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-merge_base_oid
+      exp = lv_root ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-base_oid
+      exp = lv_base ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_comparison-files )
+      exp = 1 ).
     READ TABLE ls_comparison-files INDEX 1 INTO ls_file.
-    ASSERT ls_file-patch CS '-root'.
-    ASSERT ls_file-patch CS '+head'.
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '-root' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS '+head' ) ).
   ENDMETHOD.
 
   METHOD reports_binary_files.
@@ -271,12 +294,15 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     reference( iv_name = 'refs/heads/topic' iv_oid = lv_head ).
 
     DATA(ls_comparison) = compare( iv_base = 'main' iv_head = 'topic' ).
-    ASSERT lines( ls_comparison-files ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_comparison-files )
+      exp = 1 ).
     READ TABLE ls_comparison-files INDEX 1 INTO ls_file.
-    ASSERT ls_file-binary = abap_true.
-    ASSERT ls_file-additions = 0.
-    ASSERT ls_file-deletions = 0.
-    ASSERT ls_file-patch CS 'Binary files differ'.
+    cl_abap_unit_assert=>assert_true( act = ls_file-binary ).
+    cl_abap_unit_assert=>assert_equals( act = ls_file-additions exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_file-deletions exp = 0 ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_file-patch CS 'Binary files differ' ) ).
   ENDMETHOD.
 
   METHOD rejects_unknown_reference.
@@ -289,8 +315,10 @@ CLASS ltcl_compare_service IMPLEMENTATION.
       iv_oid  = commit( iv_tree = tree( lt_entries ) iv_message = 'only' ) ).
 
     DATA(ls_comparison) = compare( iv_base = 'main' iv_head = 'absent' ).
-    ASSERT ls_comparison-found = abap_false.
-    ASSERT ls_comparison-reason = 'head reference was not found'.
+    cl_abap_unit_assert=>assert_false( act = ls_comparison-found ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-reason
+      exp = 'head reference was not found' ).
   ENDMETHOD.
 
 ENDCLASS.

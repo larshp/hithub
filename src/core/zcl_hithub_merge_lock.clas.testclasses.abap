@@ -55,12 +55,12 @@ CLASS ltcl_merge_lock IMPLEMENTATION.
       io_lock = lo_lock iv_repository_id = 'merge-repository'
       iv_owner = 'merge-request-1' ).
 
-    ASSERT lo_guard->acquire( ) = abap_true.
-    ASSERT lo_lock->is_acquired( ) = abap_true.
-    ASSERT lo_guard->is_held( ) = abap_true.
+    cl_abap_unit_assert=>assert_true( act = lo_guard->acquire( ) ).
+    cl_abap_unit_assert=>assert_true( act = lo_lock->is_acquired( ) ).
+    cl_abap_unit_assert=>assert_true( act = lo_guard->is_held( ) ).
     lo_guard->release( ).
-    ASSERT lo_lock->is_released( ) = abap_true.
-    ASSERT lo_guard->is_held( ) = abap_false.
+    cl_abap_unit_assert=>assert_true( act = lo_lock->is_released( ) ).
+    cl_abap_unit_assert=>assert_false( act = lo_guard->is_held( ) ).
   ENDMETHOD.
 
 ENDCLASS.

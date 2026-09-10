@@ -21,7 +21,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lt_visible = zcl_hithub_ref_visibility=>filter(
       iv_repository_id = 'repo-a' iv_algorithm = 'sha1'
       it_references = lt_references ).
-    ASSERT lines( lt_visible ) = 1.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_visible ) exp = 1 ).
   ENDMETHOD.
 
   METHOD rejects_foreign_and_bad_refs.
@@ -40,7 +40,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lt_visible = zcl_hithub_ref_visibility=>filter(
       iv_repository_id = 'repo-a' iv_algorithm = 'sha1'
       it_references = lt_references ).
-    ASSERT lt_visible IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lt_visible ).
   ENDMETHOD.
 
 ENDCLASS.

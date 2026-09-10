@@ -22,11 +22,13 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
     lv_channel = CONV xstring( '01' ).
     CONCATENATE lv_channel lv_data INTO lv_expected IN BYTE MODE.
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-payload = lv_expected.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = lv_expected ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
   ENDMETHOD.
 
   METHOD frames_small_band.
@@ -43,24 +45,31 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_response = zcl_hithub_sideband_output=>build(
       iv_data = lv_data iv_large_band = abap_false ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT xstrlen( ls_packet-payload ) = 1000.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( ls_packet-payload )
+      exp = 1000 ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT xstrlen( ls_packet-payload ) = 1000.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( ls_packet-payload )
+      exp = 1000 ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT xstrlen( ls_packet-payload ) = 3.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( ls_packet-payload )
+      exp = 3 ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
   ENDMETHOD.
 
   METHOD rejects_bad_channel.
-    ASSERT zcl_hithub_sideband_output=>build(
-      iv_data = CONV xstring( 'AA' ) iv_channel = 4 ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_sideband_output=>build(
+        iv_data = CONV xstring( 'AA' ) iv_channel = 4 ) ).
   ENDMETHOD.
 
 ENDCLASS.

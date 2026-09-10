@@ -15,15 +15,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_entry = zcl_hithub_pack_entry=>parse( CONV xstring( '35010203' ) ).
 
-    ASSERT ls_entry-type = 'blob'.
-    ASSERT ls_entry-size = 5.
-    ASSERT ls_entry-data_offset = 1.
-    ASSERT ls_entry-is_delta = abap_false.
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-type exp = 'blob' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-size exp = 5 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-data_offset exp = 1 ).
+    cl_abap_unit_assert=>assert_false( act = ls_entry-is_delta ).
 
     ls_entry = zcl_hithub_pack_entry=>parse( CONV xstring( '9101' ) ).
-    ASSERT ls_entry-type = 'commit'.
-    ASSERT ls_entry-size = 17.
-    ASSERT ls_entry-data_offset = 2.
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-type exp = 'commit' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-size exp = 17 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-data_offset exp = 2 ).
   ENDMETHOD.
 
   METHOD parses_delta_headers.
@@ -36,27 +36,35 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_ref_prefix = CONV xstring( '70' ).
     CONCATENATE lv_ref_prefix lv_base_oid INTO lv_ref_data IN BYTE MODE.
     ls_entry = zcl_hithub_pack_entry=>parse( lv_ref_data ).
-    ASSERT ls_entry-type = 'ref-delta'.
-    ASSERT ls_entry-size = 0.
-    ASSERT ls_entry-base_oid = lv_base_oid.
-    ASSERT ls_entry-data_offset = 21.
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-type exp = 'ref-delta' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-size exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_entry-base_oid
+      exp = lv_base_oid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-data_offset exp = 21 ).
 
     ls_entry = zcl_hithub_pack_entry=>parse( CONV xstring( '6010' ) ).
-    ASSERT ls_entry-type = 'ofs-delta'.
-    ASSERT ls_entry-size = 0.
-    ASSERT ls_entry-base_distance = 16.
-    ASSERT ls_entry-data_offset = 2.
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-type exp = 'ofs-delta' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-size exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-base_distance exp = 16 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-data_offset exp = 2 ).
   ENDMETHOD.
 
   METHOD builds_object_header.
     DATA lv_data TYPE xstring.
 
     lv_data = zcl_hithub_pack_entry=>build( iv_type = 'blob' iv_size = 5 ).
-    ASSERT lv_data = CONV xstring( '35' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_data
+      exp = CONV xstring( '35' ) ).
     lv_data = zcl_hithub_pack_entry=>build( iv_type = 'commit' iv_size = 17 ).
-    ASSERT lv_data = CONV xstring( '9101' ).
-    ASSERT zcl_hithub_pack_entry=>build( iv_type = 'blob' iv_size = -1 ) IS INITIAL.
-    ASSERT zcl_hithub_pack_entry=>build( iv_type = 'unknown' iv_size = 1 ) IS INITIAL.
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_data
+      exp = CONV xstring( '9101' ) ).
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_pack_entry=>build( iv_type = 'blob' iv_size = -1 ) ).
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_pack_entry=>build( iv_type = 'unknown' iv_size = 1 ) ).
   ENDMETHOD.
 
   METHOD round_trips_size_varints.
@@ -84,9 +92,11 @@ CLASS ltcl_test IMPLEMENTATION.
       lv_data = zcl_hithub_pack_entry=>build(
         iv_type = 'blob' iv_size = lv_size ).
       ls_entry = zcl_hithub_pack_entry=>parse( lv_data ).
-      ASSERT ls_entry-type = 'blob'.
-      ASSERT ls_entry-size = lv_size.
-      ASSERT ls_entry-data_offset = xstrlen( lv_data ).
+      cl_abap_unit_assert=>assert_equals( act = ls_entry-type exp = 'blob' ).
+      cl_abap_unit_assert=>assert_equals( act = ls_entry-size exp = lv_size ).
+      cl_abap_unit_assert=>assert_equals(
+        act = ls_entry-data_offset
+        exp = xstrlen( lv_data ) ).
     ENDDO.
   ENDMETHOD.
 

@@ -19,18 +19,26 @@ CLASS ltcl_hithub_problem_response IMPLEMENTATION.
     DATA(ls_document) = zcl_hithub_json=>parse_data( ls_response-body ).
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
 
-    ASSERT ls_response-status = 422.
-    ASSERT ls_response-content_type = 'application/problem+json'.
-    ASSERT ls_document-valid = abap_true.
+    cl_abap_unit_assert=>assert_equals( act = ls_response-status exp = 422 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_response-content_type
+      exp = 'application/problem+json' ).
+    cl_abap_unit_assert=>assert_true( act = ls_document-valid ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'type'.
-    ASSERT ls_member-value = 'about:blank'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_member-value
+      exp = 'about:blank' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'title'.
-    ASSERT ls_member-value = 'Unprocessable Content'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_member-value
+      exp = 'Unprocessable Content' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'status'.
-    ASSERT ls_member-kind = 'number'.
-    ASSERT ls_member-value = '422'.
+    cl_abap_unit_assert=>assert_equals( act = ls_member-kind exp = 'number' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_member-value exp = '422' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'detail'.
-    ASSERT ls_member-value = 'The repository name is invalid.'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_member-value
+      exp = 'The repository name is invalid.' ).
   ENDMETHOD.
 
   METHOD uses_explicit_title_and_type.
@@ -41,12 +49,15 @@ CLASS ltcl_hithub_problem_response IMPLEMENTATION.
     DATA(ls_document) = zcl_hithub_json=>parse_data( ls_response-body ).
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
 
-    ASSERT ls_document-valid = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_document-valid ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'title'.
-    ASSERT ls_member-value = 'Repository already exists'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_member-value
+      exp = 'Repository already exists' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'type'.
-    ASSERT ls_member-value =
-      'https://hithub.example/problems/repository-exists'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_member-value
+      exp = 'https://hithub.example/problems/repository-exists' ).
   ENDMETHOD.
 
 ENDCLASS.

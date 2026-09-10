@@ -28,15 +28,21 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
     lv_channel = ls_packet-payload+0(1).
-    ASSERT lv_channel = CONV xstring( '01' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_channel
+      exp = CONV xstring( '01' ) ).
     lv_inner = ls_packet-payload+1.
     ls_inner = zcl_hithub_pkt_line_codec=>decode( lv_inner ).
     lv_expected = cl_abap_codepage=>convert_from( ls_inner-payload ).
-    ASSERT lv_expected = 'unpack ok' && cl_abap_char_utilities=>newline.
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_expected
+      exp = 'unpack ok' && cl_abap_char_utilities=>newline ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
     lv_channel = ls_packet-payload+0(1).
-    ASSERT lv_channel = CONV xstring( '01' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_channel
+      exp = CONV xstring( '01' ) ).
   ENDMETHOD.
 
 ENDCLASS.

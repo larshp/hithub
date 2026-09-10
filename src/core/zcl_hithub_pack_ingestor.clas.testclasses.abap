@@ -22,8 +22,11 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND ls_object TO lt_objects.
     APPEND ls_object TO lt_objects.
 
-    ASSERT lo_ingestor->ingest( lt_objects ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_object-key ) = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_ingestor->ingest( lt_objects )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~contains( ls_object-key ) ).
   ENDMETHOD.
 
 ENDCLASS.

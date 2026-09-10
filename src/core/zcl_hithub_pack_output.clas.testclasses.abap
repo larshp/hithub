@@ -15,8 +15,9 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_output->zif_hithub_pack_output~write( CONV xstring( '05' ) ).
     lo_output->zif_hithub_pack_output~write( CONV xstring( '' ) ).
 
-    ASSERT lo_output->zif_hithub_pack_output~get_data( ) =
-      CONV xstring( '000102030405' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_output->zif_hithub_pack_output~get_data( )
+      exp = CONV xstring( '000102030405' ) ).
   ENDMETHOD.
 
 ENDCLASS.

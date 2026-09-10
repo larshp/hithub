@@ -18,14 +18,18 @@ CLASS ltcl_issue_comments IMPLEMENTATION.
     ls_comment-actor = 'Alice'.
     ls_comment-body = 'Please add an example.'.
     ls_comment-created_at = '2026-08-28T12:00:00Z'.
-    ASSERT zcl_hithub_issue_comments=>add( ls_comment ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_comments=>add( ls_comment ) ).
     ls_comment-comment_id = 'comment-1'.
-    ASSERT zcl_hithub_issue_comments=>add( ls_comment ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_comments=>add( ls_comment ) ).
     DATA(lt_comments) = zcl_hithub_issue_comments=>list(
       iv_repository_id = ls_comment-repository_id
       iv_issue_id      = ls_comment-issue_id ).
-    ASSERT lines( lt_comments ) = 2.
-    ASSERT lt_comments[ 1 ]-comment_id = 'comment-1'.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_comments ) exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_comments[ 1 ]-comment_id
+      exp = 'comment-1' ).
   ENDMETHOD.
 
   METHOD rejects_duplicate_comment.
@@ -36,8 +40,10 @@ CLASS ltcl_issue_comments IMPLEMENTATION.
     ls_comment-actor = 'Alice'.
     ls_comment-body = 'A comment.'.
     ls_comment-created_at = '2026-08-28T12:00:00Z'.
-    ASSERT zcl_hithub_issue_comments=>add( ls_comment ) = abap_true.
-    ASSERT zcl_hithub_issue_comments=>add( ls_comment ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_comments=>add( ls_comment ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_issue_comments=>add( ls_comment ) ).
   ENDMETHOD.
 
 ENDCLASS.

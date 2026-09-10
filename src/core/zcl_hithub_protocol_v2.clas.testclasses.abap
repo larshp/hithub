@@ -14,24 +14,32 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_response = zcl_hithub_protocol_v2=>advertise( ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'version 2' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'version 2' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'agent=hithub' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'agent=hithub' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'ls-refs' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'ls-refs' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'fetch=shallow' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'fetch=shallow' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
   ENDMETHOD.
 
 ENDCLASS.

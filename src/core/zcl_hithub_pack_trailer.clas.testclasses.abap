@@ -12,12 +12,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_pack = CONV xstring(
       '5041434B0000000200000000029D08823BD8A8EAB510AD6AC75C823CFD3ED31E' ).
-    ASSERT zcl_hithub_pack_trailer=>is_valid( lv_pack ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pack_trailer=>is_valid( lv_pack ) ).
 
     lv_pack = CONV xstring(
       '5041434B0000000200000000029D08823BD8A8EAB510AD6AC75C823CFD3ED31F' ).
-    ASSERT zcl_hithub_pack_trailer=>is_valid( lv_pack ) = abap_false.
-    ASSERT zcl_hithub_pack_trailer=>is_valid( CONV xstring( '000102' ) ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pack_trailer=>is_valid( lv_pack ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pack_trailer=>is_valid( CONV xstring( '000102' ) ) ).
   ENDMETHOD.
 
 ENDCLASS.

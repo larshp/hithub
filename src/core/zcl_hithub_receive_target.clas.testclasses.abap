@@ -63,9 +63,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_object-key = ls_key.
     ls_object-type = 'commit'.
     lo_store->add( ls_object ).
-    ASSERT zcl_hithub_receive_target=>is_valid_target(
-      io_store = lo_store is_key = ls_key iv_ref_name = 'refs/heads/main' ) =
-      abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_receive_target=>is_valid_target(
+        io_store = lo_store is_key = ls_key iv_ref_name = 'refs/heads/main' ) ).
   ENDMETHOD.
 
   METHOD rejects_branch_blob.
@@ -79,9 +79,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_object-key = ls_key.
     ls_object-type = 'blob'.
     lo_store->add( ls_object ).
-    ASSERT zcl_hithub_receive_target=>is_valid_target(
-      io_store = lo_store is_key = ls_key iv_ref_name = 'refs/heads/main' ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_receive_target=>is_valid_target(
+        io_store = lo_store is_key = ls_key iv_ref_name = 'refs/heads/main' ) ).
   ENDMETHOD.
 
   METHOD accepts_annotated_tag.
@@ -95,9 +95,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_object-key = ls_key.
     ls_object-type = 'tag'.
     lo_store->add( ls_object ).
-    ASSERT zcl_hithub_receive_target=>is_valid_target(
-      io_store = lo_store is_key = ls_key iv_ref_name = 'refs/tags/v2' ) =
-      abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_receive_target=>is_valid_target(
+        io_store = lo_store is_key = ls_key iv_ref_name = 'refs/tags/v2' ) ).
   ENDMETHOD.
 
   METHOD rejects_bad_ref_name.
@@ -107,9 +107,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_key-repository_id = 'target-repository'.
     ls_key-algorithm = 'sha1'.
     ls_key-oid = '1111111111111111111111111111111111111111'.
-    ASSERT zcl_hithub_receive_target=>is_valid_target(
-      io_store = lo_store is_key = ls_key iv_ref_name = 'refs/heads/a b' ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_receive_target=>is_valid_target(
+        io_store = lo_store is_key = ls_key iv_ref_name = 'refs/heads/a b' ) ).
   ENDMETHOD.
 
 ENDCLASS.

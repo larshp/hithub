@@ -41,17 +41,17 @@ CLASS ltcl_repository_purge IMPLEMENTATION.
       io_transaction = lo_transaction ).
     DATA(ls_result) = lo_service->purge(
       iv_repository_id = ls_repository-id iv_expected_version = 2 ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     DATA(ls_read) =
       lo_metadata->zif_hithub_metadata_store~read_repository_any(
         ls_repository-id ).
-    ASSERT ls_read-id IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_read-id ).
     DATA(lt_references) =
       lo_metadata->zif_hithub_metadata_store~list_references(
         ls_repository-id ).
-    ASSERT lines( lt_references ) = 0.
-    ASSERT lo_objects->zif_hithub_object_store~contains( ls_object-key ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_references ) exp = 0 ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_objects->zif_hithub_object_store~contains( ls_object-key ) ).
   ENDMETHOD.
 
   METHOD rejects_visible_repository.
@@ -68,8 +68,10 @@ CLASS ltcl_repository_purge IMPLEMENTATION.
       io_transaction = lo_transaction ).
     DATA(ls_result) = lo_service->purge(
       iv_repository_id = ls_repository-id iv_expected_version = 1 ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'repository must be soft deleted first'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'repository must be soft deleted first' ).
   ENDMETHOD.
 
 ENDCLASS.

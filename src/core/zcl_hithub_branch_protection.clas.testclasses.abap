@@ -15,30 +15,33 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_rules TYPE zcl_hithub_branch_protection=>ty_rules.
 
     APPEND VALUE #( pattern = 'refs/heads/main' ) TO lt_rules.
-    ASSERT zcl_hithub_branch_protection=>allows(
-      it_rules = lt_rules iv_ref_name = 'refs/heads/feature'
-      iv_is_delete = abap_false iv_is_force_push = abap_false
-      iv_approved_reviews = 0 ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_branch_protection=>allows(
+        it_rules = lt_rules iv_ref_name = 'refs/heads/feature'
+        iv_is_delete = abap_false iv_is_force_push = abap_false
+        iv_approved_reviews = 0 ) ).
   ENDMETHOD.
 
   METHOD rejects_protected_delete.
     DATA lt_rules TYPE zcl_hithub_branch_protection=>ty_rules.
 
     APPEND VALUE #( pattern = 'refs/heads/main' ) TO lt_rules.
-    ASSERT zcl_hithub_branch_protection=>allows(
-      it_rules = lt_rules iv_ref_name = 'refs/heads/main'
-      iv_is_delete = abap_true iv_is_force_push = abap_false
-      iv_approved_reviews = 0 ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_branch_protection=>allows(
+        it_rules = lt_rules iv_ref_name = 'refs/heads/main'
+        iv_is_delete = abap_true iv_is_force_push = abap_false
+        iv_approved_reviews = 0 ) ).
   ENDMETHOD.
 
   METHOD rejects_protected_force_push.
     DATA lt_rules TYPE zcl_hithub_branch_protection=>ty_rules.
 
     APPEND VALUE #( pattern = 'refs/heads/main' ) TO lt_rules.
-    ASSERT zcl_hithub_branch_protection=>allows(
-      it_rules = lt_rules iv_ref_name = 'refs/heads/main'
-      iv_is_delete = abap_false iv_is_force_push = abap_true
-      iv_approved_reviews = 0 ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_branch_protection=>allows(
+        it_rules = lt_rules iv_ref_name = 'refs/heads/main'
+        iv_is_delete = abap_false iv_is_force_push = abap_true
+        iv_approved_reviews = 0 ) ).
   ENDMETHOD.
 
   METHOD requires_configured_reviews.
@@ -46,14 +49,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
     APPEND VALUE #( pattern = 'refs/heads/main' required_reviews = 2 )
       TO lt_rules.
-    ASSERT zcl_hithub_branch_protection=>allows(
-      it_rules = lt_rules iv_ref_name = 'refs/heads/main'
-      iv_is_delete = abap_false iv_is_force_push = abap_false
-      iv_approved_reviews = 1 ) = abap_false.
-    ASSERT zcl_hithub_branch_protection=>allows(
-      it_rules = lt_rules iv_ref_name = 'refs/heads/main'
-      iv_is_delete = abap_false iv_is_force_push = abap_false
-      iv_approved_reviews = 2 ) = abap_true.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_branch_protection=>allows(
+        it_rules = lt_rules iv_ref_name = 'refs/heads/main'
+        iv_is_delete = abap_false iv_is_force_push = abap_false
+        iv_approved_reviews = 1 ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_branch_protection=>allows(
+        it_rules = lt_rules iv_ref_name = 'refs/heads/main'
+        iv_is_delete = abap_false iv_is_force_push = abap_false
+        iv_approved_reviews = 2 ) ).
   ENDMETHOD.
 
   METHOD allows_explicit_exceptions.
@@ -61,10 +66,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     APPEND VALUE #( pattern = 'refs/heads/release*'
       allow_force_push = abap_true allow_delete = abap_true ) TO lt_rules.
-    ASSERT zcl_hithub_branch_protection=>allows(
-      it_rules = lt_rules iv_ref_name = 'refs/heads/release-1'
-      iv_is_delete = abap_true iv_is_force_push = abap_true
-      iv_approved_reviews = 0 ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_branch_protection=>allows(
+        it_rules = lt_rules iv_ref_name = 'refs/heads/release-1'
+        iv_is_delete = abap_true iv_is_force_push = abap_true
+        iv_approved_reviews = 0 ) ).
   ENDMETHOD.
 
 ENDCLASS.

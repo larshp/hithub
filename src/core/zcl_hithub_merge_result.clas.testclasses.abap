@@ -18,13 +18,19 @@ CLASS ltcl_merge_result IMPLEMENTATION.
     ls_result-commit_oid = 'commit-1'.
     ls_result-created_at = '2026-08-28T12:00:00Z'.
 
-    ASSERT zcl_hithub_merge_result=>save( ls_result ) = abap_true.
-    ASSERT zcl_hithub_merge_result=>save( ls_result ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_merge_result=>save( ls_result ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_merge_result=>save( ls_result ) ).
     ls_read = zcl_hithub_merge_result=>read(
       iv_repository_id   = ls_result-repository_id
       iv_pull_request_id = ls_result-pull_request_id ).
-    ASSERT ls_read-merge_id = 'merge-1'.
-    ASSERT ls_read-commit_oid = 'commit-1'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-merge_id
+      exp = 'merge-1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-commit_oid
+      exp = 'commit-1' ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -27,7 +27,7 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_data = lv_data iv_current_offset = 100 iv_base = lv_base ).
     lv_expected = cl_abap_codepage=>convert_to( source = 'abcXYZdef' ).
 
-    ASSERT lv_result = lv_expected.
+    cl_abap_unit_assert=>assert_equals( act = lv_result exp = lv_expected ).
   ENDMETHOD.
 
   METHOD rejects_bad_delta.
@@ -37,23 +37,23 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_base = cl_abap_codepage=>convert_to( source = 'abcdef' ).
     lv_result = zcl_hithub_delta_codec=>apply(
       iv_base = lv_base iv_delta = CONV xstring( '060A910303910303' ) ).
-    ASSERT lv_result IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lv_result ).
     lv_result = zcl_hithub_delta_codec=>apply(
       iv_base = lv_base iv_delta = CONV xstring( '060381' ) ).
-    ASSERT lv_result IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lv_result ).
     lv_result = zcl_hithub_delta_codec=>apply(
       iv_base = lv_base iv_delta = CONV xstring( '060390' ) ).
-    ASSERT lv_result IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lv_result ).
     lv_result = zcl_hithub_delta_codec=>apply(
       iv_base            = lv_base
       iv_delta           = CONV xstring( '060990030358595A910303' )
       iv_max_result_size = 8 ).
-    ASSERT lv_result IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lv_result ).
     lv_result = zcl_hithub_delta_codec=>apply(
       iv_base = lv_base
       iv_delta = CONV xstring( '060990030358595A910303' )
       iv_delta_depth = 2 iv_max_delta_depth = 1 ).
-    ASSERT lv_result IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lv_result ).
   ENDMETHOD.
 
 ENDCLASS.

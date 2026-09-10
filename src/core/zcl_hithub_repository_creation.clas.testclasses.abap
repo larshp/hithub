@@ -67,25 +67,34 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       iv_description    = 'created by contract'
       iv_default_branch = 'main' ).
 
-    ASSERT ls_result-success = abap_true.
-    ASSERT ls_result-repository-id =
-      '00000000-0000-4000-8000-000000000001'.
-    ASSERT ls_result-repository-name = 'demo-repo'.
-    ASSERT ls_result-repository-default_branch = 'refs/heads/main'.
-    ASSERT ls_result-repository-version = 1.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-repository-id
+      exp = '00000000-0000-4000-8000-000000000001' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-repository-name
+      exp = 'demo-repo' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-repository-default_branch
+      exp = 'refs/heads/main' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-repository-version
+      exp = 1 ).
     DATA(ls_read) = lo_metadata->zif_hithub_metadata_store~read_repository(
       ls_result-repository-id ).
-    ASSERT ls_read-name = 'demo-repo'.
+    cl_abap_unit_assert=>assert_equals( act = ls_read-name exp = 'demo-repo' ).
     DATA(ls_reference) = lo_metadata->zif_hithub_metadata_store~read_reference(
       iv_repository_id = ls_result-repository-id
       iv_name          = 'refs/heads/main' ).
-    ASSERT ls_reference-oid IS NOT INITIAL.
+    cl_abap_unit_assert=>assert_not_initial( act = ls_reference-oid ).
     DATA(ls_commit_key) = VALUE zif_hithub_object_store=>ty_object_key(
       repository_id = ls_result-repository-id
       algorithm = 'sha1' oid = ls_reference-oid ).
     DATA(ls_commit_object) = lo_objects->zif_hithub_object_store~read(
       ls_commit_key ).
-    ASSERT ls_commit_object-type = 'commit'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_commit_object-type
+      exp = 'commit' ).
     DATA(ls_commit) = zcl_hithub_commit_codec=>decode(
       ls_commit_object-payload ).
     DATA(ls_tree_key) = VALUE zif_hithub_object_store=>ty_object_key(
@@ -95,8 +104,10 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       ls_tree_key ).
     DATA(lt_entries) = zcl_hithub_tree_codec=>decode(
       ls_tree_object-payload ).
-    ASSERT lines( lt_entries ) = 1.
-    ASSERT lt_entries[ 1 ]-name = 'README.md'.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_entries ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_entries[ 1 ]-name
+      exp = 'README.md' ).
     DATA(ls_blob_key) = VALUE zif_hithub_object_store=>ty_object_key(
       repository_id = ls_result-repository-id
       algorithm = 'sha1' oid = lt_entries[ 1 ]-oid ).
@@ -105,7 +116,9 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
     lo_readme = cl_abap_conv_in_ce=>create(
       input = ls_blob_object-payload encoding = 'UTF-8' ).
     lo_readme->read( IMPORTING data = lv_readme ).
-    ASSERT lv_readme = '# demo-repo' && cl_abap_char_utilities=>newline.
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_readme
+      exp = '# demo-repo' && cl_abap_char_utilities=>newline ).
   ENDMETHOD.
 
   METHOD rejects_duplicate_name.
@@ -117,11 +130,13 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       io_objects = NEW zcl_hithub_local_object_store( )
       io_identity = lo_identity ).
 
-    ASSERT lo_service->create( iv_name = 'duplicate-repo' )-success =
-      abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_service->create( iv_name = 'duplicate-repo' )-success ).
     DATA(ls_result) = lo_service->create( iv_name = 'DUPLICATE-REPO' ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'repository already exists'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'repository already exists' ).
   ENDMETHOD.
 
   METHOD rejects_invalid_name.
@@ -134,8 +149,10 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       io_identity = lo_identity ).
     DATA(ls_result) = lo_service->create( iv_name = 'bad name' ).
 
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'repository name is invalid'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'repository name is invalid' ).
   ENDMETHOD.
 
 ENDCLASS.

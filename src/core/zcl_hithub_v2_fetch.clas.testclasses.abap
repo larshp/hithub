@@ -44,12 +44,14 @@ CLASS ltcl_test IMPLEMENTATION.
     CONCATENATE lv_data lv_packet INTO lv_data IN BYTE MODE.
 
     ls_request = zcl_hithub_v2_fetch=>parse( lv_data ).
-    ASSERT ls_request-valid = abap_true.
-    ASSERT lines( ls_request-wants ) = 1.
-    ASSERT ls_request-saw_done = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_request-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_request-wants )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_true( act = ls_request-saw_done ).
     READ TABLE ls_request-features WITH KEY table_line = 'ofs-delta'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
   ENDMETHOD.
 
   METHOD builds_packfile_response.
@@ -62,12 +64,16 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_pack = CONV xstring( '5041434B' ).
     lv_response = zcl_hithub_v2_fetch=>build_response( lv_pack ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'packfile' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'packfile' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
     lv_channel = CONV xstring( '01' ).
-    ASSERT ls_packet-payload = lv_channel && lv_pack.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = lv_channel && lv_pack ).
   ENDMETHOD.
 
   METHOD rejects_invalid_fetch.
@@ -75,7 +81,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_request = zcl_hithub_v2_fetch=>parse(
       cl_abap_codepage=>convert_to( source = '0004' ) ).
-    ASSERT ls_request-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_request-valid ).
   ENDMETHOD.
 
   METHOD builds_acknowledgments.
@@ -90,19 +96,25 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND lv_oid TO lt_haves.
     lv_response = zcl_hithub_v2_fetch=>build_acknowledgments( lt_haves ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'acknowledgments' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'acknowledgments' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = |ACK { lv_oid }| && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = |ACK { lv_oid }| && cl_abap_char_utilities=>newline ) ).
     lv_ack_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_ack_rest ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'ready' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'ready' && cl_abap_char_utilities=>newline ) ).
     lv_ack_rest = lv_ack_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_ack_rest ).
-    ASSERT ls_packet-kind = 'delim'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'delim' ).
   ENDMETHOD.
 
 ENDCLASS.

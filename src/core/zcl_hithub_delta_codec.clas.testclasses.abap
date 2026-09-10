@@ -26,7 +26,7 @@ CLASS ltcl_test IMPLEMENTATION.
       ENDCASE.
       lv_result = zcl_hithub_delta_codec=>apply(
         iv_base = lv_base iv_delta = lv_delta ).
-      ASSERT lv_result = lv_base.
+      cl_abap_unit_assert=>assert_equals( act = lv_result exp = lv_base ).
     ENDDO.
   ENDMETHOD.
 

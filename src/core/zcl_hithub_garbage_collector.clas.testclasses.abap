@@ -44,7 +44,8 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     lv_reachable_oid = zcl_hithub_object_id=>calculate(
       iv_type = ls_reachable-type iv_payload = ls_reachable-payload ).
     ls_reachable-key-oid = lv_reachable_oid.
-    ASSERT lo_store->zif_hithub_object_store~write( ls_reachable ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_reachable ) ).
 
     ls_orphan = ls_reachable.
     ls_orphan-payload = cl_abap_codepage=>convert_to( 'orphan' ).
@@ -52,30 +53,39 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     lv_orphan_oid = zcl_hithub_object_id=>calculate(
       iv_type = ls_orphan-type iv_payload = ls_orphan-payload ).
     ls_orphan-key-oid = lv_orphan_oid.
-    ASSERT lo_store->zif_hithub_object_store~write( ls_orphan ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_orphan ) ).
 
     ls_reference-repository_id = lv_repository_id.
     ls_reference-name = 'refs/heads/main'.
     ls_reference-algorithm = 'sha1'.
     ls_reference-oid = lv_reachable_oid.
-    ASSERT lo_metadata->zif_hithub_metadata_store~create_reference(
-      ls_reference ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_metadata->zif_hithub_metadata_store~create_reference(
+        ls_reference )
+      exp = 1 ).
 
     DATA(lo_collector) = NEW zcl_hithub_garbage_collector(
       io_store = lo_store io_metadata = lo_metadata io_gc = lo_store
       iv_grace_period_seconds = 0 ).
     DATA(lt_report) = lo_collector->report( lv_repository_id ).
-    ASSERT lines( lt_report ) = 1.
-    ASSERT lt_report[ 1 ]-key = ls_orphan-key.
-    ASSERT lo_collector->collect(
-      iv_repository_id = lv_repository_id iv_dry_run = abap_true ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_orphan-key ) =
-      abap_true.
-    ASSERT lo_collector->collect( lv_repository_id ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_reachable-key ) =
-      abap_true.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_orphan-key ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_report ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_report[ 1 ]-key
+      exp = ls_orphan-key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_collector->collect(
+        iv_repository_id = lv_repository_id iv_dry_run = abap_true )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~contains( ls_orphan-key ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_collector->collect( lv_repository_id )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~contains( ls_reachable-key ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_orphan-key ) ).
   ENDMETHOD.
 
   METHOD protects_active_quarantine.
@@ -97,9 +107,12 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     lv_protected_oid = zcl_hithub_object_id=>calculate(
       iv_type = ls_protected-type iv_payload = ls_protected-payload ).
     ls_protected-key-oid = lv_protected_oid.
-    ASSERT lo_store->zif_hithub_object_store~write( ls_protected ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_protected ) ).
     APPEND ls_protected TO lt_objects.
-    ASSERT lo_quarantine->zif_hithub_quarantine~stage( lt_objects ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~stage( lt_objects )
+      exp = 1 ).
 
     ls_orphan = ls_protected.
     ls_orphan-payload = cl_abap_codepage=>convert_to( 'unprotected orphan' ).
@@ -107,17 +120,22 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     lv_orphan_oid = zcl_hithub_object_id=>calculate(
       iv_type = ls_orphan-type iv_payload = ls_orphan-payload ).
     ls_orphan-key-oid = lv_orphan_oid.
-    ASSERT lo_store->zif_hithub_object_store~write( ls_orphan ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_orphan ) ).
 
     DATA(lo_collector) = NEW zcl_hithub_garbage_collector(
       io_store = lo_store io_metadata = lo_metadata io_gc = lo_store
       io_roots = lo_quarantine iv_grace_period_seconds = 0 ).
-    ASSERT lo_collector->collect( lv_repository_id ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_protected-key ) =
-      abap_true.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_orphan-key ) =
-      abap_false.
-    ASSERT lo_quarantine->zif_hithub_quarantine~count( ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_collector->collect( lv_repository_id )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~contains( ls_protected-key ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_orphan-key ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~count( )
+      exp = 1 ).
   ENDMETHOD.
 
   METHOD honors_grace_period.
@@ -139,7 +157,8 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     lv_old_oid = zcl_hithub_object_id=>calculate(
       iv_type = ls_old-type iv_payload = ls_old-payload ).
     ls_old-key-oid = lv_old_oid.
-    ASSERT lo_store->zif_hithub_object_store~write( ls_old ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_old ) ).
 
     ls_new = ls_old.
     ls_new-payload = cl_abap_codepage=>convert_to( 'new orphan' ).
@@ -148,16 +167,19 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     lv_new_oid = zcl_hithub_object_id=>calculate(
       iv_type = ls_new-type iv_payload = ls_new-payload ).
     ls_new-key-oid = lv_new_oid.
-    ASSERT lo_store->zif_hithub_object_store~write( ls_new ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_new ) ).
 
     DATA(lo_collector) = NEW zcl_hithub_garbage_collector(
       io_store = lo_store io_metadata = lo_metadata io_gc = lo_store
       io_clock = lo_clock iv_grace_period_seconds = 3600 ).
-    ASSERT lo_collector->collect( lv_repository_id ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_old-key ) =
-      abap_false.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_new-key ) =
-      abap_true.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_collector->collect( lv_repository_id )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_old-key ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~contains( ls_new-key ) ).
   ENDMETHOD.
 
 ENDCLASS.

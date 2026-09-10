@@ -27,7 +27,7 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_data = lv_data iv_base = lv_base ).
     lv_expected = cl_abap_codepage=>convert_to( source = 'abcXYZdef' ).
 
-    ASSERT lv_result = lv_expected.
+    cl_abap_unit_assert=>assert_equals( act = lv_result exp = lv_expected ).
   ENDMETHOD.
 
   METHOD rejects_wrong_entry.
@@ -36,7 +36,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_result = zcl_hithub_ref_delta=>decode(
       iv_data = CONV xstring( '6801' )
       iv_base = CONV xstring( '616263' ) ).
-    ASSERT lv_result IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lv_result ).
   ENDMETHOD.
 
 ENDCLASS.

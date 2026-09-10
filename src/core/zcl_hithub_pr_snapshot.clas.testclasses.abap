@@ -20,13 +20,15 @@ CLASS ltcl_pull_request_snapshot IMPLEMENTATION.
     ls_snapshot-base_oid = 'a'.
     ls_snapshot-head_oid = 'b'.
 
-    ASSERT zcl_hithub_pr_snapshot=>open( ls_snapshot ) = abap_true.
-    ASSERT zcl_hithub_pr_snapshot=>open( ls_snapshot ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pr_snapshot=>open( ls_snapshot ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pr_snapshot=>open( ls_snapshot ) ).
     DATA(ls_read) = zcl_hithub_pr_snapshot=>read(
       iv_repository_id = ls_snapshot-repository_id iv_id = ls_snapshot-id ).
-    ASSERT ls_read-base_oid = 'a'.
-    ASSERT ls_read-head_oid = 'b'.
-    ASSERT ls_read-version = 1.
+    cl_abap_unit_assert=>assert_equals( act = ls_read-base_oid exp = 'a' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_read-head_oid exp = 'b' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_read-version exp = 1 ).
   ENDMETHOD.
 
   METHOD rejects_incomplete_snapshot.
@@ -34,7 +36,8 @@ CLASS ltcl_pull_request_snapshot IMPLEMENTATION.
     ls_snapshot-repository_id = 'snapshot-invalid-1'.
     ls_snapshot-id = 'pull-request-invalid-1'.
     ls_snapshot-state = zcl_hithub_pull_request_state=>c_open.
-    ASSERT zcl_hithub_pr_snapshot=>open( ls_snapshot ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pr_snapshot=>open( ls_snapshot ) ).
   ENDMETHOD.
 
 ENDCLASS.

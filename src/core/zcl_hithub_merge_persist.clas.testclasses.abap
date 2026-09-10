@@ -39,12 +39,16 @@ CLASS ltcl_merge_persist IMPLEMENTATION.
       io_store = lo_store io_metadata = lo_metadata
       io_transaction = lo_transaction ).
 
-    ASSERT lo_persist->apply(
-      is_object = ls_object is_reference = ls_reference ) = abap_true.
-    ASSERT lo_store->contains( ls_object-key ) = abap_true.
-    ASSERT lo_metadata->read_reference(
-      iv_repository_id = ls_reference-repository_id
-      iv_name          = ls_reference-name )-oid = lv_oid.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_persist->apply(
+        is_object = ls_object is_reference = ls_reference ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->contains( ls_object-key ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_metadata->read_reference(
+        iv_repository_id = ls_reference-repository_id
+        iv_name          = ls_reference-name )-oid
+      exp = lv_oid ).
   ENDMETHOD.
 
   METHOD rolls_back_on_ref_failure.
@@ -76,10 +80,12 @@ CLASS ltcl_merge_persist IMPLEMENTATION.
       io_store = lo_store io_metadata = lo_metadata
       io_transaction = lo_transaction ).
 
-    ASSERT lo_persist->apply(
-      is_object = ls_object is_reference = ls_reference
-      iv_expected_version = 9 ) = abap_false.
-    ASSERT lo_store->contains( ls_object-key ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = lo_persist->apply(
+        is_object = ls_object is_reference = ls_reference
+        iv_expected_version = 9 ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->contains( ls_object-key ) ).
   ENDMETHOD.
 
 ENDCLASS.

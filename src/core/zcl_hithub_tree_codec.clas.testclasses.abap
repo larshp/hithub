@@ -36,17 +36,17 @@ CLASS ltcl_test IMPLEMENTATION.
     lt_decoded = zcl_hithub_tree_codec=>decode( lv_payload ).
     READ TABLE lt_decoded INTO ls_entry INDEX 1.
 
-    ASSERT sy-subrc = 0.
-    ASSERT lines( lt_decoded ) = 3.
-    ASSERT ls_entry-mode = '100644'.
-    ASSERT ls_entry-name = 'a.txt'.
-    ASSERT ls_entry-oid = lv_oid_three.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_decoded ) exp = 3 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-mode exp = '100644' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-name exp = 'a.txt' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-oid exp = lv_oid_three ).
     READ TABLE lt_decoded INTO ls_entry INDEX 2.
-    ASSERT ls_entry-mode = '040000'.
-    ASSERT ls_entry-name = 'a'.
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-mode exp = '040000' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-name exp = 'a' ).
     READ TABLE lt_decoded INTO ls_entry INDEX 3.
-    ASSERT ls_entry-mode = '100644'.
-    ASSERT ls_entry-name = 'z.txt'.
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-mode exp = '100644' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_entry-name exp = 'z.txt' ).
   ENDMETHOD.
 
 ENDCLASS.

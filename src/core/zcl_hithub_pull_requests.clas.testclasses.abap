@@ -26,11 +26,13 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_request-head_oid = 'head'.
 
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     lt_requests = zcl_hithub_pull_requests=>list(
       iv_repository_id = ls_request-repository_id ).
-    ASSERT lines( lt_requests ) = 1.
-    ASSERT lt_requests[ 1 ]-state = zcl_hithub_pull_request_state=>c_draft.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_requests ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_requests[ 1 ]-state
+      exp = zcl_hithub_pull_request_state=>c_draft ).
   ENDMETHOD.
 
   METHOD rejects_duplicate_request.
@@ -45,9 +47,9 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_request-head_oid = 'head'.
 
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
   ENDMETHOD.
 
   METHOD transitions_draft_to_open.
@@ -62,15 +64,19 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_request-head_oid = 'head'.
 
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     ls_result = zcl_hithub_pull_requests=>transition(
       iv_repository_id    = ls_request-repository_id
       iv_id               = ls_request-id
       iv_state            = zcl_hithub_pull_request_state=>c_open
       iv_expected_version = 1 ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT ls_result-pull_request-state = zcl_hithub_pull_request_state=>c_open.
-    ASSERT ls_result-pull_request-version = 2.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-pull_request-state
+      exp = zcl_hithub_pull_request_state=>c_open ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-pull_request-version
+      exp = 2 ).
   ENDMETHOD.
 
   METHOD preserves_review_after_update.
@@ -86,7 +92,7 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_request-base_oid = 'base'.
     ls_request-head_oid = 'head'.
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
 
     ls_review-repository_id = ls_request-repository_id.
     ls_review-pull_request_id = ls_request-id.
@@ -94,19 +100,22 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_review-actor = 'maintainer'.
     ls_review-state = zcl_hithub_pr_reviews=>c_approved.
     ls_review-created_at = '2026-08-28T12:00:00Z'.
-    ASSERT zcl_hithub_pr_reviews=>add( ls_review ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pr_reviews=>add( ls_review ) ).
 
     ls_result = zcl_hithub_pull_requests=>transition(
       iv_repository_id    = ls_request-repository_id
       iv_id               = ls_request-id
       iv_state            = zcl_hithub_pull_request_state=>c_closed
       iv_expected_version = 1 ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     lt_reviews = zcl_hithub_pr_reviews=>list(
       iv_repository_id   = ls_request-repository_id
       iv_pull_request_id = ls_request-id ).
-    ASSERT lines( lt_reviews ) = 1.
-    ASSERT lt_reviews[ 1 ]-state = zcl_hithub_pr_reviews=>c_approved.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_reviews ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_reviews[ 1 ]-state
+      exp = zcl_hithub_pr_reviews=>c_approved ).
   ENDMETHOD.
 
   METHOD persists_merged_state.
@@ -121,15 +130,17 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     ls_request-base_oid = 'base'.
     ls_request-head_oid = 'head'.
     ls_result = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     ls_result = zcl_hithub_pull_requests=>transition(
       iv_repository_id = ls_request-repository_id iv_id = ls_request-id
       iv_state = zcl_hithub_pull_request_state=>c_merged
       iv_expected_version = 1 ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     ls_read = zcl_hithub_pull_requests=>find(
       iv_repository_id = ls_request-repository_id iv_id = ls_request-id ).
-    ASSERT ls_read-state = zcl_hithub_pull_request_state=>c_merged.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-state
+      exp = zcl_hithub_pull_request_state=>c_merged ).
   ENDMETHOD.
 
 ENDCLASS.

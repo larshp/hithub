@@ -21,9 +21,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_object-size = 5.
     ls_object-payload = cl_abap_codepage=>convert_to( 'hello' ).
     lv_created = lo_writer->write( ls_object ).
-    ASSERT lv_created = abap_true.
+    cl_abap_unit_assert=>assert_true( act = lv_created ).
     lv_created = lo_writer->write( ls_object ).
-    ASSERT lv_created = abap_false.
+    cl_abap_unit_assert=>assert_false( act = lv_created ).
   ENDMETHOD.
 
   METHOD rejects_malformed_object.
@@ -41,8 +41,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_created = lo_writer->write( ls_object ).
 
-    ASSERT lv_created = abap_false.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_object-key ) = abap_false.
+    cl_abap_unit_assert=>assert_false( act = lv_created ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_object-key ) ).
   ENDMETHOD.
 
 ENDCLASS.

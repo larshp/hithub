@@ -24,16 +24,16 @@ CLASS ltcl_repository_deletion IMPLEMENTATION.
 
     DATA(ls_result) = lo_service->delete(
       iv_repository_id = ls_repository-id iv_expected_version = 1 ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT ls_result-version = 2.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-version exp = 2 ).
     DATA(ls_read) = lo_metadata->zif_hithub_metadata_store~read_repository(
       ls_repository-id ).
-    ASSERT ls_read-id IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_read-id ).
     DATA(lt_repositories) =
       lo_metadata->zif_hithub_metadata_store~list_repositories( ).
     READ TABLE lt_repositories WITH KEY id = ls_repository-id
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc <> 0.
+    cl_abap_unit_assert=>assert_differs( act = sy-subrc exp = 0 ).
   ENDMETHOD.
 
   METHOD rejects_stale_delete.
@@ -49,8 +49,10 @@ CLASS ltcl_repository_deletion IMPLEMENTATION.
 
     DATA(ls_result) = lo_service->delete(
       iv_repository_id = ls_repository-id iv_expected_version = 1 ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'repository version is stale'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'repository version is stale' ).
   ENDMETHOD.
 
 ENDCLASS.

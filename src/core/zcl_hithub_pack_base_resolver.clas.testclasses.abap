@@ -25,12 +25,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_key = ls_object-key.
     ls_read = lo_resolver->read( ls_key ).
-    ASSERT ls_read-key-repository_id = ls_object-key-repository_id.
-    ASSERT ls_read-payload = ls_object-payload.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-key-repository_id
+      exp = ls_object-key-repository_id ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-payload
+      exp = ls_object-payload ).
 
     ls_key-repository_id = 'pack-base-repository-b-00000000000'.
     ls_read = lo_resolver->read( ls_key ).
-    ASSERT ls_read-key-repository_id IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_read-key-repository_id ).
   ENDMETHOD.
 
 ENDCLASS.

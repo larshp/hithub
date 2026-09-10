@@ -43,29 +43,41 @@ CLASS ltcl_timeline IMPLEMENTATION.
     lt_entries = zcl_hithub_timeline=>list(
       iv_subject_type = zcl_hithub_timeline=>c_issue
       iv_subject_id   = 'timeline-issue-1' ).
-    ASSERT lines( lt_entries ) = 2.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_entries ) exp = 2 ).
     READ TABLE lt_entries INDEX 1 INTO DATA(ls_first).
-    ASSERT ls_first-action = 'issue.create'.
-    ASSERT ls_first-actor IS INITIAL.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_first-action
+      exp = 'issue.create' ).
+    cl_abap_unit_assert=>assert_initial( act = ls_first-actor ).
     READ TABLE lt_entries INDEX 2 INTO DATA(ls_second).
-    ASSERT ls_second-action = 'issue.close'.
-    ASSERT ls_second-actor = 'runtime-actor'.
-    ASSERT ls_second-correlation_id = 'timeline-correlation'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_second-action
+      exp = 'issue.close' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_second-actor
+      exp = 'runtime-actor' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_second-correlation_id
+      exp = 'timeline-correlation' ).
 
     lt_entries = zcl_hithub_timeline=>list(
       iv_subject_type = zcl_hithub_timeline=>c_pull_request
       iv_subject_id   = 'timeline-pr-1' ).
-    ASSERT lines( lt_entries ) = 1.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_entries ) exp = 1 ).
     READ TABLE lt_entries INDEX 1 INTO DATA(ls_pr_entry).
-    ASSERT ls_pr_entry-action = 'merge'.
-    ASSERT ls_pr_entry-subject_type = zcl_hithub_timeline=>c_pull_request.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_pr_entry-action
+      exp = 'merge' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_pr_entry-subject_type
+      exp = zcl_hithub_timeline=>c_pull_request ).
   ENDMETHOD.
 
   METHOD rejects_other_subject_types.
     DATA(lt_entries) = zcl_hithub_timeline=>list(
       iv_subject_type = 'repository'
       iv_subject_id   = 'timeline-repository-1' ).
-    ASSERT lt_entries IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = lt_entries ).
   ENDMETHOD.
 
   METHOD lists_repository_activity.
@@ -94,9 +106,13 @@ CLASS ltcl_timeline IMPLEMENTATION.
 
     DATA(lt_entries) = zcl_hithub_timeline=>list_repository(
       iv_repository_id = 'activity-repository' ).
-    ASSERT lines( lt_entries ) = 2.
-    ASSERT lt_entries[ 1 ]-action = 'repository.create'.
-    ASSERT lt_entries[ 2 ]-subject_id = 'activity-issue-1'.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_entries ) exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_entries[ 1 ]-action
+      exp = 'repository.create' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_entries[ 2 ]-subject_id
+      exp = 'activity-issue-1' ).
   ENDMETHOD.
 
   METHOD orders_equal_timestamps.
@@ -119,8 +135,9 @@ CLASS ltcl_timeline IMPLEMENTATION.
 
     DATA(lt_entries) = zcl_hithub_timeline=>list_repository(
       iv_repository_id = 'same-time-repository' ).
-    ASSERT lines( lt_entries ) = 2.
-    ASSERT lt_entries[ 1 ]-event_id < lt_entries[ 2 ]-event_id.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_entries ) exp = 2 ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( lt_entries[ 1 ]-event_id < lt_entries[ 2 ]-event_id ) ).
   ENDMETHOD.
 
 ENDCLASS.

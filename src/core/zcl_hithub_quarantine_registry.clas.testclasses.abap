@@ -47,24 +47,34 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_registry) = NEW zcl_hithub_quarantine_registry( ).
     DATA(lo_quarantine) = NEW lcl_registry_quarantine( ).
 
-    ASSERT lo_registry->register(
-      iv_id = 'abandoned' io_quarantine = lo_quarantine
-      iv_last_activity = '20260827120000.0000000' ) = abap_true.
-    ASSERT lo_registry->cleanup( '20260828120000.0000000' ) = 1.
-    ASSERT lo_registry->count( ) = 0.
-    ASSERT lo_quarantine->discards( ) = 1.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_registry->register(
+        iv_id = 'abandoned' io_quarantine = lo_quarantine
+        iv_last_activity = '20260827120000.0000000' ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_registry->cleanup( '20260828120000.0000000' )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_registry->count( ) exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->discards( )
+      exp = 1 ).
   ENDMETHOD.
 
   METHOD keeps_active_entries.
     DATA(lo_registry) = NEW zcl_hithub_quarantine_registry( ).
     DATA(lo_quarantine) = NEW lcl_registry_quarantine( ).
 
-    ASSERT lo_registry->register(
-      iv_id = 'active' io_quarantine = lo_quarantine
-      iv_last_activity = '20260828130000.0000000' ) = abap_true.
-    ASSERT lo_registry->cleanup( '20260828120000.0000000' ) = 0.
-    ASSERT lo_registry->count( ) = 1.
-    ASSERT lo_quarantine->discards( ) = 0.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_registry->register(
+        iv_id = 'active' io_quarantine = lo_quarantine
+        iv_last_activity = '20260828130000.0000000' ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_registry->cleanup( '20260828120000.0000000' )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_registry->count( ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->discards( )
+      exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

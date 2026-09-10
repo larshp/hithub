@@ -29,27 +29,29 @@ CLASS ltcl_test IMPLEMENTATION.
       it_references = lt_references ).
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_body ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = '# service=git-upload-pack' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = '# service=git-upload-pack' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_body+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-kind = 'data'.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'data' ).
     lv_nul = CONV xstring( '00' ).
     FIND lv_nul IN ls_packet-payload IN BYTE MODE.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-kind = 'data'.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'data' ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
   ENDMETHOD.
 
   METHOD builds_receive_discovery.
@@ -73,30 +75,33 @@ CLASS ltcl_test IMPLEMENTATION.
       it_references = lt_references ).
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_body ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = '# service=git-receive-pack' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = '# service=git-receive-pack' && cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_body+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
     lv_nul = CONV xstring( '00' ).
     FIND lv_nul IN ls_packet-payload IN BYTE MODE.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     lv_report_status = cl_abap_codepage=>convert_to( source = 'report-status' ).
     FIND lv_report_status IN ls_packet-payload IN BYTE MODE.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
   ENDMETHOD.
 
   METHOD rejects_wrong_service.
     DATA lt_references TYPE zif_hithub_metadata_store=>ty_references.
 
-    ASSERT zcl_hithub_upload_discovery=>build(
-      iv_service    = 'git-upload-archive'
-      iv_head_oid   = '1111111111111111111111111111111111111111'
-      iv_head_ref   = 'refs/heads/main'
-      it_references = lt_references ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_upload_discovery=>build(
+        iv_service    = 'git-upload-archive'
+        iv_head_oid   = '1111111111111111111111111111111111111111'
+        iv_head_ref   = 'refs/heads/main'
+        it_references = lt_references ) ).
   ENDMETHOD.
 
 ENDCLASS.

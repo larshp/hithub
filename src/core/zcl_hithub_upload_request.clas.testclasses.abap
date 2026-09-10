@@ -42,15 +42,19 @@ CLASS ltcl_test IMPLEMENTATION.
     CONCATENATE lv_data lv_packet INTO lv_data IN BYTE MODE.
 
     ls_request = zcl_hithub_upload_request=>parse( lv_data ).
-    ASSERT ls_request-valid = abap_true.
-    ASSERT lines( ls_request-wants ) = 1.
-    ASSERT lines( ls_request-haves ) = 1.
-    ASSERT ls_request-deepen = 5.
-    ASSERT ls_request-saw_flush = abap_true.
-    ASSERT ls_request-saw_done = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_request-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_request-wants )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_request-haves )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_request-deepen exp = 5 ).
+    cl_abap_unit_assert=>assert_true( act = ls_request-saw_flush ).
+    cl_abap_unit_assert=>assert_true( act = ls_request-saw_done ).
     READ TABLE ls_request-capabilities WITH KEY table_line = 'side-band-64k'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
   ENDMETHOD.
 
   METHOD parses_space_capabilities.
@@ -71,15 +75,19 @@ CLASS ltcl_test IMPLEMENTATION.
       INTO lv_data IN BYTE MODE.
 
     ls_request = zcl_hithub_upload_request=>parse( lv_data ).
-    ASSERT ls_request-valid = abap_true.
-    ASSERT lines( ls_request-wants ) = 1.
-    ASSERT ls_request-wants[ 1 ] = lv_oid.
+    cl_abap_unit_assert=>assert_true( act = ls_request-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_request-wants )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_request-wants[ 1 ]
+      exp = lv_oid ).
     READ TABLE ls_request-capabilities WITH KEY table_line = 'no-progress'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE ls_request-capabilities WITH KEY table_line = 'agent=git/2.43.0'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
   ENDMETHOD.
 
   METHOD rejects_bad_request.
@@ -90,10 +98,10 @@ CLASS ltcl_test IMPLEMENTATION.
       cl_abap_codepage=>convert_to( source = 'wat' &&
         cl_abap_char_utilities=>newline ) ).
     ls_request = zcl_hithub_upload_request=>parse( lv_packet ).
-    ASSERT ls_request-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_request-valid ).
     ls_request = zcl_hithub_upload_request=>parse(
       cl_abap_codepage=>convert_to( source = '0008abc' ) ).
-    ASSERT ls_request-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_request-valid ).
   ENDMETHOD.
 
 ENDCLASS.

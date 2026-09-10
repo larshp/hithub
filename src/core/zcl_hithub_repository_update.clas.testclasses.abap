@@ -29,17 +29,23 @@ CLASS ltcl_repository_update IMPLEMENTATION.
       iv_description          = 'new'
       iv_description_provided = abap_true
       iv_expected_version     = 1 ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT ls_result-repository-description = 'new'.
-    ASSERT ls_result-repository-version = 2.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-repository-description
+      exp = 'new' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-repository-version
+      exp = 2 ).
 
     ls_result = lo_service->update(
       iv_repository_id        = ls_repository-id
       iv_description          = 'stale'
       iv_description_provided = abap_true
       iv_expected_version     = 1 ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'repository version is stale'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'repository version is stale' ).
   ENDMETHOD.
 
   METHOD rejects_bad_branch_no_version.
@@ -59,13 +65,17 @@ CLASS ltcl_repository_update IMPLEMENTATION.
       iv_default_branch          = 'bad branch'
       iv_default_branch_provided = abap_true
       iv_expected_version        = 1 ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'default branch is invalid'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'default branch is invalid' ).
 
     ls_result = lo_service->update(
       iv_repository_id = ls_repository-id ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'repository version is required'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'repository version is required' ).
   ENDMETHOD.
 
 ENDCLASS.

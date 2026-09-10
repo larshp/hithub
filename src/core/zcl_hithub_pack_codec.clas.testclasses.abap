@@ -218,12 +218,14 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_pack          = lv_pack
       iv_repository_id = 'pack-roundtrip-repository-000000' ).
 
-    ASSERT lines( lt_unpacked ) = 2.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_unpacked ) exp = 2 ).
     LOOP AT lt_objects INTO ls_object.
       READ TABLE lt_unpacked INTO ls_read
         WITH KEY key-oid = ls_object-key-oid.
-      ASSERT sy-subrc = 0.
-      ASSERT ls_read-payload = ls_object-payload.
+      cl_abap_unit_assert=>assert_subrc( ).
+      cl_abap_unit_assert=>assert_equals(
+        act = ls_read-payload
+        exp = ls_object-payload ).
     ENDLOOP.
   ENDMETHOD.
 
@@ -300,12 +302,12 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_reachability = NEW zcl_hithub_reachability( lo_reader ).
     lt_reachable = lo_reachability->walk( ls_commit_object-key ).
 
-    ASSERT lines( lt_reachable ) = 3.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_reachable ) exp = 3 ).
     LOOP AT lt_reachable INTO ls_key.
       READ TABLE lt_roundtrip INTO ls_object
         WITH KEY key-repository_id = ls_key-repository_id
           key-algorithm = ls_key-algorithm key-oid = ls_key-oid.
-      ASSERT sy-subrc = 0.
+      cl_abap_unit_assert=>assert_subrc( ).
     ENDLOOP.
   ENDMETHOD.
 
@@ -330,8 +332,9 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_pack_body = lv_pack+0(lv_last_offset).
     CONCATENATE lv_pack_body lv_byte INTO lv_pack IN BYTE MODE.
 
-    ASSERT lo_codec->unpack(
-      iv_pack = lv_pack iv_repository_id = 'pack-corrupt-repository' ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_codec->unpack(
+        iv_pack = lv_pack iv_repository_id = 'pack-corrupt-repository' ) ).
   ENDMETHOD.
 
   METHOD rejects_malformed_pack.
@@ -349,8 +352,9 @@ CLASS ltcl_test IMPLEMENTATION.
       EXPORTING if_algorithm = 'sha1' if_data = lv_pack
       IMPORTING ef_hashxstring = lv_digest ).
     CONCATENATE lv_pack lv_digest INTO lv_pack IN BYTE MODE.
-    ASSERT lo_codec->unpack(
-      iv_pack = lv_pack iv_repository_id = 'pack-truncated-repository' ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_codec->unpack(
+        iv_pack = lv_pack iv_repository_id = 'pack-truncated-repository' ) ).
 
     lv_body = CONV xstring( '3000' ).
     CONCATENATE lv_header lv_body INTO lv_pack IN BYTE MODE.
@@ -359,8 +363,9 @@ CLASS ltcl_test IMPLEMENTATION.
       EXPORTING if_algorithm = 'sha1' if_data = lv_pack
       IMPORTING ef_hashxstring = lv_digest ).
     CONCATENATE lv_pack lv_digest INTO lv_pack IN BYTE MODE.
-    ASSERT lo_codec->unpack(
-      iv_pack = lv_pack iv_repository_id = 'pack-malformed-repository' ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_codec->unpack(
+        iv_pack = lv_pack iv_repository_id = 'pack-malformed-repository' ) ).
   ENDMETHOD.
 
   METHOD rejects_pack_before_ref_update.
@@ -388,8 +393,10 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_reference-name = 'refs/heads/main'.
     ls_reference-algorithm = 'sha1'.
     ls_reference-oid = '0000000000000000000000000000000000000001'.
-    ASSERT lo_metadata->zif_hithub_metadata_store~save_reference(
-      ls_reference ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_metadata->zif_hithub_metadata_store~save_reference(
+        ls_reference )
+      exp = 1 ).
 
     ls_object-key-repository_id = lv_repository_id.
     ls_object-key-algorithm = 'sha1'.
@@ -407,17 +414,22 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lv_body) = lv_pack+0(lv_last_offset).
     CONCATENATE lv_body lv_byte INTO lv_pack IN BYTE MODE.
 
-    ASSERT lo_receiver->receive(
-      iv_pack          = lv_pack
-      iv_repository_id = lv_repository_id
-      iv_ref_name      = ls_reference-name
-      iv_target_oid    = lv_target_oid ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = lo_receiver->receive(
+        iv_pack          = lv_pack
+        iv_repository_id = lv_repository_id
+        iv_ref_name      = ls_reference-name
+        iv_target_oid    = lv_target_oid ) ).
     ls_read = lo_metadata->zif_hithub_metadata_store~read_reference(
       iv_repository_id = lv_repository_id iv_name = ls_reference-name ).
-    ASSERT ls_read-oid = ls_reference-oid.
-    ASSERT ls_read-version = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_object-key ) = abap_false.
-    ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-oid
+      exp = ls_reference-oid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_read-version exp = 1 ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_object-key ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_transaction->zif_hithub_transaction~is_active( ) ).
   ENDMETHOD.
 
   METHOD rejects_pack_over_limit.
@@ -432,13 +444,14 @@ CLASS ltcl_test IMPLEMENTATION.
       io_codec = lo_codec io_store = lo_store io_metadata = lo_metadata
       io_transaction = lo_transaction io_limits = lo_limits ).
 
-    ASSERT lo_receiver->receive(
-      iv_pack          = CONV xstring( '5041434B0000000200000000' )
-      iv_repository_id = 'pack-limit-repository-000000000'
-      iv_ref_name      = 'refs/heads/main'
-      iv_target_oid    = '1111111111111111111111111111111111111111' ) =
-      abap_false.
-    ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = lo_receiver->receive(
+        iv_pack          = CONV xstring( '5041434B0000000200000000' )
+        iv_repository_id = 'pack-limit-repository-000000000'
+        iv_ref_name      = 'refs/heads/main'
+        iv_target_oid    = '1111111111111111111111111111111111111111' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_transaction->zif_hithub_transaction~is_active( ) ).
   ENDMETHOD.
 
   METHOD promotes_before_ref_save.
@@ -476,22 +489,29 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND ls_object TO lt_objects.
     lv_pack = lo_codec->repack( lt_objects ).
 
-    ASSERT lo_receiver->receive(
-      iv_pack = lv_pack iv_repository_id = lv_repository_id
-      iv_ref_name = 'refs/tags/incoming'
-      iv_target_oid = lv_target_oid ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_receiver->receive(
+        iv_pack = lv_pack iv_repository_id = lv_repository_id
+        iv_ref_name = 'refs/tags/incoming'
+        iv_target_oid = lv_target_oid ) ).
     DATA ls_target_key TYPE zif_hithub_object_store=>ty_object_key.
     ls_target_key-repository_id = lv_repository_id.
     ls_target_key-algorithm = 'sha1'.
     ls_target_key-oid = lv_target_oid.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_target_key ) =
-      abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~contains( ls_target_key ) ).
     DATA(ls_event) = lo_event_sink->event( ).
-    ASSERT ls_event-action = 'push'.
-    ASSERT ls_event-subject_id = lv_repository_id.
-    ASSERT ls_event-actor = 'actor-1'.
-    ASSERT ls_event-correlation_id = 'correlation-1'.
-    ASSERT ls_event-occurred_at = '20260828123456.0000000'.
+    cl_abap_unit_assert=>assert_equals( act = ls_event-action exp = 'push' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_event-subject_id
+      exp = lv_repository_id ).
+    cl_abap_unit_assert=>assert_equals( act = ls_event-actor exp = 'actor-1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_event-correlation_id
+      exp = 'correlation-1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_event-occurred_at
+      exp = '20260828123456.0000000' ).
   ENDMETHOD.
 
   METHOD unpacks_delta_objects.
@@ -540,10 +560,12 @@ CLASS ltcl_test IMPLEMENTATION.
     lt_unpacked = lo_codec->unpack(
       iv_pack = lv_pack iv_repository_id = 'pack-delta-repository' ).
 
-    ASSERT lines( lt_unpacked ) = 2.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_unpacked ) exp = 2 ).
     READ TABLE lt_unpacked INTO ls_object INDEX 2.
-    ASSERT ls_object-type = 'blob'.
-    ASSERT ls_object-payload = cl_abap_codepage=>convert_to( source = 'abcXYZdef' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_object-type exp = 'blob' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_object-payload
+      exp = cl_abap_codepage=>convert_to( source = 'abcXYZdef' ) ).
   ENDMETHOD.
 
 ENDCLASS.

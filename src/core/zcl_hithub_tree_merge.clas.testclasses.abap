@@ -29,11 +29,17 @@ CLASS ltcl_tree_merge IMPLEMENTATION.
 
     ls_result = zcl_hithub_tree_merge=>merge(
       it_base = lt_base it_ours = lt_ours it_theirs = lt_theirs ).
-    ASSERT ls_result-clean = abap_true.
-    ASSERT lines( ls_result-conflicts ) = 0.
-    ASSERT lines( ls_result-entries ) = 4.
-    ASSERT line_exists( ls_result-entries[ path = 'ours.txt' ] ).
-    ASSERT line_exists( ls_result-entries[ path = 'theirs.txt' ] ).
+    cl_abap_unit_assert=>assert_true( act = ls_result-clean ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_result-conflicts )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_result-entries )
+      exp = 4 ).
+    cl_abap_unit_assert=>assert_true(
+      act = line_exists( ls_result-entries[ path = 'ours.txt' ] ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = line_exists( ls_result-entries[ path = 'theirs.txt' ] ) ).
   ENDMETHOD.
 
   METHOD reports_same_path_conflict.
@@ -47,10 +53,15 @@ CLASS ltcl_tree_merge IMPLEMENTATION.
 
     ls_result = zcl_hithub_tree_merge=>merge(
       it_base = lt_base it_ours = lt_ours it_theirs = lt_theirs ).
-    ASSERT ls_result-clean = abap_false.
-    ASSERT lines( ls_result-conflicts ) = 1.
-    ASSERT line_exists( ls_result-conflicts[ path = 'conflict.txt' ] ).
-    ASSERT lines( ls_result-entries ) = 0.
+    cl_abap_unit_assert=>assert_false( act = ls_result-clean ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_result-conflicts )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = line_exists( ls_result-conflicts[ path = 'conflict.txt' ] ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_result-entries )
+      exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

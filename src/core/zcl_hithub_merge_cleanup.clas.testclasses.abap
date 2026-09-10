@@ -20,22 +20,28 @@ CLASS ltcl_merge_cleanup IMPLEMENTATION.
     ls_reference-name = 'refs/heads/feature'.
     ls_reference-algorithm = 'sha1'.
     ls_reference-oid = '1111111111111111111111111111111111111111'.
-    ASSERT lo_metadata->create_reference( ls_reference ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_metadata->create_reference( ls_reference )
+      exp = 1 ).
     lo_cleanup = NEW zcl_hithub_merge_cleanup(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
 
-    ASSERT lo_cleanup->cleanup_source(
-      iv_enabled = abap_false iv_repository_id = ls_reference-repository_id
-      iv_source_ref = ls_reference-name ) = abap_true.
-    ASSERT lo_metadata->read_reference(
-      iv_repository_id = ls_reference-repository_id
-      iv_name          = ls_reference-name )-name IS NOT INITIAL.
-    ASSERT lo_cleanup->cleanup_source(
-      iv_enabled = abap_true iv_repository_id = ls_reference-repository_id
-      iv_source_ref = ls_reference-name iv_expected_version = 1 ) = abap_true.
-    ASSERT lo_metadata->read_reference(
-      iv_repository_id = ls_reference-repository_id
-      iv_name          = ls_reference-name )-name IS INITIAL.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_cleanup->cleanup_source(
+        iv_enabled = abap_false iv_repository_id = ls_reference-repository_id
+        iv_source_ref = ls_reference-name ) ).
+    cl_abap_unit_assert=>assert_not_initial(
+      act = lo_metadata->read_reference(
+        iv_repository_id = ls_reference-repository_id
+        iv_name          = ls_reference-name )-name ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_cleanup->cleanup_source(
+        iv_enabled = abap_true iv_repository_id = ls_reference-repository_id
+        iv_source_ref = ls_reference-name iv_expected_version = 1 ) ).
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_metadata->read_reference(
+        iv_repository_id = ls_reference-repository_id
+        iv_name          = ls_reference-name )-name ).
   ENDMETHOD.
 
 ENDCLASS.

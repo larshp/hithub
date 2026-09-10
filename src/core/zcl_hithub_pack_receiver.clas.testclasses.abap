@@ -126,18 +126,23 @@ CLASS ltcl_hithub_receive_failure IMPLEMENTATION.
     APPEND ls_object TO lt_objects.
     lv_pack = lo_codec->repack( lt_objects ).
 
-    ASSERT lo_receiver->receive(
-      iv_pack = lv_pack iv_repository_id = lv_repository_id
-      iv_ref_name = 'refs/heads/main' iv_target_oid = lv_target_oid ) =
-      abap_false.
-    ASSERT lo_quarantine->zif_hithub_quarantine~count( ) = 0.
-    ASSERT lo_quarantine->discarded( ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_object-key ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = lo_receiver->receive(
+        iv_pack = lv_pack iv_repository_id = lv_repository_id
+        iv_ref_name = 'refs/heads/main' iv_target_oid = lv_target_oid ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~count( )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->discarded( )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_object-key ) ).
     ls_read = lo_metadata->zif_hithub_metadata_store~read_reference(
       iv_repository_id = lv_repository_id iv_name = 'refs/heads/main' ).
-    ASSERT ls_read-oid IS INITIAL.
-    ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
+    cl_abap_unit_assert=>assert_initial( act = ls_read-oid ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_transaction->zif_hithub_transaction~is_active( ) ).
   ENDMETHOD.
 
   METHOD batch_promote_rollback.
@@ -191,17 +196,22 @@ CLASS ltcl_hithub_receive_failure IMPLEMENTATION.
       it_commands = lt_commands
       IMPORTING
       et_results = lt_results rv_success = lv_success.
-    ASSERT lv_success = abap_false.
-    ASSERT lines( lt_results ) = 1.
-    ASSERT lt_results[ 1 ]-ok = abap_false.
-    ASSERT lo_quarantine->zif_hithub_quarantine~count( ) = 0.
-    ASSERT lo_quarantine->discarded( ) = 1.
-    ASSERT lo_store->zif_hithub_object_store~contains( ls_object-key ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_false( act = lv_success ).
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_results ) exp = 1 ).
+    cl_abap_unit_assert=>assert_false( act = lt_results[ 1 ]-ok ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~count( )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->discarded( )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_object-key ) ).
     ls_read = lo_metadata->zif_hithub_metadata_store~read_reference(
       iv_repository_id = lv_repository_id iv_name = ls_command-ref_name ).
-    ASSERT ls_read-oid IS INITIAL.
-    ASSERT lo_transaction->zif_hithub_transaction~is_active( ) = abap_false.
+    cl_abap_unit_assert=>assert_initial( act = ls_read-oid ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_transaction->zif_hithub_transaction~is_active( ) ).
   ENDMETHOD.
 
 ENDCLASS.

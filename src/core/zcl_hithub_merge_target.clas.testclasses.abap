@@ -53,19 +53,22 @@ CLASS ltcl_merge_target IMPLEMENTATION.
     ls_reference-name = 'refs/heads/main'.
     ls_reference-algorithm = 'sha1'.
     ls_reference-oid = lv_oid.
-    ASSERT lo_metadata->create_reference( ls_reference ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_metadata->create_reference( ls_reference )
+      exp = 1 ).
     lo_target = NEW zcl_hithub_merge_target(
       io_lock = lo_lock io_metadata = lo_metadata
       iv_repository_id = ls_reference-repository_id iv_owner = 'merge-1' ).
 
-    ASSERT lo_target->check(
-      iv_ref_name = ls_reference-name iv_algorithm = 'sha1'
-      iv_expected_oid = lv_oid ) = abap_true.
-    ASSERT lo_lock->is_acquired( ) = abap_false.
-    ASSERT lo_target->check(
-      iv_ref_name = ls_reference-name iv_algorithm = 'sha1'
-      iv_expected_oid = '2222222222222222222222222222222222222222' ) =
-        abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_target->check(
+        iv_ref_name = ls_reference-name iv_algorithm = 'sha1'
+        iv_expected_oid = lv_oid ) ).
+    cl_abap_unit_assert=>assert_false( act = lo_lock->is_acquired( ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_target->check(
+        iv_ref_name = ls_reference-name iv_algorithm = 'sha1'
+        iv_expected_oid = '2222222222222222222222222222222222222222' ) ).
   ENDMETHOD.
 
 ENDCLASS.

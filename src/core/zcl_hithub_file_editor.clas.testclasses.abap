@@ -92,8 +92,9 @@ CLASS ltcl_file_editor IMPLEMENTATION.
     ls_object-type = iv_type.
     ls_object-size = xstrlen( iv_payload ).
     ls_object-payload = iv_payload.
-    ASSERT NEW zcl_hithub_object_writer( mo_objects )->write(
-      ls_object ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = NEW zcl_hithub_object_writer( mo_objects )->write(
+        ls_object ) ).
   ENDMETHOD.
 
   METHOD blob.
@@ -168,10 +169,13 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Update the guide'
       iv_author            = c_author
       iv_expected_head_oid = mv_head ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT ls_result-commit_oid <> mv_head.
-    ASSERT text_at( 'src/docs/guide.md' ) =
-      |rewritten{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_differs(
+      act = ls_result-commit_oid
+      exp = mv_head ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/docs/guide.md' )
+      exp = |rewritten{ cl_abap_char_utilities=>newline }| ).
 
     " The branch advances to a commit whose only parent is the old head.
     DATA(lo_commits) = NEW zcl_hithub_commit_service(
@@ -180,31 +184,44 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_repository_id = mv_repository_id
       iv_algorithm     = 'sha1'
       iv_oid           = ls_result-commit_oid ).
-    ASSERT ls_commit-message = 'Update the guide'.
-    ASSERT lines( ls_commit-parents ) = 1.
-    ASSERT ls_commit-parents[ 1 ] = mv_head.
-    ASSERT ls_commit-tree = ls_result-tree_oid.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_commit-message
+      exp = 'Update the guide' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_commit-parents )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_commit-parents[ 1 ]
+      exp = mv_head ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_commit-tree
+      exp = ls_result-tree_oid ).
   ENDMETHOD.
 
   METHOD keeps_sibling_entries.
     seed( ).
-    ASSERT mo_editor->save(
-      iv_repository_id     = mv_repository_id
-      iv_ref               = 'refs/heads/main'
-      iv_path              = 'src/app.abap'
-      iv_content           = |new line{ cl_abap_char_utilities=>newline }|
-      iv_message           = 'Rewrite app'
-      iv_author            = c_author
-      iv_expected_head_oid = mv_head )-success = abap_true.
-    ASSERT text_at( 'src/app.abap' ) =
-      |new line{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_true(
+      act = mo_editor->save(
+        iv_repository_id     = mv_repository_id
+        iv_ref               = 'refs/heads/main'
+        iv_path              = 'src/app.abap'
+        iv_content           = |new line{ cl_abap_char_utilities=>newline }|
+        iv_message           = 'Rewrite app'
+        iv_author            = c_author
+        iv_expected_head_oid = mv_head )-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/app.abap' )
+      exp = |new line{ cl_abap_char_utilities=>newline }| ).
     " Siblings at every rewritten level survive untouched.
-    ASSERT text_at( 'src/util.abap' ) =
-      |helper{ cl_abap_char_utilities=>newline }|.
-    ASSERT text_at( 'src/docs/guide.md' ) =
-      |guide{ cl_abap_char_utilities=>newline }|.
-    ASSERT text_at( 'README.md' ) =
-      |readme{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/util.abap' )
+      exp = |helper{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/docs/guide.md' )
+      exp = |guide{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'README.md' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
   ENDMETHOD.
 
   METHOD rejects_unchanged_content.
@@ -217,8 +234,10 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'No change'
       iv_author            = c_author
       iv_expected_head_oid = mv_head ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'file content is unchanged'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'file content is unchanged' ).
   ENDMETHOD.
 
   METHOD rejects_missing_file.
@@ -231,8 +250,10 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Create by editing'
       iv_author            = c_author
       iv_expected_head_oid = mv_head ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'file was not found on this branch'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'file was not found on this branch' ).
   ENDMETHOD.
 
   METHOD rejects_directory_path.
@@ -245,8 +266,10 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Edit a directory'
       iv_author            = c_author
       iv_expected_head_oid = mv_head ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'file was not found on this branch'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'file was not found on this branch' ).
   ENDMETHOD.
 
   METHOD rejects_stale_head.
@@ -259,10 +282,11 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Stale edit'
       iv_author            = c_author
       iv_expected_head_oid = '1111111111111111111111111111111111111111' ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-stale = abap_true.
-    ASSERT text_at( 'README.md' ) =
-      |readme{ cl_abap_char_utilities=>newline }|.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_true( act = ls_result-stale ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'README.md' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
   ENDMETHOD.
 
   METHOD rejects_tag_reference.
@@ -275,8 +299,10 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Edit a tag'
       iv_author            = c_author
       iv_expected_head_oid = mv_head ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'only branches can be edited'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'only branches can be edited' ).
   ENDMETHOD.
 
   METHOD rejects_invalid_identity.
@@ -289,8 +315,10 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Bad identity'
       iv_author            = 'not an identity'
       iv_expected_head_oid = mv_head ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'commit identity is invalid'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'commit identity is invalid' ).
   ENDMETHOD.
 
 ENDCLASS.

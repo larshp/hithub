@@ -22,32 +22,38 @@ CLASS ltcl_branch_service IMPLEMENTATION.
       iv_repository_id = lv_repository_id
       iv_name          = 'feature/test'
       iv_oid           = lv_oid ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT ls_result-reference-name = 'refs/heads/feature/test'.
-    ASSERT ls_result-reference-version = 1.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reference-name
+      exp = 'refs/heads/feature/test' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reference-version
+      exp = 1 ).
 
     DATA(lt_references) = lo_service->list( lv_repository_id ).
-    ASSERT lines( lt_references ) = 1.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_references ) exp = 1 ).
     DATA(ls_found) = lo_service->find(
       iv_repository_id = lv_repository_id iv_name = 'feature/test' ).
-    ASSERT ls_found-oid = lv_oid.
+    cl_abap_unit_assert=>assert_equals( act = ls_found-oid exp = lv_oid ).
 
     DATA(ls_update) = lo_service->update(
       iv_repository_id    = lv_repository_id
       iv_name             = 'feature/test'
       iv_oid              = '2222222222222222222222222222222222222222'
       iv_expected_version = 1 ).
-    ASSERT ls_update-success = abap_true.
-    ASSERT ls_update-reference-version = 2.
+    cl_abap_unit_assert=>assert_true( act = ls_update-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_update-reference-version
+      exp = 2 ).
 
     DATA(ls_delete) = lo_service->delete(
       iv_repository_id    = lv_repository_id
       iv_name             = 'refs/heads/feature/test'
       iv_expected_version = 2 ).
-    ASSERT ls_delete-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_delete-success ).
     DATA(ls_after_delete) = lo_service->find(
       iv_repository_id = lv_repository_id iv_name = 'feature/test' ).
-    ASSERT ls_after_delete-name IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_after_delete-name ).
   ENDMETHOD.
 
   METHOD rejects_stale_update.
@@ -60,14 +66,16 @@ CLASS ltcl_branch_service IMPLEMENTATION.
       iv_repository_id = lv_repository_id
       iv_name          = 'main'
       iv_oid           = '3333333333333333333333333333333333333333' ).
-    ASSERT ls_created-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_created-success ).
     DATA(ls_result) = lo_service->update(
       iv_repository_id    = lv_repository_id
       iv_name             = 'main'
       iv_oid              = '4444444444444444444444444444444444444444'
       iv_expected_version = 0 ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'branch input is invalid'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'branch input is invalid' ).
   ENDMETHOD.
 
 ENDCLASS.

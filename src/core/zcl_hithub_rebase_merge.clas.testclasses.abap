@@ -18,10 +18,14 @@ CLASS ltcl_rebase_merge IMPLEMENTATION.
       iv_author = 'Maintainer <maintainer@example.test> 0 +0000'
       iv_committer = 'Maintainer <maintainer@example.test> 0 +0000'
       iv_message = 'Rebased pull request' iv_clean = abap_true ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT lines( ls_result-commit-parents ) = 1.
-    ASSERT ls_result-commit-parents[ 1 ] = 'rebased-target'.
-    ASSERT ls_result-oid IS NOT INITIAL.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_result-commit-parents )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-commit-parents[ 1 ]
+      exp = 'rebased-target' ).
+    cl_abap_unit_assert=>assert_not_initial( act = ls_result-oid ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -50,7 +50,7 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_type = 'blob' iv_payload = lv_payload ).
     lv_expected = CONV xstring( 'CAFE626C6F6220350068656C6C6F' ).
 
-    ASSERT lv_data = lv_expected.
+    cl_abap_unit_assert=>assert_equals( act = lv_data exp = lv_expected ).
   ENDMETHOD.
 
   METHOD decompresses_object_bytes.
@@ -74,12 +74,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_object = lo_codec->decompress( lv_compressed ).
 
-    ASSERT ls_object-type = 'blob'.
-    ASSERT ls_object-size = 5.
-    ASSERT ls_object-payload = lv_payload.
+    cl_abap_unit_assert=>assert_equals( act = ls_object-type exp = 'blob' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_object-size exp = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_object-payload
+      exp = lv_payload ).
     ls_object = lo_codec->decompress(
       iv_data = lv_compressed iv_max_size = 4 ).
-    ASSERT ls_object-type IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_object-type ).
   ENDMETHOD.
 
   METHOD rejects_malformed_objects.
@@ -100,20 +102,20 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_raw = cl_abap_codepage=>convert_to( source = 'blob 1' ).
     CONCATENATE lv_marker lv_raw INTO lv_compressed IN BYTE MODE.
     ls_object = lo_codec->decompress( lv_compressed ).
-    ASSERT ls_object-type IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_object-type ).
 
     lv_prefix = cl_abap_codepage=>convert_to( source = 'blob x' ).
     CONCATENATE lv_prefix lv_zero INTO lv_raw IN BYTE MODE.
     CONCATENATE lv_marker lv_raw INTO lv_compressed IN BYTE MODE.
     ls_object = lo_codec->decompress( lv_compressed ).
-    ASSERT ls_object-type IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_object-type ).
 
     lv_prefix = cl_abap_codepage=>convert_to( source = 'blob 2' ).
     lv_payload = cl_abap_codepage=>convert_to( source = 'x' ).
     CONCATENATE lv_prefix lv_zero lv_payload INTO lv_raw IN BYTE MODE.
     CONCATENATE lv_marker lv_raw INTO lv_compressed IN BYTE MODE.
     ls_object = lo_codec->decompress( lv_compressed ).
-    ASSERT ls_object-type IS INITIAL.
+    cl_abap_unit_assert=>assert_initial( act = ls_object-type ).
   ENDMETHOD.
 
 ENDCLASS.

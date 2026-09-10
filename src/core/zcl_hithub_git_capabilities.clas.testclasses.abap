@@ -15,50 +15,54 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lt_capabilities = zcl_hithub_git_capabilities=>advertised(
       'refs/heads/main' ).
-    ASSERT lines( lt_capabilities ) = 4.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_capabilities )
+      exp = 4 ).
     READ TABLE lt_capabilities WITH KEY table_line = 'no-thin'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'no-progress'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'symref=HEAD:refs/heads/main'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'agent=hithub'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'side-band-64k'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc <> 0.
+    cl_abap_unit_assert=>assert_differs( act = sy-subrc exp = 0 ).
   ENDMETHOD.
 
   METHOD advertises_receive_set.
     DATA lt_capabilities TYPE zcl_hithub_git_capabilities=>ty_capabilities.
 
     lt_capabilities = zcl_hithub_git_capabilities=>receive_advertised( ).
-    ASSERT lines( lt_capabilities ) = 7.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_capabilities )
+      exp = 7 ).
     READ TABLE lt_capabilities WITH KEY table_line = 'report-status'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'side-band-64k'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'no-thin'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'delete-refs'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'ofs-delta'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'agent=hithub'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_capabilities WITH KEY table_line = 'object-format=sha1'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
   ENDMETHOD.
 
   METHOD renders_capabilities.
@@ -66,8 +70,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     APPEND 'no-thin' TO lt_capabilities.
     APPEND 'agent=hithub' TO lt_capabilities.
-    ASSERT zcl_hithub_git_capabilities=>render( lt_capabilities ) =
-      'no-thin agent=hithub'.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_git_capabilities=>render( lt_capabilities )
+      exp = 'no-thin agent=hithub' ).
   ENDMETHOD.
 
   METHOD omits_empty_symref.
@@ -76,7 +81,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lt_capabilities = zcl_hithub_git_capabilities=>advertised( '' ).
     READ TABLE lt_capabilities WITH KEY table_line = 'symref=HEAD:'
       TRANSPORTING NO FIELDS.
-    ASSERT sy-subrc <> 0.
+    cl_abap_unit_assert=>assert_differs( act = sy-subrc exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

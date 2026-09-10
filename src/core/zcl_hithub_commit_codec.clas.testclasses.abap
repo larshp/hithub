@@ -24,13 +24,25 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_payload = zcl_hithub_commit_codec=>encode( ls_commit ).
     ls_decoded = zcl_hithub_commit_codec=>decode( lv_payload ).
 
-    ASSERT ls_decoded-tree = ls_commit-tree.
-    ASSERT lines( ls_decoded-parents ) = 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-tree
+      exp = ls_commit-tree ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_decoded-parents )
+      exp = 1 ).
     READ TABLE ls_decoded-parents INTO lv_parent INDEX 1.
-    ASSERT lv_parent = '2222222222222222222222222222222222222222'.
-    ASSERT ls_decoded-author = ls_commit-author.
-    ASSERT ls_decoded-committer = ls_commit-committer.
-    ASSERT ls_decoded-message = ls_commit-message.
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_parent
+      exp = '2222222222222222222222222222222222222222' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-author
+      exp = ls_commit-author ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-committer
+      exp = ls_commit-committer ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-message
+      exp = ls_commit-message ).
   ENDMETHOD.
 
 ENDCLASS.

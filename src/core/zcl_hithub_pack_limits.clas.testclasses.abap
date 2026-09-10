@@ -11,10 +11,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_limits) = NEW zcl_hithub_pack_limits(
       iv_max_pack_size = 100 iv_max_objects = 2 ).
 
-    ASSERT lo_limits->is_allowed( iv_pack_size = 100 iv_objects = 2 ) = abap_true.
-    ASSERT lo_limits->is_allowed( iv_pack_size = 101 iv_objects = 2 ) = abap_false.
-    ASSERT lo_limits->is_allowed( iv_pack_size = 100 iv_objects = 3 ) = abap_false.
-    ASSERT lo_limits->is_allowed( iv_pack_size = -1 iv_objects = 0 ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_limits->is_allowed( iv_pack_size = 100 iv_objects = 2 ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_limits->is_allowed( iv_pack_size = 101 iv_objects = 2 ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_limits->is_allowed( iv_pack_size = 100 iv_objects = 3 ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_limits->is_allowed( iv_pack_size = -1 iv_objects = 0 ) ).
   ENDMETHOD.
 
 ENDCLASS.

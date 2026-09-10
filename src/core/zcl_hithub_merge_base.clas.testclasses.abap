@@ -17,8 +17,10 @@ CLASS ltcl_merge_base IMPLEMENTATION.
       ( oid = 'base' )
       ( oid = 'left' parent = 'base' )
       ( oid = 'right' parent = 'base' ) ).
-    ASSERT zcl_hithub_merge_base=>find(
-      it_commits = lt_commits iv_head_a = 'left' iv_head_b = 'right' ) = 'base'.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_merge_base=>find(
+        it_commits = lt_commits iv_head_a = 'left' iv_head_b = 'right' )
+      exp = 'base' ).
   ENDMETHOD.
 
   METHOD walks_merge_parents.
@@ -28,16 +30,19 @@ CLASS ltcl_merge_base IMPLEMENTATION.
       ( oid = 'left' parent = 'base' )
       ( oid = 'right' parent = 'base' )
       ( oid = 'merge' parent = 'left' parent2 = 'right' ) ).
-    ASSERT zcl_hithub_merge_base=>find(
-      it_commits = lt_commits iv_head_a = 'merge' iv_head_b = 'right' ) = 'right'.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_merge_base=>find(
+        it_commits = lt_commits iv_head_a = 'merge' iv_head_b = 'right' )
+      exp = 'right' ).
   ENDMETHOD.
 
   METHOD rejects_disconnected_graph.
     DATA lt_commits TYPE zcl_hithub_merge_base=>ty_commits.
     lt_commits = VALUE #(
       ( oid = 'left' ) ( oid = 'right' ) ).
-    ASSERT zcl_hithub_merge_base=>find(
-      it_commits = lt_commits iv_head_a = 'left' iv_head_b = 'right' ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_merge_base=>find(
+        it_commits = lt_commits iv_head_a = 'left' iv_head_b = 'right' ) ).
   ENDMETHOD.
 
 ENDCLASS.

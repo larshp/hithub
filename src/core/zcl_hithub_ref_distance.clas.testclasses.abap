@@ -20,8 +20,8 @@ CLASS ltcl_ref_distance IMPLEMENTATION.
       ( oid = 'right' parent = 'base' ) ).
     ls_distance = zcl_hithub_ref_distance=>calculate(
       it_commits = lt_commits iv_head_a = 'left' iv_head_b = 'right' ).
-    ASSERT ls_distance-ahead = 1.
-    ASSERT ls_distance-behind = 1.
+    cl_abap_unit_assert=>assert_equals( act = ls_distance-ahead exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_distance-behind exp = 1 ).
   ENDMETHOD.
 
   METHOD counts_ancestor_ref.
@@ -32,8 +32,8 @@ CLASS ltcl_ref_distance IMPLEMENTATION.
       ( oid = 'tip' parent = 'base' ) ).
     ls_distance = zcl_hithub_ref_distance=>calculate(
       it_commits = lt_commits iv_head_a = 'base' iv_head_b = 'tip' ).
-    ASSERT ls_distance-ahead = 0.
-    ASSERT ls_distance-behind = 1.
+    cl_abap_unit_assert=>assert_equals( act = ls_distance-ahead exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_distance-behind exp = 1 ).
   ENDMETHOD.
 
   METHOD counts_merge_history.
@@ -46,8 +46,8 @@ CLASS ltcl_ref_distance IMPLEMENTATION.
       ( oid = 'merge' parent = 'left' parent2 = 'right' ) ).
     ls_distance = zcl_hithub_ref_distance=>calculate(
       it_commits = lt_commits iv_head_a = 'merge' iv_head_b = 'right' ).
-    ASSERT ls_distance-ahead = 2.
-    ASSERT ls_distance-behind = 0.
+    cl_abap_unit_assert=>assert_equals( act = ls_distance-ahead exp = 2 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_distance-behind exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

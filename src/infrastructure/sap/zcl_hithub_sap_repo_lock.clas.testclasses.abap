@@ -47,19 +47,23 @@ CLASS ltcl_sap_repo_lock IMPLEMENTATION.
       io_enqueue = lo_enqueue ).
     DATA(lv_repository_id) = |sap-lock-repository|.
 
-    ASSERT lo_server_a->zif_hithub_repository_lock~acquire(
-      iv_repository_id = lv_repository_id iv_owner = 'server-a'
-      iv_timeout_seconds = 0 ) = abap_true.
-    ASSERT lo_server_b->zif_hithub_repository_lock~acquire(
-      iv_repository_id = lv_repository_id iv_owner = 'server-b'
-      iv_timeout_seconds = 0 ) = abap_false.
-    ASSERT lo_server_a->zif_hithub_repository_lock~is_held(
-      iv_repository_id = lv_repository_id iv_owner = 'server-a' ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_server_a->zif_hithub_repository_lock~acquire(
+        iv_repository_id = lv_repository_id iv_owner = 'server-a'
+        iv_timeout_seconds = 0 ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = lo_server_b->zif_hithub_repository_lock~acquire(
+        iv_repository_id = lv_repository_id iv_owner = 'server-b'
+        iv_timeout_seconds = 0 ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_server_a->zif_hithub_repository_lock~is_held(
+        iv_repository_id = lv_repository_id iv_owner = 'server-a' ) ).
     lo_server_a->zif_hithub_repository_lock~release(
       iv_repository_id = lv_repository_id iv_owner = 'server-a' ).
-    ASSERT lo_server_b->zif_hithub_repository_lock~acquire(
-      iv_repository_id = lv_repository_id iv_owner = 'server-b'
-      iv_timeout_seconds = 0 ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_server_b->zif_hithub_repository_lock~acquire(
+        iv_repository_id = lv_repository_id iv_owner = 'server-b'
+        iv_timeout_seconds = 0 ) ).
     lo_server_b->zif_hithub_repository_lock~release(
       iv_repository_id = lv_repository_id iv_owner = 'server-b' ).
   ENDMETHOD.

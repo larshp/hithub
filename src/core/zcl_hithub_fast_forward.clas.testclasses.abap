@@ -64,9 +64,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_old-oid = '0000000000000000000000000000000000000000'.
     ls_new = ls_old.
     ls_new-oid = '1111111111111111111111111111111111111111'.
-    ASSERT zcl_hithub_fast_forward=>allows_update(
-      io_reachability = lo_reachability is_old = ls_old is_new = ls_new ) =
-      abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_fast_forward=>allows_update(
+        io_reachability = lo_reachability is_old = ls_old is_new = ls_new ) ).
   ENDMETHOD.
 
   METHOD allows_ancestor_update.
@@ -106,9 +106,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_reachability) = NEW zcl_hithub_reachability( lo_reader ).
     ls_old = ls_old_object-key.
     ls_new = ls_new_object-key.
-    ASSERT zcl_hithub_fast_forward=>allows_update(
-      io_reachability = lo_reachability is_old = ls_old is_new = ls_new ) =
-      abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_fast_forward=>allows_update(
+        io_reachability = lo_reachability is_old = ls_old is_new = ls_new ) ).
   ENDMETHOD.
 
   METHOD rejects_non_ancestor.
@@ -123,9 +123,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_old-oid = '1111111111111111111111111111111111111111'.
     ls_new = ls_old.
     ls_new-oid = '2222222222222222222222222222222222222222'.
-    ASSERT zcl_hithub_fast_forward=>allows_update(
-      io_reachability = lo_reachability is_old = ls_old is_new = ls_new ) =
-      abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_fast_forward=>allows_update(
+        io_reachability = lo_reachability is_old = ls_old is_new = ls_new ) ).
   ENDMETHOD.
 
 ENDCLASS.

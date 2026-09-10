@@ -69,12 +69,24 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND ls_object TO lt_objects.
     APPEND ls_object TO lt_objects.
 
-    ASSERT lo_quarantine->zif_hithub_quarantine~stage( lt_objects ) = 1.
-    ASSERT lo_quarantine->zif_hithub_quarantine~count( ) = 1.
-    ASSERT lo_store->stored_count( ) = 0.
-    ASSERT lo_quarantine->zif_hithub_quarantine~promote( ) = 1.
-    ASSERT lo_store->stored_count( ) = 1.
-    ASSERT lo_quarantine->zif_hithub_quarantine~count( ) = 0.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~stage( lt_objects )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~count( )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_store->stored_count( )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~promote( )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_store->stored_count( )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~count( )
+      exp = 0 ).
   ENDMETHOD.
 
   METHOD discards_without_promotion.
@@ -90,8 +102,12 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_quarantine->zif_hithub_quarantine~stage( lt_objects ).
     lo_quarantine->zif_hithub_quarantine~discard( ).
 
-    ASSERT lo_quarantine->zif_hithub_quarantine~count( ) = 0.
-    ASSERT lo_store->stored_count( ) = 0.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_quarantine->zif_hithub_quarantine~count( )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_store->stored_count( )
+      exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -16,8 +16,8 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_encoded = zcl_hithub_blob_codec=>encode( lv_payload ).
     lv_decoded = zcl_hithub_blob_codec=>decode( lv_encoded ).
 
-    ASSERT lv_encoded = lv_payload.
-    ASSERT lv_decoded = lv_payload.
+    cl_abap_unit_assert=>assert_equals( act = lv_encoded exp = lv_payload ).
+    cl_abap_unit_assert=>assert_equals( act = lv_decoded exp = lv_payload ).
   ENDMETHOD.
 
 ENDCLASS.

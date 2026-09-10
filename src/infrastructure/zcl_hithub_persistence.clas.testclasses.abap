@@ -90,46 +90,64 @@ CLASS ltcl_persistence IMPLEMENTATION.
   METHOD defaults_to_sap.
     " An installed ICF service configures nothing, so the untouched default has
     " to be the SAP adapter set.
-    ASSERT zcl_hithub_persistence=>mode( ) = zcl_hithub_persistence=>c_sap.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_persistence=>mode( )
+      exp = zcl_hithub_persistence=>c_sap ).
     zcl_hithub_persistence=>use_open_abap( ).
-    ASSERT zcl_hithub_persistence=>mode( ) = zcl_hithub_persistence=>c_open_abap.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_persistence=>mode( )
+      exp = zcl_hithub_persistence=>c_open_abap ).
     zcl_hithub_persistence=>use_sap( ).
-    ASSERT zcl_hithub_persistence=>mode( ) = zcl_hithub_persistence=>c_sap.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_persistence=>mode( )
+      exp = zcl_hithub_persistence=>c_sap ).
   ENDMETHOD.
 
   METHOD serves_sap_adapters.
     zcl_hithub_persistence=>use_sap( ).
-    ASSERT is_unit_work(
-      zcl_hithub_persistence=>transaction( ) ) = abap_true.
-    ASSERT is_sap_lock(
-      zcl_hithub_persistence=>repository_lock( ) ) = abap_true.
-    ASSERT is_sap_metadata_store(
-      zcl_hithub_persistence=>metadata_store( ) ) = abap_true.
-    ASSERT is_sap_object_store(
-      zcl_hithub_persistence=>object_store( ) ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = is_unit_work(
+        zcl_hithub_persistence=>transaction( ) ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = is_sap_lock(
+        zcl_hithub_persistence=>repository_lock( ) ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = is_sap_metadata_store(
+        zcl_hithub_persistence=>metadata_store( ) ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = is_sap_object_store(
+        zcl_hithub_persistence=>object_store( ) ) ).
   ENDMETHOD.
 
   METHOD serves_open_abap_adapters.
     zcl_hithub_persistence=>use_open_abap( ).
     " The unit of work does not vary: COMMIT WORK and ROLLBACK WORK end the
     " LUW in both runtimes, so both modes serve the same class.
-    ASSERT is_unit_work(
-      zcl_hithub_persistence=>transaction( ) ) = abap_true.
-    ASSERT is_sap_lock(
-      zcl_hithub_persistence=>repository_lock( ) ) = abap_false.
-    ASSERT is_sap_metadata_store(
-      zcl_hithub_persistence=>metadata_store( ) ) = abap_false.
-    ASSERT is_sap_object_store(
-      zcl_hithub_persistence=>object_store( ) ) = abap_false.
-    ASSERT zcl_hithub_persistence=>transaction( ) IS BOUND.
-    ASSERT zcl_hithub_persistence=>repository_lock( ) IS BOUND.
+    cl_abap_unit_assert=>assert_true(
+      act = is_unit_work(
+        zcl_hithub_persistence=>transaction( ) ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = is_sap_lock(
+        zcl_hithub_persistence=>repository_lock( ) ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = is_sap_metadata_store(
+        zcl_hithub_persistence=>metadata_store( ) ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = is_sap_object_store(
+        zcl_hithub_persistence=>object_store( ) ) ).
+    cl_abap_unit_assert=>assert_bound(
+      act = zcl_hithub_persistence=>transaction( ) ).
+    cl_abap_unit_assert=>assert_bound(
+      act = zcl_hithub_persistence=>repository_lock( ) ).
   ENDMETHOD.
 
   METHOD shares_the_event_sink.
     zcl_hithub_persistence=>use_sap( ).
-    ASSERT zcl_hithub_persistence=>event_sink( ) IS BOUND.
+    cl_abap_unit_assert=>assert_bound(
+      act = zcl_hithub_persistence=>event_sink( ) ).
     zcl_hithub_persistence=>use_open_abap( ).
-    ASSERT zcl_hithub_persistence=>event_sink( ) IS BOUND.
+    cl_abap_unit_assert=>assert_bound(
+      act = zcl_hithub_persistence=>event_sink( ) ).
   ENDMETHOD.
 
   METHOD serves_the_asset_store.
@@ -139,7 +157,7 @@ CLASS ltcl_persistence IMPLEMENTATION.
     " where abapGit put the browser assets; the local runtime never can.
     zcl_hithub_persistence=>use_sap( ).
     lo_sap ?= zcl_hithub_persistence=>asset_store( ).
-    ASSERT lo_sap IS BOUND.
+    cl_abap_unit_assert=>assert_bound( act = lo_sap ).
     zcl_hithub_persistence=>use_open_abap( ).
     CLEAR lo_sap.
     TRY.
@@ -147,8 +165,9 @@ CLASS ltcl_persistence IMPLEMENTATION.
       CATCH cx_sy_move_cast_error.
         CLEAR lo_sap.
     ENDTRY.
-    ASSERT lo_sap IS NOT BOUND.
-    ASSERT zcl_hithub_persistence=>asset_store( ) IS BOUND.
+    cl_abap_unit_assert=>assert_not_bound( act = lo_sap ).
+    cl_abap_unit_assert=>assert_bound(
+      act = zcl_hithub_persistence=>asset_store( ) ).
   ENDMETHOD.
 
 ENDCLASS.

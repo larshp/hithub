@@ -21,8 +21,8 @@ CLASS ltcl_merge_policy IMPLEMENTATION.
       iv_pull_request_state = zcl_hithub_pull_request_state=>c_open
       iv_mergeability = zcl_hithub_mergeability=>c_clean
       iv_approved_reviews = 1 ).
-    ASSERT ls_result-allowed = abap_true.
-    ASSERT ls_result-reason IS INITIAL.
+    cl_abap_unit_assert=>assert_true( act = ls_result-allowed ).
+    cl_abap_unit_assert=>assert_initial( act = ls_result-reason ).
   ENDMETHOD.
 
   METHOD rejects_non_clean_request.
@@ -33,8 +33,10 @@ CLASS ltcl_merge_policy IMPLEMENTATION.
       iv_pull_request_state = zcl_hithub_pull_request_state=>c_open
       iv_mergeability = zcl_hithub_mergeability=>c_conflicting
       iv_approved_reviews = 0 ).
-    ASSERT ls_result-allowed = abap_false.
-    ASSERT ls_result-reason = 'pull request is conflicting'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-allowed ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'pull request is conflicting' ).
   ENDMETHOD.
 
   METHOD rejects_insufficient_review.
@@ -47,8 +49,10 @@ CLASS ltcl_merge_policy IMPLEMENTATION.
       iv_pull_request_state = zcl_hithub_pull_request_state=>c_open
       iv_mergeability = zcl_hithub_mergeability=>c_clean
       iv_approved_reviews = 1 ).
-    ASSERT ls_result-allowed = abap_false.
-    ASSERT ls_result-reason = 'target branch protection rejected the merge'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-allowed ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'target branch protection rejected the merge' ).
   ENDMETHOD.
 
 ENDCLASS.

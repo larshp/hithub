@@ -13,7 +13,9 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_header = zcl_hithub_object_header=>generate(
       iv_type = 'blob' iv_size = 4 ).
 
-    ASSERT lv_header = CONV xstring( '626C6F62203400' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_header
+      exp = CONV xstring( '626C6F62203400' ) ).
   ENDMETHOD.
 
 ENDCLASS.

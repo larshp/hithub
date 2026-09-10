@@ -17,28 +17,30 @@ CLASS ltcl_hithub_json IMPLEMENTATION.
       iv_json = '{"name":"demo","count":2,"enabled":true,"empty":null}' ).
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
 
-    ASSERT ls_document-valid = abap_true.
-    ASSERT lines( ls_document-members ) = 4.
+    cl_abap_unit_assert=>assert_true( act = ls_document-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_document-members )
+      exp = 4 ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'name'.
-    ASSERT ls_member-kind = 'string'.
-    ASSERT ls_member-value = 'demo'.
+    cl_abap_unit_assert=>assert_equals( act = ls_member-kind exp = 'string' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_member-value exp = 'demo' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'count'.
-    ASSERT ls_member-kind = 'number'.
-    ASSERT ls_member-value = '2'.
+    cl_abap_unit_assert=>assert_equals( act = ls_member-kind exp = 'number' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_member-value exp = '2' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'enabled'.
-    ASSERT ls_member-kind = 'boolean'.
+    cl_abap_unit_assert=>assert_equals( act = ls_member-kind exp = 'boolean' ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'empty'.
-    ASSERT ls_member-kind = 'null'.
+    cl_abap_unit_assert=>assert_equals( act = ls_member-kind exp = 'null' ).
   ENDMETHOD.
 
   METHOD rejects_malformed_json.
     DATA(ls_document) = zcl_hithub_json=>parse(
       iv_json = '{"name":}' ).
-    ASSERT ls_document-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_document-valid ).
 
     ls_document = zcl_hithub_json=>parse(
       iv_json = '{"name":"unterminated}' ).
-    ASSERT ls_document-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_document-valid ).
   ENDMETHOD.
 
   METHOD serializes_and_escapes_values.
@@ -58,13 +60,15 @@ CLASS ltcl_hithub_json IMPLEMENTATION.
     APPEND ls_member TO lt_members.
 
     DATA(lv_json) = zcl_hithub_json=>serialize( lt_members ).
-    ASSERT lv_json CS '\"'.
-    ASSERT lv_json CS '\\'.
-    ASSERT lv_json CS '\n'.
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS '\"' ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS '\\' ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS '\n' ) ).
     DATA(ls_document) = zcl_hithub_json=>parse( lv_json ).
-    ASSERT ls_document-valid = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_document-valid ).
     READ TABLE ls_document-members INTO ls_member WITH KEY name = 'message'.
-    ASSERT ls_member-value = 'quote " slash \' && lv_newline && 'next'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_member-value
+      exp = 'quote " slash \' && lv_newline && 'next' ).
   ENDMETHOD.
 
 ENDCLASS.

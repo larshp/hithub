@@ -20,13 +20,18 @@ CLASS ltcl_pr_comments IMPLEMENTATION.
     ls_comment-body = 'Please add a test.'.
     ls_comment-created_at = '2026-08-28T12:00:00Z'.
 
-    ASSERT zcl_hithub_pr_comments=>add( ls_comment ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pr_comments=>add( ls_comment ) ).
     lt_comments = zcl_hithub_pr_comments=>list(
       iv_repository_id   = ls_comment-repository_id
       iv_pull_request_id = ls_comment-pull_request_id ).
-    ASSERT lines( lt_comments ) = 1.
-    ASSERT lt_comments[ 1 ]-actor = 'reviewer'.
-    ASSERT lt_comments[ 1 ]-body = 'Please add a test.'.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_comments ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_comments[ 1 ]-actor
+      exp = 'reviewer' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_comments[ 1 ]-body
+      exp = 'Please add a test.' ).
   ENDMETHOD.
 
   METHOD rejects_duplicate_comment.
@@ -38,8 +43,10 @@ CLASS ltcl_pr_comments IMPLEMENTATION.
     ls_comment-body = 'First comment.'.
     ls_comment-created_at = '2026-08-28T12:00:00Z'.
 
-    ASSERT zcl_hithub_pr_comments=>add( ls_comment ) = abap_true.
-    ASSERT zcl_hithub_pr_comments=>add( ls_comment ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pr_comments=>add( ls_comment ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pr_comments=>add( ls_comment ) ).
   ENDMETHOD.
 
 ENDCLASS.

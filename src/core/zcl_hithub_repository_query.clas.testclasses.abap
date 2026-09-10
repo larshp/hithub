@@ -21,8 +21,11 @@ CLASS ltcl_repository_query IMPLEMENTATION.
     DATA(lo_query) = NEW zcl_hithub_repository_query( lo_metadata ).
 
     DATA(ls_found) = lo_query->find( 'QUERY-REPO' ).
-    ASSERT ls_found-id = ls_repository-id.
-    ASSERT lo_query->find( 'missing-repo' )-id IS INITIAL.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_found-id
+      exp = ls_repository-id ).
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_query->find( 'missing-repo' )-id ).
   ENDMETHOD.
 
   METHOD lists_visible_repositories.
@@ -43,10 +46,10 @@ CLASS ltcl_repository_query IMPLEMENTATION.
     DATA(lt_repositories) = lo_query->list( ).
     READ TABLE lt_repositories TRANSPORTING NO FIELDS
       WITH KEY name = 'visible-query-repo'.
-    ASSERT sy-subrc = 0.
+    cl_abap_unit_assert=>assert_subrc( ).
     READ TABLE lt_repositories TRANSPORTING NO FIELDS
       WITH KEY name = 'deleted-query-repo'.
-    ASSERT sy-subrc <> 0.
+    cl_abap_unit_assert=>assert_differs( act = sy-subrc exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

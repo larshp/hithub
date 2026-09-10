@@ -71,31 +71,52 @@ CLASS ltcl_static_files IMPLEMENTATION.
   METHOD resolves_the_shell.
     " The frontend routes live below /ui and are rendered by index.html, so
     " they cannot 404 on a deep link the way a missing file does.
-    ASSERT zcl_hithub_static_files=>resolve_name( '/' ) = 'index.html'.
-    ASSERT zcl_hithub_static_files=>resolve_name( '' ) = 'index.html'.
-    ASSERT zcl_hithub_static_files=>resolve_name( '/ui' ) = 'index.html'.
-    ASSERT zcl_hithub_static_files=>resolve_name( '/ui/create' ) = 'index.html'.
-    ASSERT zcl_hithub_static_files=>resolve_name(
-      '/ui/repos/demo/blob/main/README.md' ) = 'index.html'.
-    ASSERT zcl_hithub_static_files=>resolve_name( '/?q=alpha' ) = 'index.html'.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name( '/' )
+      exp = 'index.html' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name( '' )
+      exp = 'index.html' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name( '/ui' )
+      exp = 'index.html' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name( '/ui/create' )
+      exp = 'index.html' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name(
+        '/ui/repos/demo/blob/main/README.md' )
+      exp = 'index.html' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name( '/?q=alpha' )
+      exp = 'index.html' ).
   ENDMETHOD.
 
   METHOD resolves_asset_names.
-    ASSERT zcl_hithub_static_files=>resolve_name( '/app.js' ) = 'app.js'.
-    ASSERT zcl_hithub_static_files=>resolve_name(
-      '/styles.css' ) = 'styles.css'.
-    ASSERT zcl_hithub_static_files=>resolve_name(
-      '/index.html' ) = 'index.html'.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name( '/app.js' )
+      exp = 'app.js' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name(
+        '/styles.css' )
+      exp = 'styles.css' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_static_files=>resolve_name(
+        '/index.html' )
+      exp = 'index.html' ).
   ENDMETHOD.
 
   METHOD leaves_other_paths_unresolved.
     " Only the shell and root level file names are the frontend's, so an
     " unknown path still gets the handler's 404 instead of the shell.
-    ASSERT zcl_hithub_static_files=>resolve_name( '/unknown' ) IS INITIAL.
-    ASSERT zcl_hithub_static_files=>resolve_name(
-      '/assets/app.js' ) IS INITIAL.
-    ASSERT zcl_hithub_static_files=>resolve_name(
-      '/../secret.txt' ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_static_files=>resolve_name( '/unknown' ) ).
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_static_files=>resolve_name(
+        '/assets/app.js' ) ).
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_static_files=>resolve_name(
+        '/../secret.txt' ) ).
   ENDMETHOD.
 
   METHOD serves_the_shell.
@@ -103,12 +124,20 @@ CLASS ltcl_static_files IMPLEMENTATION.
     DATA(lo_service) = NEW zcl_hithub_static_files( lo_store ).
 
     DATA(ls_response) = lo_service->serve( '/ui/repos/demo' ).
-    ASSERT lo_store->mv_last_name = 'index.html'.
-    ASSERT ls_response-status = 200.
-    ASSERT ls_response-content_type = 'text/html; charset=utf-8'.
-    ASSERT ls_response-cache_control = 'no-cache'.
-    ASSERT ls_response-body = CONV xstring( '48690A' ).
-    ASSERT ls_response-etag IS NOT INITIAL.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_store->mv_last_name
+      exp = 'index.html' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_response-status exp = 200 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_response-content_type
+      exp = 'text/html; charset=utf-8' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_response-cache_control
+      exp = 'no-cache' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_response-body
+      exp = CONV xstring( '48690A' ) ).
+    cl_abap_unit_assert=>assert_not_initial( act = ls_response-etag ).
   ENDMETHOD.
 
   METHOD types_the_asset.
@@ -118,8 +147,10 @@ CLASS ltcl_static_files IMPLEMENTATION.
       NEW lcl_asset_store( 'application/octet-stream' ) ).
 
     DATA(ls_response) = lo_service->serve( '/app.js' ).
-    ASSERT ls_response-status = 200.
-    ASSERT ls_response-content_type = 'text/javascript; charset=utf-8'.
+    cl_abap_unit_assert=>assert_equals( act = ls_response-status exp = 200 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_response-content_type
+      exp = 'text/javascript; charset=utf-8' ).
   ENDMETHOD.
 
   METHOD revalidates_with_the_etag.
@@ -130,21 +161,27 @@ CLASS ltcl_static_files IMPLEMENTATION.
     DATA(ls_second) = lo_service->serve(
       iv_path          = '/index.html'
       iv_if_none_match = ls_first-etag ).
-    ASSERT ls_second-status = 304.
-    ASSERT ls_second-body IS INITIAL.
-    ASSERT ls_second-etag = ls_first-etag.
+    cl_abap_unit_assert=>assert_equals( act = ls_second-status exp = 304 ).
+    cl_abap_unit_assert=>assert_initial( act = ls_second-body ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_second-etag
+      exp = ls_first-etag ).
     DATA(ls_stale) = lo_service->serve(
       iv_path          = '/index.html'
       iv_if_none_match = '"0000000000000000000000000000000000000000"' ).
-    ASSERT ls_stale-status = 200.
+    cl_abap_unit_assert=>assert_equals( act = ls_stale-status exp = 200 ).
   ENDMETHOD.
 
   METHOD reports_missing_assets.
     DATA(lo_service) = NEW zcl_hithub_static_files(
       NEW lcl_asset_store( ) ).
 
-    ASSERT lo_service->serve( '/styles.css' )-status = 404.
-    ASSERT lo_service->serve( '/unknown' )-status = 404.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_service->serve( '/styles.css' )-status
+      exp = 404 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_service->serve( '/unknown' )-status
+      exp = 404 ).
   ENDMETHOD.
 
   METHOD reports_a_failing_store.
@@ -153,7 +190,9 @@ CLASS ltcl_static_files IMPLEMENTATION.
     DATA(lo_service) = NEW zcl_hithub_static_files(
       NEW lcl_failing_store( ) ).
 
-    ASSERT lo_service->serve( '/index.html' )-status = 500.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_service->serve( '/index.html' )-status
+      exp = 500 ).
   ENDMETHOD.
 
 ENDCLASS.

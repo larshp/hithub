@@ -20,9 +20,11 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_response = zcl_hithub_upload_negotiation=>build(
       is_request = ls_request it_common = lt_common ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = 'NAK' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = 'NAK' && cl_abap_char_utilities=>newline ) ).
   ENDMETHOD.
 
   METHOD returns_detailed_ack.
@@ -40,8 +42,10 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_response = zcl_hithub_upload_negotiation=>build(
       is_request = ls_request it_common = lt_common ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = |ACK { lv_oid } common| && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = |ACK { lv_oid } common| && cl_abap_char_utilities=>newline ) ).
   ENDMETHOD.
 
   METHOD returns_basic_ack.
@@ -58,8 +62,10 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_response = zcl_hithub_upload_negotiation=>build(
       is_request = ls_request it_common = lt_common ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = |ACK { lv_oid }| && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = |ACK { lv_oid }| && cl_abap_char_utilities=>newline ) ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -25,14 +25,24 @@ CLASS ltcl_merge_commit IMPLEMENTATION.
       iv_committer         = 'Maintainer <maintainer@example.test> 0 +0000'
       iv_message           = 'Merge pull request'
       iv_clean             = abap_true ).
-    ASSERT ls_result-success = abap_true.
-    ASSERT lines( ls_result-commit-parents ) = 2.
-    ASSERT ls_result-commit-parents[ 1 ] = 'target-oid'.
-    ASSERT ls_result-commit-parents[ 2 ] = 'source-oid'.
-    ASSERT ls_result-oid IS NOT INITIAL.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_result-commit-parents )
+      exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-commit-parents[ 1 ]
+      exp = 'target-oid' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-commit-parents[ 2 ]
+      exp = 'source-oid' ).
+    cl_abap_unit_assert=>assert_not_initial( act = ls_result-oid ).
     ls_decoded = zcl_hithub_commit_codec=>decode( ls_result-payload ).
-    ASSERT ls_decoded-tree = 'tree-oid'.
-    ASSERT ls_decoded-message = 'Merge pull request'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-tree
+      exp = 'tree-oid' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-message
+      exp = 'Merge pull request' ).
   ENDMETHOD.
 
   METHOD rejects_conflicting_merge.
@@ -42,9 +52,10 @@ CLASS ltcl_merge_commit IMPLEMENTATION.
       iv_expected_head_oid = 'source' iv_current_head_oid = 'source'
       iv_author = 'author' iv_committer = 'committer'
       iv_message = 'merge' iv_clean = abap_false ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason =
-      'cannot create a merge commit for a conflicting merge'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'cannot create a merge commit for a conflicting merge' ).
   ENDMETHOD.
 
   METHOD rejects_stale_head.
@@ -54,8 +65,10 @@ CLASS ltcl_merge_commit IMPLEMENTATION.
       iv_expected_head_oid = 'old-source' iv_current_head_oid = 'new-source'
       iv_author = 'author' iv_committer = 'committer'
       iv_message = 'merge' iv_clean = abap_true ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'merge request head is stale'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'merge request head is stale' ).
   ENDMETHOD.
 
   METHOD rejects_invalid_identity.
@@ -65,8 +78,10 @@ CLASS ltcl_merge_commit IMPLEMENTATION.
       iv_expected_head_oid = 'source' iv_current_head_oid = 'source'
       iv_author = 'invalid' iv_committer = 'invalid'
       iv_message = 'merge' iv_clean = abap_true ).
-    ASSERT ls_result-success = abap_false.
-    ASSERT ls_result-reason = 'merge commit identity is invalid'.
+    cl_abap_unit_assert=>assert_false( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-reason
+      exp = 'merge commit identity is invalid' ).
   ENDMETHOD.
 
 ENDCLASS.

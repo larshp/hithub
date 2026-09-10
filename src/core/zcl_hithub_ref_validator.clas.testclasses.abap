@@ -9,26 +9,43 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD accepts_normal_refs.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/main' ) = abap_true.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/tags/v1.2.3' ) = abap_true.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'topic/feature_x' ) = abap_true.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'a@b' ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/main' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/tags/v1.2.3' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_ref_validator=>is_valid( 'topic/feature_x' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_ref_validator=>is_valid( 'a@b' ) ).
   ENDMETHOD.
 
   METHOD rejects_forbidden_refs.
-    ASSERT zcl_hithub_ref_validator=>is_valid( '' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( '@' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( '/main' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'main/' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'feature//x' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'feature..x' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'feature@{x' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/.hidden' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/main.' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/main x' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/main~x' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/main[x' ) = abap_false.
-    ASSERT zcl_hithub_ref_validator=>is_valid( 'refs/heads/main\\x' ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( '' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( '@' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( '/main' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'main/' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'feature//x' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'feature..x' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'feature@{x' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/.hidden' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/main.' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/main x' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/main~x' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/main[x' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_ref_validator=>is_valid( 'refs/heads/main\\x' ) ).
   ENDMETHOD.
 
 ENDCLASS.

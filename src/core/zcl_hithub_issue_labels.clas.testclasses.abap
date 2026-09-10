@@ -10,25 +10,31 @@ ENDCLASS.
 CLASS ltcl_issue_labels IMPLEMENTATION.
 
   METHOD manages_labels.
-    ASSERT zcl_hithub_issue_labels=>add(
-      iv_repository_id = 'issue-label-repository'
-      iv_issue_id = 'issue-1' iv_label = 'bug' ) = abap_true.
-    ASSERT zcl_hithub_issue_labels=>add(
-      iv_repository_id = 'issue-label-repository'
-      iv_issue_id = 'issue-1' iv_label = 'help wanted' ) = abap_true.
-    ASSERT zcl_hithub_issue_labels=>add(
-      iv_repository_id = 'issue-label-repository'
-      iv_issue_id = 'issue-1' iv_label = 'bug' ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_labels=>add(
+        iv_repository_id = 'issue-label-repository'
+        iv_issue_id = 'issue-1' iv_label = 'bug' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_labels=>add(
+        iv_repository_id = 'issue-label-repository'
+        iv_issue_id = 'issue-1' iv_label = 'help wanted' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_issue_labels=>add(
+        iv_repository_id = 'issue-label-repository'
+        iv_issue_id = 'issue-1' iv_label = 'bug' ) ).
     DATA(lt_labels) = zcl_hithub_issue_labels=>list(
       iv_repository_id = 'issue-label-repository' iv_issue_id = 'issue-1' ).
-    ASSERT lines( lt_labels ) = 2.
-    ASSERT lt_labels[ 1 ] = 'bug'.
-    ASSERT zcl_hithub_issue_labels=>remove(
-      iv_repository_id = 'issue-label-repository'
-      iv_issue_id = 'issue-1' iv_label = 'bug' ) = abap_true.
-    ASSERT lines( zcl_hithub_issue_labels=>list(
-      iv_repository_id = 'issue-label-repository'
-      iv_issue_id      = 'issue-1' ) ) = 1.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_labels ) exp = 2 ).
+    cl_abap_unit_assert=>assert_equals( act = lt_labels[ 1 ] exp = 'bug' ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_labels=>remove(
+        iv_repository_id = 'issue-label-repository'
+        iv_issue_id = 'issue-1' iv_label = 'bug' ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( zcl_hithub_issue_labels=>list(
+        iv_repository_id = 'issue-label-repository'
+        iv_issue_id      = 'issue-1' ) )
+      exp = 1 ).
   ENDMETHOD.
 
 ENDCLASS.

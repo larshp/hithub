@@ -21,12 +21,15 @@ CLASS ltcl_pr_reviews IMPLEMENTATION.
     ls_review-body = 'Looks good.'.
     ls_review-created_at = '2026-08-28T12:00:00Z'.
 
-    ASSERT zcl_hithub_pr_reviews=>add( ls_review ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pr_reviews=>add( ls_review ) ).
     lt_reviews = zcl_hithub_pr_reviews=>list(
       iv_repository_id   = ls_review-repository_id
       iv_pull_request_id = ls_review-pull_request_id ).
-    ASSERT lines( lt_reviews ) = 1.
-    ASSERT lt_reviews[ 1 ]-state = zcl_hithub_pr_reviews=>c_approved.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_reviews ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_reviews[ 1 ]-state
+      exp = zcl_hithub_pr_reviews=>c_approved ).
   ENDMETHOD.
 
   METHOD rejects_unknown_state.
@@ -38,8 +41,10 @@ CLASS ltcl_pr_reviews IMPLEMENTATION.
     ls_review-state = 'unknown'.
     ls_review-created_at = '2026-08-28T12:00:00Z'.
 
-    ASSERT zcl_hithub_pr_reviews=>is_valid_state( ls_review-state ) = abap_false.
-    ASSERT zcl_hithub_pr_reviews=>add( ls_review ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pr_reviews=>is_valid_state( ls_review-state ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pr_reviews=>add( ls_review ) ).
   ENDMETHOD.
 
 ENDCLASS.

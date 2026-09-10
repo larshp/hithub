@@ -21,8 +21,10 @@ CLASS ltcl_repository_representation IMPLEMENTATION.
 
     DATA(ls_document) = zcl_hithub_json=>parse_data(
       zcl_hithub_repo_representation=>one( ls_repository ) ).
-    ASSERT ls_document-valid = abap_true.
-    ASSERT lines( ls_document-members ) = 5.
+    cl_abap_unit_assert=>assert_true( act = ls_document-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_document-members )
+      exp = 5 ).
   ENDMETHOD.
 
   METHOD serializes_repository_list.
@@ -42,10 +44,16 @@ CLASS ltcl_repository_representation IMPLEMENTATION.
       lt_repositories ).
     DATA(lv_json) = cl_abap_codepage=>convert_from( lv_body ).
     DATA(lv_last_offset) = strlen( lv_json ) - 1.
-    ASSERT lv_json(1) = '['.
-    ASSERT lv_json+lv_last_offset(1) = ']'.
-    ASSERT lv_json CS 'first-repository'.
-    ASSERT lv_json CS 'second-repository'.
+    cl_abap_unit_assert=>assert_equals(
+      act = substring( val = lv_json off = 0 len = 1 )
+      exp = '[' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = substring( val = lv_json off = lv_last_offset len = 1 )
+      exp = ']' ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( lv_json CS 'first-repository' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( lv_json CS 'second-repository' ) ).
   ENDMETHOD.
 
 ENDCLASS.

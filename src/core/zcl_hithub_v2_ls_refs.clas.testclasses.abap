@@ -30,12 +30,14 @@ CLASS ltcl_test IMPLEMENTATION.
       it_references    = lt_references
       it_ref_prefixes  = lt_prefixes ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = '1111111111111111111111111111111111111111 refs/heads/main' &&
-        cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = '1111111111111111111111111111111111111111 refs/heads/main' &&
+        cl_abap_char_utilities=>newline ) ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
   ENDMETHOD.
 
   METHOD includes_symref_target.
@@ -54,9 +56,11 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_repository_id = 'repo-v2'
       it_references = lt_references iv_symrefs = abap_true ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to(
-      source = '1111111111111111111111111111111111111111 HEAD' &&
-        ' symref-target:refs/heads/main' && cl_abap_char_utilities=>newline ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to(
+        source = '1111111111111111111111111111111111111111 HEAD' &&
+        ' symref-target:refs/heads/main' && cl_abap_char_utilities=>newline ) ).
   ENDMETHOD.
 
 ENDCLASS.

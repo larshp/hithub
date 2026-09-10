@@ -13,14 +13,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_max = CONV int8( '9223372036854775807' ).
     ls_result = zcl_hithub_pack_arithmetic=>add( iv_left = 4 iv_right = 5 ).
-    ASSERT ls_result-safe = abap_true.
-    ASSERT ls_result-result = 9.
+    cl_abap_unit_assert=>assert_true( act = ls_result-safe ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-result exp = 9 ).
     ls_result = zcl_hithub_pack_arithmetic=>add( iv_left = lv_max iv_right = 1 ).
-    ASSERT ls_result-safe = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_result-safe ).
     ls_result = zcl_hithub_pack_arithmetic=>multiply( iv_left = lv_max iv_right = 2 ).
-    ASSERT ls_result-safe = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_result-safe ).
     ls_result = zcl_hithub_pack_arithmetic=>multiply( iv_left = -1 iv_right = 2 ).
-    ASSERT ls_result-safe = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_result-safe ).
   ENDMETHOD.
 
 ENDCLASS.

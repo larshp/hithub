@@ -32,8 +32,14 @@ CLASS ltcl_audit_log IMPLEMENTATION.
       iv_action = 'repository.create' iv_subject_type = 'repository'
       iv_subject_id = 'audit-repository' ).
     DATA(ls_event) = lo_sink->event( ).
-    ASSERT ls_event-actor = 'local-development'.
-    ASSERT ls_event-correlation_id = 'audit-correlation'.
-    ASSERT ls_event-action = 'repository.create'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_event-actor
+      exp = 'local-development' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_event-correlation_id
+      exp = 'audit-correlation' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_event-action
+      exp = 'repository.create' ).
   ENDMETHOD.
 ENDCLASS.

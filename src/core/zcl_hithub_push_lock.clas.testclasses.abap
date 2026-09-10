@@ -53,12 +53,14 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_owner = 'request-1' ).
 
     DO 3 TIMES.
-      ASSERT lo_guard->acquire( ) = abap_true.
+      cl_abap_unit_assert=>assert_true( act = lo_guard->acquire( ) ).
     ENDDO.
-    ASSERT lo_lock->acquisitions( ) = 1.
-    ASSERT lo_lock->releases( ) = 0.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_lock->acquisitions( )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_lock->releases( ) exp = 0 ).
     lo_guard->release( ).
-    ASSERT lo_lock->releases( ) = 1.
+    cl_abap_unit_assert=>assert_equals( act = lo_lock->releases( ) exp = 1 ).
   ENDMETHOD.
 
   METHOD rejects_invalid_lock_context.
@@ -66,8 +68,10 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_guard) = NEW zcl_hithub_push_lock(
       io_lock = lo_lock iv_repository_id = '' iv_owner = 'request-1' ).
 
-    ASSERT lo_guard->acquire( ) = abap_false.
-    ASSERT lo_lock->acquisitions( ) = 0.
+    cl_abap_unit_assert=>assert_false( act = lo_guard->acquire( ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_lock->acquisitions( )
+      exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

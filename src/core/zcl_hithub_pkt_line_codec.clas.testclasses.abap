@@ -21,7 +21,9 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_payload = CONV xstring( 'CAFE00FF' ).
     lv_header = cl_abap_codepage=>convert_to( source = '0008' ).
     CONCATENATE lv_header lv_payload INTO lv_expected IN BYTE MODE.
-    ASSERT zcl_hithub_pkt_line_codec=>encode( lv_payload ) = lv_expected.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_pkt_line_codec=>encode( lv_payload )
+      exp = lv_expected ).
   ENDMETHOD.
 
   METHOD encodes_extended_length.
@@ -36,14 +38,18 @@ CLASS ltcl_test IMPLEMENTATION.
     ENDDO.
     lv_header = cl_abap_codepage=>convert_to( source = '0104' ).
     CONCATENATE lv_header lv_payload INTO lv_expected IN BYTE MODE.
-    ASSERT zcl_hithub_pkt_line_codec=>encode( lv_payload ) = lv_expected.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_pkt_line_codec=>encode( lv_payload )
+      exp = lv_expected ).
   ENDMETHOD.
 
   METHOD distinguishes_empty_and_flush.
-    ASSERT zcl_hithub_pkt_line_codec=>encode( CONV xstring( '' ) ) =
-      cl_abap_codepage=>convert_to( source = '0004' ).
-    ASSERT zcl_hithub_pkt_line_codec=>flush( ) =
-      cl_abap_codepage=>convert_to( source = '0000' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_pkt_line_codec=>encode( CONV xstring( '' ) )
+      exp = cl_abap_codepage=>convert_to( source = '0004' ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_pkt_line_codec=>flush( )
+      exp = cl_abap_codepage=>convert_to( source = '0000' ) ).
   ENDMETHOD.
 
   METHOD rejects_oversized_payload.
@@ -54,7 +60,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DO 65517 TIMES.
       CONCATENATE lv_payload lv_byte INTO lv_payload IN BYTE MODE.
     ENDDO.
-    ASSERT zcl_hithub_pkt_line_codec=>encode( lv_payload ) IS INITIAL.
+    cl_abap_unit_assert=>assert_initial(
+      act = zcl_hithub_pkt_line_codec=>encode( lv_payload ) ).
   ENDMETHOD.
 
   METHOD decodes_binary_packet.
@@ -66,11 +73,15 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_packet = zcl_hithub_pkt_line_codec=>encode( lv_payload ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_packet ).
 
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-kind = 'data'.
-    ASSERT ls_packet-length = 8.
-    ASSERT ls_packet-consumed_bytes = 8.
-    ASSERT ls_packet-payload = lv_payload.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'data' ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-length exp = 8 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-consumed_bytes
+      exp = 8 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = lv_payload ).
   ENDMETHOD.
 
   METHOD decodes_packet_stream.
@@ -83,13 +94,17 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lv_flush) = zcl_hithub_pkt_line_codec=>flush( ).
     CONCATENATE lv_stream lv_flush INTO lv_stream IN BYTE MODE.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_stream ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-payload = cl_abap_codepage=>convert_to( source = 'hello' ).
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-payload
+      exp = cl_abap_codepage=>convert_to( source = 'hello' ) ).
     lv_rest = lv_stream+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-kind = 'flush'.
-    ASSERT ls_packet-consumed_bytes = 4.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_packet-consumed_bytes
+      exp = 4 ).
   ENDMETHOD.
 
   METHOD rejects_malformed_packet.
@@ -97,17 +112,17 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode(
       cl_abap_codepage=>convert_to( source = 'zzzz' ) ).
-    ASSERT ls_packet-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_packet-valid ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode(
       cl_abap_codepage=>convert_to( source = '0008abc' ) ).
-    ASSERT ls_packet-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_packet-valid ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode(
       cl_abap_codepage=>convert_to( source = '0003' ) ).
-    ASSERT ls_packet-valid = abap_false.
+    cl_abap_unit_assert=>assert_false( act = ls_packet-valid ).
     ls_packet = zcl_hithub_pkt_line_codec=>decode(
       cl_abap_codepage=>convert_to( source = '0001' ) ).
-    ASSERT ls_packet-valid = abap_true.
-    ASSERT ls_packet-kind = 'delim'.
+    cl_abap_unit_assert=>assert_true( act = ls_packet-valid ).
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'delim' ).
   ENDMETHOD.
 
 ENDCLASS.

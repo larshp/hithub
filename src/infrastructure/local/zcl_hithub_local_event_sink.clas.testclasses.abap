@@ -19,7 +19,7 @@ CLASS ltcl_local_event_sink IMPLEMENTATION.
     lo_sink->zif_hithub_event_sink~emit( ls_event ).
     SELECT SINGLE event_id FROM zhi_event INTO @lv_event_id
       WHERE subject_id = @ls_event-subject_id.
-    ASSERT sy-subrc = 0.
-    ASSERT lv_event_id IS NOT INITIAL.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_not_initial( act = lv_event_id ).
   ENDMETHOD.
 ENDCLASS.

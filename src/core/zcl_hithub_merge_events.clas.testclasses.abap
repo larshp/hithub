@@ -44,13 +44,15 @@ CLASS ltcl_merge_events IMPLEMENTATION.
     ls_event-subject_type = 'pull_request'.
     ls_event-subject_id = 'merge-event-request-1'.
 
-    ASSERT lo_events->emit_once(
-      iv_actor = 'merge-actor' iv_key = 'merge-key-1'
-      is_event = ls_event ) = abap_true.
-    ASSERT lo_events->emit_once(
-      iv_actor = 'merge-actor' iv_key = 'merge-key-1'
-      is_event = ls_event ) = abap_true.
-    ASSERT lo_sink->count( ) = 1.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_events->emit_once(
+        iv_actor = 'merge-actor' iv_key = 'merge-key-1'
+        is_event = ls_event ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = lo_events->emit_once(
+        iv_actor = 'merge-actor' iv_key = 'merge-key-1'
+        is_event = ls_event ) ).
+    cl_abap_unit_assert=>assert_equals( act = lo_sink->count( ) exp = 1 ).
   ENDMETHOD.
 
 ENDCLASS.

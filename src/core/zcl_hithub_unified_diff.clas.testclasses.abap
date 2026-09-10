@@ -39,9 +39,9 @@ CLASS ltcl_unified_diff IMPLEMENTATION.
       iv_new_label = 'b/README'
       iv_old       = |hello{ cl_abap_char_utilities=>newline }|
       iv_new       = |hello{ cl_abap_char_utilities=>newline }| ).
-    ASSERT ls_result-patch IS INITIAL.
-    ASSERT ls_result-additions = 0.
-    ASSERT ls_result-deletions = 0.
+    cl_abap_unit_assert=>assert_initial( act = ls_result-patch ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-additions exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-deletions exp = 0 ).
   ENDMETHOD.
 
   METHOD replaces_single_line.
@@ -52,13 +52,18 @@ CLASS ltcl_unified_diff IMPLEMENTATION.
       iv_new_label = 'b/README'
       iv_old       = |hello{ cl_abap_char_utilities=>newline }|
       iv_new       = |feature{ cl_abap_char_utilities=>newline }| ).
-    ASSERT ls_result-additions = 1.
-    ASSERT ls_result-deletions = 1.
-    ASSERT ls_result-patch CS '--- a/README'.
-    ASSERT ls_result-patch CS '+++ b/README'.
-    ASSERT ls_result-patch CS '@@ -1,1 +1,1 @@'.
-    ASSERT ls_result-patch CS '-hello'.
-    ASSERT ls_result-patch CS '+feature'.
+    cl_abap_unit_assert=>assert_equals( act = ls_result-additions exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-deletions exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '--- a/README' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '+++ b/README' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '@@ -1,1 +1,1 @@' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '-hello' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '+feature' ) ).
   ENDMETHOD.
 
   METHOD keeps_surrounding_context.
@@ -73,13 +78,18 @@ CLASS ltcl_unified_diff IMPLEMENTATION.
       iv_new_label = 'b/file'
       iv_old       = text( lt_old )
       iv_new       = text( lt_new ) ).
-    ASSERT ls_result-additions = 1.
-    ASSERT ls_result-deletions = 1.
-    ASSERT ls_result-patch CS '@@ -1,5 +1,5 @@'.
-    ASSERT ls_result-patch CS '-three'.
-    ASSERT ls_result-patch CS '+THREE'.
-    ASSERT ls_result-patch CS ' one'.
-    ASSERT ls_result-patch CS ' five'.
+    cl_abap_unit_assert=>assert_equals( act = ls_result-additions exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-deletions exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '@@ -1,5 +1,5 @@' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '-three' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '+THREE' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS ' one' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS ' five' ) ).
   ENDMETHOD.
 
   METHOD splits_distant_changes.
@@ -108,10 +118,10 @@ CLASS ltcl_unified_diff IMPLEMENTATION.
       iv_new_label = 'b/file'
       iv_old       = text( lt_old )
       iv_new       = text( lt_new ) ).
-    ASSERT ls_result-additions = 2.
-    ASSERT ls_result-deletions = 2.
+    cl_abap_unit_assert=>assert_equals( act = ls_result-additions exp = 2 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-deletions exp = 2 ).
     FIND ALL OCCURRENCES OF '@@ -' IN ls_result-patch MATCH COUNT lv_hunks.
-    ASSERT lv_hunks = 2.
+    cl_abap_unit_assert=>assert_equals( act = lv_hunks exp = 2 ).
   ENDMETHOD.
 
   METHOD renders_added_file.
@@ -123,12 +133,16 @@ CLASS ltcl_unified_diff IMPLEMENTATION.
       iv_old       = ''
       iv_new       = |alpha{ cl_abap_char_utilities=>newline }| &&
                      |beta{ cl_abap_char_utilities=>newline }| ).
-    ASSERT ls_result-additions = 2.
-    ASSERT ls_result-deletions = 0.
-    ASSERT ls_result-patch CS '--- /dev/null'.
-    ASSERT ls_result-patch CS '@@ -0,0 +1,2 @@'.
-    ASSERT ls_result-patch CS '+alpha'.
-    ASSERT ls_result-patch CS '+beta'.
+    cl_abap_unit_assert=>assert_equals( act = ls_result-additions exp = 2 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-deletions exp = 0 ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '--- /dev/null' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '@@ -0,0 +1,2 @@' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '+alpha' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '+beta' ) ).
   ENDMETHOD.
 
   METHOD renders_deleted_file.
@@ -139,11 +153,14 @@ CLASS ltcl_unified_diff IMPLEMENTATION.
       iv_new_label = '/dev/null'
       iv_old       = |gone{ cl_abap_char_utilities=>newline }|
       iv_new       = '' ).
-    ASSERT ls_result-additions = 0.
-    ASSERT ls_result-deletions = 1.
-    ASSERT ls_result-patch CS '+++ /dev/null'.
-    ASSERT ls_result-patch CS '@@ -1,1 +0,0 @@'.
-    ASSERT ls_result-patch CS '-gone'.
+    cl_abap_unit_assert=>assert_equals( act = ls_result-additions exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_result-deletions exp = 1 ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '+++ /dev/null' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '@@ -1,1 +0,0 @@' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_result-patch CS '-gone' ) ).
   ENDMETHOD.
 
 ENDCLASS.

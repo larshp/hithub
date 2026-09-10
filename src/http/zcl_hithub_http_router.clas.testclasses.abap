@@ -13,31 +13,43 @@ CLASS ltcl_http_router IMPLEMENTATION.
   METHOD classifies_http_routes.
     DATA(ls_route) = zcl_hithub_http_router=>resolve(
       iv_path = '/health' iv_service = '' ).
-    ASSERT ls_route-kind = 'health'.
+    cl_abap_unit_assert=>assert_equals( act = ls_route-kind exp = 'health' ).
 
     ls_route = zcl_hithub_http_router=>resolve(
       iv_path = '/demo.git/git-upload-pack' iv_service = '' ).
-    ASSERT ls_route-kind = 'git-upload-pack'.
-    ASSERT ls_route-repository_name = 'demo'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_route-kind
+      exp = 'git-upload-pack' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_route-repository_name
+      exp = 'demo' ).
 
     ls_route = zcl_hithub_http_router=>resolve(
       iv_path = '/demo.git/git-receive-pack' iv_service = '' ).
-    ASSERT ls_route-kind = 'git-receive-pack'.
-    ASSERT ls_route-service = 'git-receive-pack'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_route-kind
+      exp = 'git-receive-pack' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_route-service
+      exp = 'git-receive-pack' ).
 
     ls_route = zcl_hithub_http_router=>resolve(
       iv_path    = '/demo.git/info/refs'
       iv_service = 'git-upload-pack' ).
-    ASSERT ls_route-kind = 'git-discovery'.
-    ASSERT ls_route-repository_name = 'demo'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_route-kind
+      exp = 'git-discovery' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_route-repository_name
+      exp = 'demo' ).
 
     ls_route = zcl_hithub_http_router=>resolve(
       iv_path = '/api/repos' iv_service = '' ).
-    ASSERT ls_route-kind = 'rest'.
+    cl_abap_unit_assert=>assert_equals( act = ls_route-kind exp = 'rest' ).
 
     ls_route = zcl_hithub_http_router=>resolve(
       iv_path = '/demo.git/info/refs' iv_service = 'invalid' ).
-    ASSERT ls_route-kind = 'not-found'.
+    cl_abap_unit_assert=>assert_equals( act = ls_route-kind exp = 'not-found' ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -20,10 +20,10 @@ CLASS ltcl_patch_summary IMPLEMENTATION.
       ( path = 'd.txt' status = 'deleted' ) ).
 
     ls_summary = zcl_hithub_patch_summary=>generate( it_changes = lt_changes ).
-    ASSERT ls_summary-total = 4.
-    ASSERT ls_summary-added = 1.
-    ASSERT ls_summary-modified = 2.
-    ASSERT ls_summary-deleted = 1.
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-total exp = 4 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-added exp = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-modified exp = 2 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-deleted exp = 1 ).
   ENDMETHOD.
 
   METHOD handles_empty_changes.
@@ -31,10 +31,10 @@ CLASS ltcl_patch_summary IMPLEMENTATION.
     DATA ls_summary TYPE zcl_hithub_patch_summary=>ty_summary.
 
     ls_summary = zcl_hithub_patch_summary=>generate( it_changes = lt_changes ).
-    ASSERT ls_summary-total = 0.
-    ASSERT ls_summary-added = 0.
-    ASSERT ls_summary-modified = 0.
-    ASSERT ls_summary-deleted = 0.
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-total exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-added exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-modified exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( act = ls_summary-deleted exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -11,10 +11,18 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(ls_identity) = zcl_hithub_commit_identity=>parse(
       'Fixture Author <fixture@example.invalid> 1704067200 +0000' ).
 
-    ASSERT ls_identity-name = 'Fixture Author'.
-    ASSERT ls_identity-email = 'fixture@example.invalid'.
-    ASSERT ls_identity-unix_seconds = 1704067200.
-    ASSERT ls_identity-timezone = '+0000'.
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_identity-name
+      exp = 'Fixture Author' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_identity-email
+      exp = 'fixture@example.invalid' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_identity-unix_seconds
+      exp = 1704067200 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_identity-timezone
+      exp = '+0000' ).
   ENDMETHOD.
 
 ENDCLASS.

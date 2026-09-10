@@ -28,18 +28,23 @@ CLASS ltcl_changed_files IMPLEMENTATION.
 
     lt_changes = zcl_hithub_changed_files=>calculate(
       it_base = lt_base it_head = lt_head ).
-    ASSERT zcl_hithub_changed_files=>c_rename_detection_enabled = abap_false.
-    ASSERT lines( lt_changes ) = 4.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_changed_files=>c_rename_detection_enabled ).
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_changes ) exp = 4 ).
 
     READ TABLE lt_changes WITH KEY path = 'added.txt' INTO ls_change.
-    ASSERT sy-subrc = 0.
-    ASSERT ls_change-status = 'modified'.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_change-status
+      exp = 'modified' ).
     READ TABLE lt_changes WITH KEY path = 'deleted.txt' INTO ls_change.
-    ASSERT sy-subrc = 0.
-    ASSERT ls_change-status = 'deleted'.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_change-status
+      exp = 'deleted' ).
     READ TABLE lt_changes WITH KEY path = 'new.txt' INTO ls_change.
-    ASSERT sy-subrc = 0.
-    ASSERT ls_change-status = 'added'.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( act = ls_change-status exp = 'added' ).
   ENDMETHOD.
 
   METHOD omits_unchanged_files.
@@ -51,7 +56,7 @@ CLASS ltcl_changed_files IMPLEMENTATION.
 
     lt_changes = zcl_hithub_changed_files=>calculate(
       it_base = lt_base it_head = lt_head ).
-    ASSERT lines( lt_changes ) = 0.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_changes ) exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

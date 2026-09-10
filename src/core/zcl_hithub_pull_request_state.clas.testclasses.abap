@@ -14,54 +14,67 @@ ENDCLASS.
 CLASS ltcl_pull_request_state IMPLEMENTATION.
 
   METHOD valid_states.
-    ASSERT zcl_hithub_pull_request_state=>is_valid(
-      zcl_hithub_pull_request_state=>c_draft ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>is_valid(
-      zcl_hithub_pull_request_state=>c_open ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>is_valid(
-      zcl_hithub_pull_request_state=>c_closed ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>is_valid(
-      zcl_hithub_pull_request_state=>c_merged ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>is_valid(
+        zcl_hithub_pull_request_state=>c_draft ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>is_valid(
+        zcl_hithub_pull_request_state=>c_open ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>is_valid(
+        zcl_hithub_pull_request_state=>c_closed ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>is_valid(
+        zcl_hithub_pull_request_state=>c_merged ) ).
   ENDMETHOD.
 
   METHOD draft_can_be_ready.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_draft
-      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_draft
-      iv_to   = zcl_hithub_pull_request_state=>c_merged ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_draft
+        iv_to   = zcl_hithub_pull_request_state=>c_open ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_draft
+        iv_to   = zcl_hithub_pull_request_state=>c_merged ) ).
   ENDMETHOD.
 
   METHOD valid_transitions.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_open
-      iv_to   = zcl_hithub_pull_request_state=>c_closed ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_open
-      iv_to   = zcl_hithub_pull_request_state=>c_merged ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_closed
-      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_true.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_open
-      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_open
+        iv_to   = zcl_hithub_pull_request_state=>c_closed ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_open
+        iv_to   = zcl_hithub_pull_request_state=>c_merged ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_closed
+        iv_to   = zcl_hithub_pull_request_state=>c_open ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_open
+        iv_to   = zcl_hithub_pull_request_state=>c_open ) ).
   ENDMETHOD.
 
   METHOD merged_is_terminal.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_merged
-      iv_to   = zcl_hithub_pull_request_state=>c_open ) = abap_false.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = zcl_hithub_pull_request_state=>c_merged
-      iv_to   = zcl_hithub_pull_request_state=>c_closed ) = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_merged
+        iv_to   = zcl_hithub_pull_request_state=>c_open ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = zcl_hithub_pull_request_state=>c_merged
+        iv_to   = zcl_hithub_pull_request_state=>c_closed ) ).
   ENDMETHOD.
 
   METHOD invalid_states_rejected.
-    ASSERT zcl_hithub_pull_request_state=>is_valid( 'unknown' ) = abap_false.
-    ASSERT zcl_hithub_pull_request_state=>can_transition(
-      iv_from = 'unknown' iv_to = zcl_hithub_pull_request_state=>c_open )
-      = abap_false.
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pull_request_state=>is_valid( 'unknown' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_pull_request_state=>can_transition(
+        iv_from = 'unknown' iv_to = zcl_hithub_pull_request_state=>c_open ) ).
   ENDMETHOD.
 
 ENDCLASS.

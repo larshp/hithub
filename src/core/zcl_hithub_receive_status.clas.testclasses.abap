@@ -22,15 +22,17 @@ CLASS ltcl_test IMPLEMENTATION.
       iv_unpack_ok = abap_true it_results = lt_results ).
 
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_response ).
-    ASSERT cl_abap_codepage=>convert_from( ls_packet-payload ) =
-      'unpack ok' && cl_abap_char_utilities=>newline.
+    cl_abap_unit_assert=>assert_equals(
+      act = cl_abap_codepage=>convert_from( ls_packet-payload )
+      exp = 'unpack ok' && cl_abap_char_utilities=>newline ).
     lv_rest = lv_response+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT cl_abap_codepage=>convert_from( ls_packet-payload ) =
-      'ok refs/heads/main' && cl_abap_char_utilities=>newline.
+    cl_abap_unit_assert=>assert_equals(
+      act = cl_abap_codepage=>convert_from( ls_packet-payload )
+      exp = 'ok refs/heads/main' && cl_abap_char_utilities=>newline ).
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-kind = 'flush'.
+    cl_abap_unit_assert=>assert_equals( act = ls_packet-kind exp = 'flush' ).
   ENDMETHOD.
 
   METHOD builds_rejection_status.
@@ -52,7 +54,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
     lv_expected = 'ng refs/heads/main stale old oid' &&
       cl_abap_char_utilities=>newline.
-    ASSERT cl_abap_codepage=>convert_from( ls_packet-payload ) = lv_expected.
+    cl_abap_unit_assert=>assert_equals(
+      act = cl_abap_codepage=>convert_from( ls_packet-payload )
+      exp = lv_expected ).
   ENDMETHOD.
 
 ENDCLASS.

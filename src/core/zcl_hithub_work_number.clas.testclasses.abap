@@ -29,7 +29,7 @@ CLASS ltcl_work_number IMPLEMENTATION.
     ls_issue-title = 'Reported'.
     ls_issue-actor = 'Alice'.
     DATA(ls_result) = zcl_hithub_issues=>create( ls_issue ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     rv_id = ls_result-issue-id.
   ENDMETHOD.
 
@@ -42,21 +42,35 @@ CLASS ltcl_work_number IMPLEMENTATION.
     ls_request-base_oid = 'base'.
     ls_request-head_oid = 'head'.
     DATA(ls_result) = zcl_hithub_pull_requests=>create( ls_request ).
-    ASSERT ls_result-success = abap_true.
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     rv_id = ls_result-pull_request-id.
   ENDMETHOD.
 
   METHOD shares_one_sequence.
     DATA(lv_repository) = |work-number-shared|.
 
-    ASSERT open_issue( lv_repository ) = '1'.
-    ASSERT open_pull_request( lv_repository ) = '2'.
-    ASSERT open_pull_request( lv_repository ) = '3'.
-    ASSERT open_issue( lv_repository ) = '4'.
-    ASSERT open_issue( lv_repository ) = '5'.
-    ASSERT open_pull_request( lv_repository ) = '6'.
+    cl_abap_unit_assert=>assert_equals(
+      act = open_issue( lv_repository )
+      exp = '1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_pull_request( lv_repository )
+      exp = '2' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_pull_request( lv_repository )
+      exp = '3' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_issue( lv_repository )
+      exp = '4' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_issue( lv_repository )
+      exp = '5' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_pull_request( lv_repository )
+      exp = '6' ).
     " A second repository starts its own sequence at one.
-    ASSERT open_pull_request( 'work-number-other' ) = '1'.
+    cl_abap_unit_assert=>assert_equals(
+      act = open_pull_request( 'work-number-other' )
+      exp = '1' ).
   ENDMETHOD.
 
   METHOD ignores_non_numeric_identities.
@@ -68,7 +82,8 @@ CLASS ltcl_work_number IMPLEMENTATION.
     ls_issue-id = 'legacy-issue-uuid'.
     ls_issue-title = 'Imported before numbering'.
     ls_issue-actor = 'Alice'.
-    ASSERT zcl_hithub_issues=>create( ls_issue )-success = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issues=>create( ls_issue )-success ).
     ls_request-repository_id = lv_repository.
     ls_request-id = 'legacy-pull-uuid'.
     ls_request-state = zcl_hithub_pull_request_state=>c_draft.
@@ -76,21 +91,42 @@ CLASS ltcl_work_number IMPLEMENTATION.
     ls_request-target_ref = 'refs/heads/main'.
     ls_request-base_oid = 'base'.
     ls_request-head_oid = 'head'.
-    ASSERT zcl_hithub_pull_requests=>create( ls_request )-success = abap_true.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_pull_requests=>create( ls_request )-success ).
 
-    ASSERT zcl_hithub_work_number=>next( lv_repository ) = 1.
-    ASSERT open_issue( lv_repository ) = '1'.
-    ASSERT open_pull_request( lv_repository ) = '2'.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>next( lv_repository )
+      exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_issue( lv_repository )
+      exp = '1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = open_pull_request( lv_repository )
+      exp = '2' ).
   ENDMETHOD.
 
   METHOD parses_only_plain_numbers.
-    ASSERT zcl_hithub_work_number=>parse( '7' ) = 7.
-    ASSERT zcl_hithub_work_number=>parse( '10' ) = 10.
-    ASSERT zcl_hithub_work_number=>parse( '' ) = 0.
-    ASSERT zcl_hithub_work_number=>parse( 'pull-1' ) = 0.
-    ASSERT zcl_hithub_work_number=>parse( '1a' ) = 0.
-    ASSERT zcl_hithub_work_number=>parse( '1234567890' ) = 0.
-    ASSERT zcl_hithub_work_number=>next( '' ) = 0.
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>parse( '7' )
+      exp = 7 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>parse( '10' )
+      exp = 10 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>parse( '' )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>parse( 'pull-1' )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>parse( '1a' )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>parse( '1234567890' )
+      exp = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_hithub_work_number=>next( '' )
+      exp = 0 ).
   ENDMETHOD.
 
 ENDCLASS.

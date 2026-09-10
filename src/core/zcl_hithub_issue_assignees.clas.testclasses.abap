@@ -10,26 +10,33 @@ ENDCLASS.
 CLASS ltcl_issue_assignees IMPLEMENTATION.
 
   METHOD manages_free_form_actors.
-    ASSERT zcl_hithub_issue_assignees=>add(
-      iv_repository_id = 'issue-assignee-repository'
-      iv_issue_id = 'issue-1' iv_actor = 'z-team' ) = abap_true.
-    ASSERT zcl_hithub_issue_assignees=>add(
-      iv_repository_id = 'issue-assignee-repository'
-      iv_issue_id = 'issue-1' iv_actor = 'Alice <alice@example.test>' ) =
-      abap_true.
-    ASSERT zcl_hithub_issue_assignees=>add(
-      iv_repository_id = 'issue-assignee-repository'
-      iv_issue_id = 'issue-1' iv_actor = 'z-team' ) = abap_false.
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_assignees=>add(
+        iv_repository_id = 'issue-assignee-repository'
+        iv_issue_id = 'issue-1' iv_actor = 'z-team' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_assignees=>add(
+        iv_repository_id = 'issue-assignee-repository'
+        iv_issue_id = 'issue-1' iv_actor = 'Alice <alice@example.test>' ) ).
+    cl_abap_unit_assert=>assert_false(
+      act = zcl_hithub_issue_assignees=>add(
+        iv_repository_id = 'issue-assignee-repository'
+        iv_issue_id = 'issue-1' iv_actor = 'z-team' ) ).
     DATA(lt_assignees) = zcl_hithub_issue_assignees=>list(
       iv_repository_id = 'issue-assignee-repository' iv_issue_id = 'issue-1' ).
-    ASSERT lines( lt_assignees ) = 2.
-    ASSERT lt_assignees[ 1 ] = 'Alice <alice@example.test>'.
-    ASSERT zcl_hithub_issue_assignees=>remove(
-      iv_repository_id = 'issue-assignee-repository'
-      iv_issue_id = 'issue-1' iv_actor = 'z-team' ) = abap_true.
-    ASSERT lines( zcl_hithub_issue_assignees=>list(
-      iv_repository_id = 'issue-assignee-repository'
-      iv_issue_id      = 'issue-1' ) ) = 1.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_assignees ) exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_assignees[ 1 ]
+      exp = 'Alice <alice@example.test>' ).
+    cl_abap_unit_assert=>assert_true(
+      act = zcl_hithub_issue_assignees=>remove(
+        iv_repository_id = 'issue-assignee-repository'
+        iv_issue_id = 'issue-1' iv_actor = 'z-team' ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( zcl_hithub_issue_assignees=>list(
+        iv_repository_id = 'issue-assignee-repository'
+        iv_issue_id      = 'issue-1' ) )
+      exp = 1 ).
   ENDMETHOD.
 
 ENDCLASS.

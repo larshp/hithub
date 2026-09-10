@@ -39,7 +39,7 @@ CLASS ltcl_commit_service IMPLEMENTATION.
     ls_object-size = xstrlen( lv_payload ).
     ls_object-payload = lv_payload.
     lv_written = lo_objects->zif_hithub_object_store~write( ls_object ).
-    ASSERT lv_written = abap_true.
+    cl_abap_unit_assert=>assert_true( act = lv_written ).
 
     CLEAR: ls_commit, ls_object.
     ls_commit-tree = '2222222222222222222222222222222222222222'.
@@ -57,7 +57,7 @@ CLASS ltcl_commit_service IMPLEMENTATION.
     ls_object-size = xstrlen( lv_payload ).
     ls_object-payload = lv_payload.
     lv_written = lo_objects->zif_hithub_object_store~write( ls_object ).
-    ASSERT lv_written = abap_true.
+    cl_abap_unit_assert=>assert_true( act = lv_written ).
 
     ls_reference-repository_id = lv_repository_id.
     ls_reference-name = 'refs/heads/main'.
@@ -65,26 +65,39 @@ CLASS ltcl_commit_service IMPLEMENTATION.
     ls_reference-oid = lv_head_oid.
     lv_version = lo_metadata->zif_hithub_metadata_store~create_reference(
       ls_reference ).
-    ASSERT lv_version = 1.
+    cl_abap_unit_assert=>assert_equals( act = lv_version exp = 1 ).
 
     DATA(lt_entries) = lo_service->list(
       iv_repository_id = lv_repository_id iv_ref = 'main' ).
-    ASSERT lines( lt_entries ) = 2.
-    ASSERT lt_entries[ 1 ]-oid = lv_head_oid.
-    ASSERT lt_entries[ 1 ]-message = 'Head commit'.
-    ASSERT lt_entries[ 2 ]-oid = lv_parent_oid.
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_entries ) exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_entries[ 1 ]-oid
+      exp = lv_head_oid ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_entries[ 1 ]-message
+      exp = 'Head commit' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_entries[ 2 ]-oid
+      exp = lv_parent_oid ).
 
     DATA(ls_entry) = lo_service->read(
       iv_repository_id = lv_repository_id
       iv_algorithm = 'sha1' iv_oid = lv_head_oid ).
-    ASSERT ls_entry-author CS 'Bob'.
-    ASSERT ls_entry-authored_at = '1704067300'.
-    ASSERT ls_entry-parents[ 1 ] = lv_parent_oid.
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( ls_entry-author CS 'Bob' ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_entry-authored_at
+      exp = '1704067300' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_entry-parents[ 1 ]
+      exp = lv_parent_oid ).
 
     DATA(lv_json) = cl_abap_codepage=>convert_from(
       zcl_hithub_commit_repr=>one( ls_entry ) ).
-    ASSERT lv_json CS '"message":"Head commit"'.
-    ASSERT lv_json CS |"parents":["{ lv_parent_oid }"]|.
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( lv_json CS '"message":"Head commit"' ) ).
+    cl_abap_unit_assert=>assert_true(
+      act = xsdbool( lv_json CS |"parents":["{ lv_parent_oid }"]| ) ).
   ENDMETHOD.
 
 ENDCLASS.
