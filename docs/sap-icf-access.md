@@ -43,7 +43,7 @@ to the SAP set, so an installed service needs no configuration:
   only unit of work and is not selected by mode: `COMMIT WORK` and
   `ROLLBACK WORK` end the LUW in both runtimes.
 - `ZCL_HITHUB_SAP_REPO_LOCK` serializes writers through the enqueue server
-  using lock object `EZHI_REPO` over `ZHI_REFERENCE`. Confirm the lock object
+  using lock object `EZHI_REPO` over `ZHI_REPO_LOCK`. Confirm the lock object
   activated and that `ENQUEUE_EZHI_REPO` was generated with a `REPOSITORY_ID`
   parameter before the first merge or browser file edit; the lock is what keeps
   two application servers from racing on the same reference.

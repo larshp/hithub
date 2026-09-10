@@ -4,12 +4,13 @@
 
 The checked-in DDIC source package is `src/persistence`. Import that directory
 with the approved abapGit or transport workflow; do not create a second local
-schema or hand-written migration. The package contains 14 tables:
+schema or hand-written migration. The package contains 15 tables:
 
 `ZHI_REPOSITORY`, `ZHI_REFERENCE`, `ZHI_OBJECT`, `ZHI_EVENT`,
 `ZHI_IDEMPOTENCY`, `ZHI_PULL_REQUEST`, `ZHI_PR_COMMENT`,
 `ZHI_PR_LINE_CMNT`, `ZHI_PR_REVIEW`, `ZHI_PR_MERGE_RES`, `ZHI_ISSUE`,
-`ZHI_ISSUE_CMNT`, `ZHI_ISSUE_ASGN`, and `ZHI_ISSUE_LABEL`.
+`ZHI_ISSUE_CMNT`, `ZHI_ISSUE_ASGN`, `ZHI_ISSUE_LABEL`, and
+`ZHI_REPO_LOCK`.
 
 It also contains the shared `ZHI_DE_*` data elements for identifiers, ref
 names, OIDs, text, payloads, timestamps and versions. Keep the imported
@@ -17,19 +18,33 @@ objects in the `ZHI_*` customer namespace and transport the executable ABAP
 classes with the same release revision.
 
 Lock object `EZHI_REPO` ships with the persistence artifacts and is defined
-over `ZHI_REFERENCE-REPOSITORY_ID`, because that is the table whose first key
-field carries the repository id; `ZHI_REPOSITORY` keys on `ID` and `NAME` and
-cannot produce a `REPOSITORY_ID` lock parameter. Activate it with the tables
-and confirm the generated function modules are `ENQUEUE_EZHI_REPO` and
+over `ZHI_REPO_LOCK-REPOSITORY_ID`. `ZHI_REPO_LOCK` never holds a row; it
+exists so the lock argument is exactly the lock granularity. The lock argument
+is the whole key of the root table, and SAP rejects one longer than 150
+characters, so the data tables cannot serve: `ZHI_REFERENCE` keys on
+`REPOSITORY_ID` and `REF_NAME` for 196 characters, and shortening `REF_NAME`
+would truncate legitimate Git ref names. Activate the lock object with the
+tables and confirm the generated function modules are `ENQUEUE_EZHI_REPO` and
 `DEQUEUE_EZHI_REPO` with a `REPOSITORY_ID` parameter; `ZCL_HITHUB_SAP_ENQUEUE`
 calls them under exactly those names for repository ref transactions.
 
-Long text and byte columns use the `STRING` and `RAWSTRING` data elements
+Long text and byte columns use the `STRG` and `RSTR` data elements
 `ZHI_DE_STRING` and `ZHI_DE_RAWSTRING`, so they are LOB columns with no
-declared maximum. They are not key fields and the tables are unbuffered,
-which is what LOB columns require. Do not convert them back to `LCHR` or
-`LRAW`: those demand a preceding `INT2`/`INT4` length field and the last
-position in the table, which the row layouts here do not provide.
+declared maximum. They are not key fields, the tables are unbuffered, and they
+carry no `NOT NULL` flag, which is what LOB columns require: SAP refuses to
+activate that flag on a column longer than 255. Do not convert them back to
+`LCHR` or `LRAW`: those demand a preceding `INT2`/`INT4` length field and the
+last position in the table, which the row layouts here do not provide.
+
+`ZHI_ISSUE_LABEL` stores the label value in `LABEL_NAME`. `LABEL` is a
+reserved word and DDIC rejects it as a field name.
+
+Five tables activate with a "key length > 120 (restricted functions)" warning:
+`ZHI_IDEMPOTENCY`, `ZHI_ISSUE_ASGN`, `ZHI_ISSUE_LABEL`, `ZHI_REFERENCE` and
+`ZHI_REPOSITORY`. The warning is accepted, not overlooked: the key lengths are
+what the Git and REST contracts require, and the restricted functions (table
+maintenance generation among them) are not used. Review it again before adding
+a key field to any of these.
 
 ## Change design
 

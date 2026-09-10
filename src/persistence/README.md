@@ -15,9 +15,12 @@ The initial metadata schema is represented as abapGit table artifacts:
 - `ZHI_ISSUE` stores issue lifecycle state.
 - `ZHI_ISSUE_CMNT` stores issue discussion comments.
 - `ZHI_ISSUE_ASGN` stores free-form issue assignee labels.
-- `ZHI_ISSUE_LABEL` stores issue labels.
+- `ZHI_ISSUE_LABEL` stores issue labels in field `LABEL_NAME`; `LABEL` is a
+  reserved word and cannot be used as a DDIC field name.
+- `ZHI_REPO_LOCK` carries no rows. It is the root table of the `EZHI_REPO`
+  lock object, so that the lock argument is exactly `REPOSITORY_ID`.
 
-The 14 table artifacts and 13 shared data elements are additive and
+The 15 table artifacts and 13 shared data elements are additive and
 activation-safe. Field-level checks, unique normalized repository-name
 enforcement, payload storage limits, and adapter mapping are verified by the
 persistence contract tests. SAP also requires the `EZHI_REPO` lock object;

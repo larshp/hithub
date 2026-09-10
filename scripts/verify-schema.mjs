@@ -104,9 +104,18 @@ const expected = {
   },
   zhi_issue_label: {
     columns: {
-      repository_id: "NCHAR(36)", issue_id: "NCHAR(36)", label: "NCHAR(100)",
+      repository_id: "NCHAR(36)", issue_id: "NCHAR(36)", label_name: "NCHAR(100)",
     },
-    primaryKey: ["repository_id", "issue_id", "label"],
+    primaryKey: ["repository_id", "issue_id", "label_name"],
+  },
+  // Carries no rows. It exists so lock object EZHI_REPO has a root table whose
+  // whole key is the lock granularity; ZHI_REFERENCE's key is 196 bytes and SAP
+  // rejects a lock argument longer than 150.
+  zhi_repo_lock: {
+    columns: {
+      repository_id: "NCHAR(36)",
+    },
+    primaryKey: ["repository_id"],
   },
 };
 

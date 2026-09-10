@@ -44,13 +44,13 @@ CLASS zcl_hithub_issue_labels IMPLEMENTATION.
     SELECT SINGLE * FROM zhi_issue_label INTO @ls_existing
       WHERE repository_id = @iv_repository_id
         AND issue_id = @iv_issue_id
-        AND label = @iv_label.
+        AND label_name = @iv_label.
     IF sy-subrc = 0.
       RETURN.
     ENDIF.
     ls_row-repository_id = iv_repository_id.
     ls_row-issue_id = iv_issue_id.
-    ls_row-label = iv_label.
+    ls_row-label_name = iv_label.
     INSERT zhi_issue_label FROM @ls_row.
     rv_saved = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
@@ -66,14 +66,14 @@ CLASS zcl_hithub_issue_labels IMPLEMENTATION.
     SELECT SINGLE * FROM zhi_issue_label INTO @ls_existing
       WHERE repository_id = @iv_repository_id
         AND issue_id = @iv_issue_id
-        AND label = @iv_label.
+        AND label_name = @iv_label.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
     DELETE FROM zhi_issue_label
       WHERE repository_id = @iv_repository_id
         AND issue_id = @iv_issue_id
-        AND label = @iv_label.
+        AND label_name = @iv_label.
     rv_removed = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
@@ -89,7 +89,7 @@ CLASS zcl_hithub_issue_labels IMPLEMENTATION.
       WHERE repository_id = @iv_repository_id
         AND issue_id = @iv_issue_id.
     LOOP AT lt_rows INTO ls_row.
-      APPEND ls_row-label TO rt_labels.
+      APPEND ls_row-label_name TO rt_labels.
     ENDLOOP.
     SORT rt_labels BY table_line.
   ENDMETHOD.
