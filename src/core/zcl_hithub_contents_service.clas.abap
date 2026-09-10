@@ -221,7 +221,7 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
       rs_entry-name = ls_tree_entry-name.
       rs_entry-mode = ls_tree_entry-mode.
       rs_entry-algorithm = ls_tree_key-algorithm.
-      rs_entry-oid = ls_tree_entry-oid.
+      rs_entry-oid = zcl_hithub_object_id=>from_bytes( ls_tree_entry-oid ).
       IF ls_tree_entry-mode = '040000'.
         rs_entry-type = 'tree'.
       ELSE.
@@ -289,7 +289,7 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
       ls_result-name = ls_tree_entry-name.
       ls_result-mode = ls_tree_entry-mode.
       ls_result-algorithm = ls_directory-algorithm.
-      ls_result-oid = ls_tree_entry-oid.
+      ls_result-oid = zcl_hithub_object_id=>from_bytes( ls_tree_entry-oid ).
       IF ls_tree_entry-mode = '040000'.
         ls_result-type = 'tree'.
       ELSE.

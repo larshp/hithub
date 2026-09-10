@@ -79,7 +79,7 @@ CLASS ltcl_file_editor IMPLEMENTATION.
   METHOD entry.
     rs_entry-mode = iv_mode.
     rs_entry-name = iv_name.
-    rs_entry-oid = CONV xstring( iv_oid ).
+    rs_entry-oid = zcl_hithub_object_id=>to_bytes( iv_oid ).
     " rebuild( ) turns these bytes back into a string to address the child
     " object, so a lossy conversion here breaks every edit below.
     cl_abap_unit_assert=>assert_equals(

@@ -122,7 +122,7 @@ CLASS ltcl_contents_service IMPLEMENTATION.
         |readme{ cl_abap_char_utilities=>newline }| ) ).
     ls_entry-mode = '100644'.
     ls_entry-name = 'README.md'.
-    ls_entry-oid = CONV xstring( lv_blob ).
+    ls_entry-oid = zcl_hithub_object_id=>to_bytes( lv_blob ).
     cl_abap_unit_assert=>assert_equals(
       act = xstrlen( ls_entry-oid )
       exp = 20

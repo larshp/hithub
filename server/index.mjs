@@ -81,7 +81,7 @@ if (fixtureRepository && /^[A-Za-z0-9._-]+$/.test(fixtureRepository)) {
     ...objects.map((item) => `INSERT INTO zhi_object
       (repository_id, algorithm, oid, object_type, object_size, payload)
       VALUES ('${repositoryId}', 'sha1', '${item.oid}', '${item.type}',
-        ${item.payload.length}, '${item.payload.toString("hex")}')`),
+        ${item.payload.length}, '${item.payload.toString("hex").toUpperCase()}')`),
     `INSERT INTO zhi_reference
       (repository_id, ref_name, algorithm, oid, symbolic_target, version)
       VALUES ('${repositoryId}', 'refs/heads/main', 'sha1', '${commitMain.oid}', '', 1)`,

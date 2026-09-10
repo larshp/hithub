@@ -138,7 +138,9 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       exp = 'README.md' ).
     DATA(ls_blob_key) = VALUE zif_hithub_object_store=>ty_object_key(
       repository_id = ls_result-repository-id
-      algorithm = 'sha1' oid = lt_entries[ 1 ]-oid ).
+      algorithm     = 'sha1'
+      oid           = zcl_hithub_object_id=>from_bytes(
+        lt_entries[ 1 ]-oid ) ).
     DATA(ls_blob_object) = lo_objects->zif_hithub_object_store~read(
       ls_blob_key ).
     lo_readme = cl_abap_conv_in_ce=>create(

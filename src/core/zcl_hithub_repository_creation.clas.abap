@@ -144,7 +144,7 @@ CLASS zcl_hithub_repository_creation IMPLEMENTATION.
     CLEAR ls_tree_entry.
     ls_tree_entry-mode = '100644'.
     ls_tree_entry-name = 'README.md'.
-    ls_tree_entry-oid = CONV xstring( lv_blob_oid ).
+    ls_tree_entry-oid = zcl_hithub_object_id=>to_bytes( lv_blob_oid ).
     APPEND ls_tree_entry TO lt_tree_entries.
     lv_tree_payload = zcl_hithub_tree_codec=>encode( lt_tree_entries ).
     lv_tree_oid = zcl_hithub_object_id=>calculate(

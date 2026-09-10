@@ -158,7 +158,7 @@ CLASS zcl_hithub_file_editor IMPLEMENTATION.
       IF ls_entry-mode = c_tree_mode.
         RETURN.
       ENDIF.
-      ls_entry-oid = CONV xstring( iv_blob_oid ).
+      ls_entry-oid = zcl_hithub_object_id=>to_bytes( iv_blob_oid ).
     ELSE.
       IF ls_entry-mode <> c_tree_mode.
         RETURN.
@@ -166,14 +166,14 @@ CLASS zcl_hithub_file_editor IMPLEMENTATION.
       lv_child = rebuild(
         iv_repository_id = iv_repository_id
         iv_algorithm     = iv_algorithm
-        iv_tree_oid      = CONV string( ls_entry-oid )
+        iv_tree_oid      = zcl_hithub_object_id=>from_bytes( ls_entry-oid )
         it_parts         = it_parts
         iv_index         = iv_index + 1
         iv_blob_oid      = iv_blob_oid ).
       IF lv_child IS INITIAL.
         RETURN.
       ENDIF.
-      ls_entry-oid = CONV xstring( lv_child ).
+      ls_entry-oid = zcl_hithub_object_id=>to_bytes( lv_child ).
     ENDIF.
     MODIFY lt_entries INDEX lv_index FROM ls_entry.
     rv_oid = store(

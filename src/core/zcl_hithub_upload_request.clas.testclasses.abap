@@ -116,29 +116,23 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD finds_the_blank_separator.
-    " parse( ) locates the capability list with FIND ... OF space and cuts
-    " the want line with SPLIT ... AT space. Trailing blanks are ignored in
-    " flat character operands, so the two statements need not agree on what
-    " a single blank means.
+    " parse( ) cuts the first want line at the blank in front of the
+    " capability list. FIND needs a text string literal for that: trailing
+    " blanks are cut from a flat character pattern, so space would search
+    " for nothing at all. SPLIT keeps them and is safe either way.
     DATA lv_line TYPE string.
-    DATA lv_literal_offset TYPE i.
-    DATA lv_space_offset TYPE i.
+    DATA lv_offset TYPE i.
     DATA lt_parts TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     lv_line = |want 1111111111111111111111111111111111111111 no-progress|.
 
-    FIND FIRST OCCURRENCE OF ` ` IN lv_line MATCH OFFSET lv_literal_offset.
+    FIND FIRST OCCURRENCE OF ` ` IN lv_line MATCH OFFSET lv_offset.
     cl_abap_unit_assert=>assert_subrc(
       msg = 'a blank text string literal matches nothing' ).
-    cl_abap_unit_assert=>assert_equals( act = lv_literal_offset exp = 4 ).
-
-    FIND FIRST OCCURRENCE OF space IN lv_line MATCH OFFSET lv_space_offset.
-    cl_abap_unit_assert=>assert_subrc(
-      msg = 'FIND FIRST OCCURRENCE OF space matches nothing' ).
     cl_abap_unit_assert=>assert_equals(
-      act = lv_space_offset
+      act = lv_offset
       exp = 4
-      msg = 'FIND ... OF space does not match a single blank' ).
+      msg = 'the blank literal does not match the first blank' ).
 
     SPLIT lv_line AT space INTO TABLE lt_parts.
     cl_abap_unit_assert=>assert_equals(

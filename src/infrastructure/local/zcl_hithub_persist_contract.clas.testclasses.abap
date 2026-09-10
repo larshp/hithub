@@ -194,7 +194,7 @@ CLASS ltcl_persist_contract IMPLEMENTATION.
 
     ls_entry-mode = '100644'.
     ls_entry-name = 'README.md'.
-    ls_entry-oid = CONV xstring( lv_blob_oid ).
+    ls_entry-oid = zcl_hithub_object_id=>to_bytes( lv_blob_oid ).
     APPEND ls_entry TO lt_entries.
     lv_payload = zcl_hithub_tree_codec=>encode( lt_entries ).
     lv_tree_oid = zcl_hithub_object_id=>calculate(

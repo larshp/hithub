@@ -87,12 +87,7 @@ CLASS zcl_hithub_reachability IMPLEMENTATION.
           CLEAR ls_child.
           ls_child-repository_id = ls_key-repository_id.
           ls_child-algorithm = ls_key-algorithm.
-          ls_child-oid = ls_entry-oid.
-          TRANSLATE ls_child-oid TO LOWER CASE.
-          IF ls_entry-mode = '040000'.
-            ls_child-oid = ls_entry-oid.
-            TRANSLATE ls_child-oid TO LOWER CASE.
-          ENDIF.
+          ls_child-oid = zcl_hithub_object_id=>from_bytes( ls_entry-oid ).
           READ TABLE rt_keys WITH KEY repository_id = ls_child-repository_id
             algorithm = ls_child-algorithm oid = ls_child-oid TRANSPORTING NO FIELDS.
           IF sy-subrc <> 0.

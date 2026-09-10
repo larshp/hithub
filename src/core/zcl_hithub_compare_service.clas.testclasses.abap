@@ -185,7 +185,7 @@ CLASS ltcl_compare_service IMPLEMENTATION.
   METHOD entry.
     rs_entry-mode = iv_mode.
     rs_entry-name = iv_name.
-    rs_entry-oid = CONV xstring( iv_oid ).
+    rs_entry-oid = zcl_hithub_object_id=>to_bytes( iv_oid ).
     " Two trees that differ only here must not collapse onto one payload.
     cl_abap_unit_assert=>assert_equals(
       act = xstrlen( rs_entry-oid )

@@ -375,7 +375,7 @@ CLASS zcl_hithub_compare_service IMPLEMENTATION.
       iv_payload    = ls_object-payload
       iv_oid_length = oid_length( iv_algorithm ) ).
     LOOP AT lt_entries INTO ls_entry.
-      lv_oid = ls_entry-oid.
+      lv_oid = zcl_hithub_object_id=>from_bytes( ls_entry-oid ).
       IF iv_prefix IS INITIAL.
         lv_path = ls_entry-name.
       ELSE.

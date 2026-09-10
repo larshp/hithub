@@ -68,6 +68,7 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
     DATA lv_oid TYPE string.
     DATA lv_delta_depth TYPE i.
     DATA lv_base_found TYPE abap_bool.
+    DATA lv_base_oid TYPE string.
     DATA ls_base TYPE zif_hithub_object_store=>ty_object.
     DATA ls_base_decoded TYPE ty_decoded.
     DATA ls_decoded TYPE ty_decoded.
@@ -142,8 +143,9 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
             lv_base_found = abap_true.
           ENDIF.
         ELSEIF ls_entry-type = 'ref-delta'.
+          lv_base_oid = zcl_hithub_object_id=>from_bytes( ls_entry-base_oid ).
           LOOP AT lt_decoded INTO ls_base_decoded.
-            IF ls_base_decoded-object-key-oid = ls_entry-base_oid.
+            IF ls_base_decoded-object-key-oid = lv_base_oid.
               ls_base = ls_base_decoded-object.
               lv_delta_depth = ls_base_decoded-delta_depth + 1.
               lv_base_found = abap_true.
@@ -153,7 +155,7 @@ CLASS zcl_hithub_pack_codec IMPLEMENTATION.
           IF lv_base_found = abap_false AND mo_base_resolver IS NOT INITIAL.
             ls_base_key-repository_id = iv_repository_id.
             ls_base_key-algorithm = iv_algorithm.
-            ls_base_key-oid = ls_entry-base_oid.
+            ls_base_key-oid = lv_base_oid.
             ls_base = mo_base_resolver->read( ls_base_key ).
             IF ls_base-key-oid IS NOT INITIAL.
               lv_delta_depth = 1.

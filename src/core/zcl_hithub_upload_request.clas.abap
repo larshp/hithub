@@ -103,7 +103,9 @@ CLASS zcl_hithub_upload_request IMPLEMENTATION.
             RETURN.
           ENDIF.
           IF lines( rs_request-wants ) = 0 AND lv_nul_offset < 0.
-            FIND FIRST OCCURRENCE OF space IN lv_argument
+            " Trailing blanks are cut from a flat character search pattern,
+            " so space would search for nothing. Use a text string literal.
+            FIND FIRST OCCURRENCE OF ` ` IN lv_argument
               MATCH OFFSET lv_offset.
             IF sy-subrc = 0.
               lv_oid_length = lv_offset.

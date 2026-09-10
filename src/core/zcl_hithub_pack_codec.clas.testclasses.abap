@@ -263,17 +263,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_entry-mode = '100644'.
     ls_entry-name = 'reachable.txt'.
-    ls_entry-oid = CONV xstring( ls_blob-key-oid ).
+    ls_entry-oid = zcl_hithub_object_id=>to_bytes( ls_blob-key-oid ).
     " walk( ) turns these bytes back into a lower case oid to reach the
     " blob, so the conversion has to be lossless in both directions.
     cl_abap_unit_assert=>assert_equals(
       act = xstrlen( ls_entry-oid )
       exp = 20
       msg = 'the blob oid does not convert to 20 bytes' ).
-    lv_oid = ls_entry-oid.
-    TRANSLATE lv_oid TO LOWER CASE.
     cl_abap_unit_assert=>assert_equals(
-      act = lv_oid
+      act = zcl_hithub_object_id=>from_bytes( ls_entry-oid )
       exp = ls_blob-key-oid
       msg = 'the blob oid does not survive the byte conversion' ).
     APPEND ls_entry TO lt_entries.

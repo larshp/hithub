@@ -30,7 +30,7 @@ instruction text from the completed entry.
 
 ### ANOMALY-2026-09-10-xstring-hex-case — Character to byte conversion keeps the source text
 
-- Status: `open`
+- Status: `fixed`
 - Discovery date: `2026-09-10`
 - Affected open-abap/transpiler/database-adapter versions: `@abaplint/runtime 2.13.83`
 - Affected ABAP statement, runtime API or adapter: assignment and `CONV` between
@@ -45,20 +45,24 @@ instruction text from the completed entry.
   Case is preserved on the way back, and text that is not hex at all is accepted
   (`CONV xstring( 'blob fixture' )` in
   `src/core/zcl_hithub_blob_codec.clas.testclasses.abap` does not raise).
-- Impact on HitHub: object ids are lower case hex. Tree entries hold them as raw
-  bytes, and `zcl_hithub_contents_service`, `zcl_hithub_file_editor`,
-  `zcl_hithub_compare_service` and `zcl_hithub_reachability` turn those bytes
-  back into a string to address the child object. On the transpiler the case
-  survives, on SAP it does not, which is the suspected cause of the browsing and
-  editing failures seen in the SWF_ABAP_UNIT run of 2026-09-10.
-  `zcl_hithub_reachability=>walk` already carries a `TRANSLATE ... TO LOWER CASE`
-  for exactly this reason.
-- Smallest safe workaround: normalise with `TRANSLATE ... TO LOWER CASE` after
-  every byte to string conversion of an oid, as `zcl_hithub_reachability` does.
-- Upstream issue: not reported yet, pending confirmation of the SAP side by the
-  probes listed below.
-- Regression-test location: `src/core/zcl_hithub_tree_codec.clas.testclasses.abap`
-- Upstream version containing a fix: `unknown`
+- Impact on HitHub: object ids are lower case hex. Tree entries and pack entries
+  hold them as raw bytes, and `zcl_hithub_contents_service`,
+  `zcl_hithub_file_editor`, `zcl_hithub_compare_service`,
+  `zcl_hithub_repo_representation`, `zcl_hithub_pack_codec` and
+  `zcl_hithub_reachability` turn those bytes back into a string to address the
+  child object. The transpiler preserved the case, SAP does not, which caused
+  the browsing, editing and compare failures in the SWF_ABAP_UNIT run of
+  2026-09-10. `zcl_hithub_reachability=>walk` already carried a
+  `TRANSLATE ... TO LOWER CASE` for exactly this reason.
+- Smallest safe workaround: `zcl_hithub_object_id=>to_bytes( )` and
+  `=>from_bytes( )`, used by every oid to byte conversion. `to_bytes( )` folds
+  the id up before the conversion, `from_bytes( )` folds the result back down.
+- Upstream issue: fixed in `@abaplint/runtime` 2.13.84, which reads a leading
+  run of upper case hex digits and stops at the first other character. Seeded
+  fixtures must write payload hex in upper case too, see `server/index.mjs`.
+- Regression-test location: `src/core/zcl_hithub_object_id.clas.testclasses.abap`
+- Upstream version containing a fix: `2.13.84`
 
-Covering methods in that include: `converts_lower_case_hex`,
-`keeps_oid_case_round_trip` and `separates_trees_by_entry_oid`.
+Covering methods: `packs_and_unpacks_oids` in the include above, plus
+`keeps_oid_case_round_trip` and `separates_trees_by_entry_oid` in
+`src/core/zcl_hithub_tree_codec.clas.testclasses.abap`.

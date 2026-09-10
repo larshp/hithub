@@ -113,7 +113,8 @@ CLASS zcl_hithub_repo_representation IMPLEMENTATION.
           IF ls_tree_entry-name = 'README.md'.
             ls_blob_key-repository_id = is_repository-id.
             ls_blob_key-algorithm = ls_reference-algorithm.
-            ls_blob_key-oid = CONV string( ls_tree_entry-oid ).
+            ls_blob_key-oid = zcl_hithub_object_id=>from_bytes(
+              ls_tree_entry-oid ).
             ls_blob_object = io_objects->read( ls_blob_key ).
             lo_input = cl_abap_conv_in_ce=>create(
               input = ls_blob_object-payload encoding = 'UTF-8' ).
