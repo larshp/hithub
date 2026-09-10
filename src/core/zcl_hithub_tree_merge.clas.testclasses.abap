@@ -36,10 +36,12 @@ CLASS ltcl_tree_merge IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lines( ls_result-entries )
       exp = 4 ).
-    cl_abap_unit_assert=>assert_true(
-      act = line_exists( ls_result-entries[ path = 'ours.txt' ] ) ).
-    cl_abap_unit_assert=>assert_true(
-      act = line_exists( ls_result-entries[ path = 'theirs.txt' ] ) ).
+    READ TABLE ls_result-entries WITH KEY path = 'ours.txt'
+      TRANSPORTING NO FIELDS.
+    cl_abap_unit_assert=>assert_subrc( ).
+    READ TABLE ls_result-entries WITH KEY path = 'theirs.txt'
+      TRANSPORTING NO FIELDS.
+    cl_abap_unit_assert=>assert_subrc( ).
   ENDMETHOD.
 
   METHOD reports_same_path_conflict.
@@ -57,8 +59,9 @@ CLASS ltcl_tree_merge IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lines( ls_result-conflicts )
       exp = 1 ).
-    cl_abap_unit_assert=>assert_true(
-      act = line_exists( ls_result-conflicts[ path = 'conflict.txt' ] ) ).
+    READ TABLE ls_result-conflicts WITH KEY path = 'conflict.txt'
+      TRANSPORTING NO FIELDS.
+    cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals(
       act = lines( ls_result-entries )
       exp = 0 ).
