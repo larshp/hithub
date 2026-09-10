@@ -12,8 +12,9 @@ const master = "E";
 const rootPackage = "ZHITHUB";
 
 // MIME repository folder the browser assets are installed into. abapGit names
-// an SMIM object after its LOIO GUID, so the GUID is derived from the URL to
-// keep the file name, the URL and ZCL_HITHUB_SAP_ASSET_STORE in agreement.
+// an SMIM object after its LOIO GUID, so the GUID of each asset is derived from
+// its URL to keep the file name, the URL and ZCL_HITHUB_SAP_ASSET_STORE in
+// agreement. The folder object is the exception; see findMimeFolder.
 const mimeFolder = "/SAP/PUBLIC/zhithub";
 const mimeTypes = new Map(Object.entries({
   css: {type: "text/css", class: "M_TEXT_L"},
@@ -128,10 +129,26 @@ function packageDocument(text) {
 }
 
 // abapGit creates the MIME folder from a serialized SMIM object of its own,
-// and PUT on a file below a missing folder fails, so the folder ships too.
-function mimeFolderDocument(url) {
-  return document("LCL_OBJECT_SMIM", `      <URL>${url}</URL>
-      <FOLDER>X</FOLDER>`);
+// and PUT on a file below a missing folder fails, so the folder has to ship.
+// Its file name cannot be generated: SAP assigns the folder its own LOIO GUID
+// on import and abapGit serializes it back under that name, so a URL-derived
+// name would be a second object for the same folder. Require the object
+// instead, and let whatever the system serialized stay as it is.
+async function findMimeFolder(directory, url) {
+  let entries;
+  try {
+    entries = await readdir(directory);
+  } catch (_error) {
+    return null;
+  }
+  for (const entry of entries.filter((name) => name.endsWith(".smim.xml"))) {
+    const content = await readFile(join(directory, entry), "utf8");
+    if (content.includes("<FOLDER>X</FOLDER>")
+        && content.includes(`<URL>${url}</URL>`)) {
+      return entry;
+    }
+  }
+  return null;
 }
 
 // EXTRA carries the file name and mime type into SMIMPHF. Without it abapGit
@@ -198,9 +215,9 @@ export async function collect() {
   const sources = files.map((file) => file.split("\\").join("/"));
   const assets = sources.filter((file) => /\.smim\.[^/]+$/.test(file)
     && !file.endsWith(".smim.xml"));
-  if (assets.length) {
-    expected.set(`${root}/frontend/${mimeGuid(mimeFolder)}.smim.xml`,
-      mimeFolderDocument(mimeFolder));
+  if (assets.length
+      && (await findMimeFolder(join(root, "frontend"), mimeFolder)) === null) {
+    throw new Error(`No SMIM object in ${root}/frontend declares folder ${mimeFolder}; abapGit cannot PUT the assets below a folder it does not create`);
   }
   for (const file of assets) {
     const fileName = file.replace(/^.*\.smim\./, "");
