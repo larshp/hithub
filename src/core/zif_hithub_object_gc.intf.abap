@@ -6,7 +6,7 @@ INTERFACE zif_hithub_object_gc
       key        TYPE zif_hithub_object_store=>ty_object_key,
       created_at TYPE timestampl,
     END OF ty_candidate,
-    ty_candidates TYPE STANDARD TABLE OF ty_candidate WITH DEFAULT KEY.
+    ty_candidates TYPE STANDARD TABLE OF ty_candidate WITH EMPTY KEY.
 
   METHODS list
     IMPORTING

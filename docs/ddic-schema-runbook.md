@@ -8,8 +8,8 @@ schema or hand-written migration. The package contains 14 tables:
 
 `ZHI_REPOSITORY`, `ZHI_REFERENCE`, `ZHI_OBJECT`, `ZHI_EVENT`,
 `ZHI_IDEMPOTENCY`, `ZHI_PULL_REQUEST`, `ZHI_PR_COMMENT`,
-`ZHI_PR_LINE_COMMENT`, `ZHI_PR_REVIEW`, `ZHI_PR_MERGE_RESULT`, `ZHI_ISSUE`,
-`ZHI_ISSUE_COMMENT`, `ZHI_ISSUE_ASSIGNEE`, and `ZHI_ISSUE_LABEL`.
+`ZHI_PR_LINE_CMNT`, `ZHI_PR_REVIEW`, `ZHI_PR_MERGE_RES`, `ZHI_ISSUE`,
+`ZHI_ISSUE_CMNT`, `ZHI_ISSUE_ASGN`, and `ZHI_ISSUE_LABEL`.
 
 It also contains the shared `ZHI_DE_*` data elements for identifiers, ref
 names, OIDs, text, payloads, timestamps and versions. Keep the imported

@@ -166,8 +166,10 @@ the OpenAPI contract revision is tracked separately in
 
 ### Compatibility and limitations
 
-- Supported deployment floor: SAP NetWeaver AS ABAP 7.52 SP04 or later, with
-  shared database and enqueue services for scale-out.
+- Supported deployment floor: SAP NetWeaver AS ABAP 7.55 or later, with
+  shared database and enqueue services for scale-out. The floor is set by the
+  built-in type `int8` (7.54) and `CL_ABAP_CODEPAGE` (7.53), both used
+  throughout the core.
 - Initial native Git target: 2.30 and later; representative matrix: 2.30,
   2.39, and 2.43. Initial abapGit target: v1.131.0 through v1.134.0.
 - The MVP has no built-in user directory, repository roles, SSH transport,

@@ -3,7 +3,7 @@ CLASS zcl_hithub_upload_request DEFINITION
 
   PUBLIC SECTION.
     TYPES:
-      ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
+      ty_lines TYPE STANDARD TABLE OF string WITH EMPTY KEY,
       BEGIN OF ty_request,
         wants        TYPE ty_lines,
         haves        TYPE ty_lines,

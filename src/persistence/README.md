@@ -8,13 +8,13 @@ The initial metadata schema is represented as abapGit table artifacts:
 - `ZHI_EVENT` stores sanitized audit events.
 - `ZHI_PULL_REQUEST` stores pull-request state and write-once base/head tips.
 - `ZHI_PR_COMMENT` stores immutable pull-request discussion comments.
-- `ZHI_PR_LINE_COMMENT` stores immutable commit/path/line discussion comments.
+- `ZHI_PR_LINE_CMNT` stores immutable commit/path/line discussion comments.
 - `ZHI_PR_REVIEW` stores immutable approval and change-request reviews.
-- `ZHI_PR_MERGE_RESULT` stores immutable merge results for retry responses.
+- `ZHI_PR_MERGE_RES` stores immutable merge results for retry responses.
 - `ZHI_IDEMPOTENCY` stores actor-scoped request idempotency keys.
 - `ZHI_ISSUE` stores issue lifecycle state.
-- `ZHI_ISSUE_COMMENT` stores issue discussion comments.
-- `ZHI_ISSUE_ASSIGNEE` stores free-form issue assignee labels.
+- `ZHI_ISSUE_CMNT` stores issue discussion comments.
+- `ZHI_ISSUE_ASGN` stores free-form issue assignee labels.
 - `ZHI_ISSUE_LABEL` stores issue labels.
 
 The 14 table artifacts and 13 shared data elements are additive and

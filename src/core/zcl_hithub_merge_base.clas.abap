@@ -10,7 +10,7 @@ CLASS zcl_hithub_merge_base DEFINITION
         parent  TYPE string,
         parent2 TYPE string,
       END OF ty_commit,
-      ty_commits TYPE STANDARD TABLE OF ty_commit WITH DEFAULT KEY.
+      ty_commits TYPE STANDARD TABLE OF ty_commit WITH EMPTY KEY.
 
     CLASS-METHODS find
       IMPORTING

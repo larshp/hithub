@@ -51,7 +51,7 @@ CLASS zcl_hithub_tag_codec IMPLEMENTATION.
     DATA lo_in TYPE REF TO cl_abap_conv_in_ce.
     DATA lv_text TYPE string.
     DATA lv_newline TYPE string.
-    DATA lt_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA lt_lines TYPE STANDARD TABLE OF string WITH EMPTY KEY.
     DATA lv_line TYPE string.
     DATA lv_key TYPE string.
     DATA lv_value TYPE string.

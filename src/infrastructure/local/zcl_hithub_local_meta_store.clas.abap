@@ -49,7 +49,7 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_hithub_metadata_store~list_repositories.
-    DATA lt_rows TYPE STANDARD TABLE OF zhi_repository WITH DEFAULT KEY.
+    DATA lt_rows TYPE STANDARD TABLE OF zhi_repository WITH EMPTY KEY.
     DATA ls_row TYPE zhi_repository.
     DATA ls_repository LIKE LINE OF rt_repositories.
 
@@ -154,7 +154,7 @@ CLASS zcl_hithub_local_meta_store IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_hithub_metadata_store~list_references.
-    DATA lt_rows TYPE STANDARD TABLE OF zhi_reference WITH DEFAULT KEY.
+    DATA lt_rows TYPE STANDARD TABLE OF zhi_reference WITH EMPTY KEY.
     DATA ls_row TYPE zhi_reference.
     DATA ls_reference LIKE LINE OF rt_references.
 

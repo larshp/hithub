@@ -4,7 +4,7 @@ CLASS lcl_shared_enqueue DEFINITION.
     INTERFACES zif_hithub_enqueue.
 
   PRIVATE SECTION.
-    TYPES ty_repositories TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    TYPES ty_repositories TYPE STANDARD TABLE OF string WITH EMPTY KEY.
     CLASS-DATA gt_locked TYPE ty_repositories.
 
 ENDCLASS.

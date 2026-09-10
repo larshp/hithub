@@ -17,7 +17,7 @@ CLASS zcl_hithub_pr_reviews DEFINITION
         body            TYPE string,
         created_at      TYPE string,
       END OF ty_review,
-      ty_reviews TYPE STANDARD TABLE OF ty_review WITH DEFAULT KEY.
+      ty_reviews TYPE STANDARD TABLE OF ty_review WITH EMPTY KEY.
 
     CLASS-METHODS is_valid_state
       IMPORTING

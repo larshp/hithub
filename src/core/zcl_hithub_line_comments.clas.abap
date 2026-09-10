@@ -16,7 +16,7 @@ CLASS zcl_hithub_line_comments DEFINITION
         body            TYPE string,
         created_at      TYPE string,
       END OF ty_comment,
-      ty_comments TYPE STANDARD TABLE OF ty_comment WITH DEFAULT KEY.
+      ty_comments TYPE STANDARD TABLE OF ty_comment WITH EMPTY KEY.
 
     CLASS-METHODS add
       IMPORTING
@@ -35,8 +35,8 @@ ENDCLASS.
 CLASS zcl_hithub_line_comments IMPLEMENTATION.
 
   METHOD add.
-    DATA ls_row TYPE zhi_pr_line_comment.
-    DATA ls_existing TYPE zhi_pr_line_comment.
+    DATA ls_row TYPE zhi_pr_line_cmnt.
+    DATA ls_existing TYPE zhi_pr_line_cmnt.
 
     CLEAR rv_saved.
     IF is_comment-repository_id IS INITIAL
@@ -50,7 +50,7 @@ CLASS zcl_hithub_line_comments IMPLEMENTATION.
         OR is_comment-created_at IS INITIAL.
       RETURN.
     ENDIF.
-    SELECT SINGLE * FROM zhi_pr_line_comment INTO @ls_existing
+    SELECT SINGLE * FROM zhi_pr_line_cmnt INTO @ls_existing
       WHERE repository_id = @is_comment-repository_id
         AND pull_request_id = @is_comment-pull_request_id
         AND comment_id = @is_comment-comment_id.
@@ -66,20 +66,20 @@ CLASS zcl_hithub_line_comments IMPLEMENTATION.
     ls_row-actor = is_comment-actor.
     ls_row-body = is_comment-body.
     ls_row-created_at = is_comment-created_at.
-    INSERT zhi_pr_line_comment FROM @ls_row.
+    INSERT zhi_pr_line_cmnt FROM @ls_row.
     rv_saved = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
   METHOD list.
-    DATA lt_rows TYPE STANDARD TABLE OF zhi_pr_line_comment.
-    DATA ls_row TYPE zhi_pr_line_comment.
+    DATA lt_rows TYPE STANDARD TABLE OF zhi_pr_line_cmnt.
+    DATA ls_row TYPE zhi_pr_line_cmnt.
     DATA ls_comment TYPE ty_comment.
 
     CLEAR rt_comments.
     IF iv_repository_id IS INITIAL OR iv_pull_request_id IS INITIAL.
       RETURN.
     ENDIF.
-    SELECT * FROM zhi_pr_line_comment INTO TABLE @lt_rows
+    SELECT * FROM zhi_pr_line_cmnt INTO TABLE @lt_rows
       WHERE repository_id = @iv_repository_id
         AND pull_request_id = @iv_pull_request_id.
     LOOP AT lt_rows INTO ls_row.

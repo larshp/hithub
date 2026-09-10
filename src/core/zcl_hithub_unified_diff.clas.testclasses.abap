@@ -4,7 +4,7 @@ CLASS ltcl_unified_diff DEFINITION
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    TYPES ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    TYPES ty_lines TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     METHODS reports_no_patch_when_equal FOR TESTING RAISING cx_static_check.
     METHODS replaces_single_line FOR TESTING RAISING cx_static_check.

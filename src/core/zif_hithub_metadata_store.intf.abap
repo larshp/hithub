@@ -10,7 +10,7 @@ INTERFACE zif_hithub_metadata_store
       version        TYPE int8,
       deleted        TYPE abap_bool,
     END OF ty_repository,
-    ty_repositories TYPE STANDARD TABLE OF ty_repository WITH DEFAULT KEY,
+    ty_repositories TYPE STANDARD TABLE OF ty_repository WITH EMPTY KEY,
     BEGIN OF ty_reference,
       repository_id   TYPE string,
       name            TYPE string,
@@ -19,7 +19,7 @@ INTERFACE zif_hithub_metadata_store
       symbolic_target TYPE string,
       version         TYPE int8,
     END OF ty_reference,
-    ty_references TYPE STANDARD TABLE OF ty_reference WITH DEFAULT KEY.
+    ty_references TYPE STANDARD TABLE OF ty_reference WITH EMPTY KEY.
 
   METHODS read_repository
     IMPORTING

@@ -19,7 +19,7 @@ CLASS zcl_hithub_text_merge DEFINITION
         VALUE(rs_result) TYPE ty_result.
 
   PRIVATE SECTION.
-    TYPES ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    TYPES ty_lines TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     CLASS-METHODS split
       IMPORTING

@@ -19,7 +19,7 @@ CLASS zcl_hithub_issues DEFINITION
         updated_at    TYPE string,
         version       TYPE int8,
       END OF ty_issue,
-      ty_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
+      ty_issues TYPE STANDARD TABLE OF ty_issue WITH EMPTY KEY,
       BEGIN OF ty_result,
         success TYPE abap_bool,
         reason  TYPE string,
@@ -181,7 +181,7 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_issue.
     DATA ls_row TYPE zhi_issue.
     DATA ls_issue TYPE ty_issue.
-    DATA lt_ordered TYPE STANDARD TABLE OF ty_ordered WITH DEFAULT KEY.
+    DATA lt_ordered TYPE STANDARD TABLE OF ty_ordered WITH EMPTY KEY.
     DATA ls_ordered TYPE ty_ordered.
 
     CLEAR rt_issues.

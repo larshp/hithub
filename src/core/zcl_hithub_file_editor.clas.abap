@@ -44,7 +44,7 @@ CLASS zcl_hithub_file_editor DEFINITION
         cx_static_check.
 
   PRIVATE SECTION.
-    TYPES ty_parts TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    TYPES ty_parts TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     DATA mo_metadata TYPE REF TO zif_hithub_metadata_store.
     DATA mo_objects TYPE REF TO zif_hithub_object_store.

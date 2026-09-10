@@ -2,19 +2,25 @@
 
 ## Minimum supported SAP release
 
-HitHub supports SAP NetWeaver AS ABAP 7.52 SP04 and later SAP releases that
+HitHub supports SAP NetWeaver AS ABAP 7.55 and later SAP releases that
 provide the same or a compatible ABAP runtime contract.
 
-The release floor is chosen as the initial compatibility target for the
-`IF_HTTP_EXTENSION` entry point and the ABAP language/runtime features needed
-by the dual SAP/open-abap implementation. Any use of a newer SAP-only API must
-be isolated behind an infrastructure adapter and documented as a later-release
-requirement.
+The release floor is set by the ABAP language and runtime features the dual
+SAP/open-abap implementation depends on, not only by the `IF_HTTP_EXTENSION`
+entry point:
+
+- the built-in type `int8`, which carries Git object sizes, pack offsets and
+  optimistic-locking versions throughout the core, is available as of 7.54;
+- `CL_ABAP_CODEPAGE` is available as of 7.53.
+
+7.55 is the first release that clears both with margin. Any use of a newer
+SAP-only API must be isolated behind an infrastructure adapter and documented
+as a later-release requirement.
 
 ## Supported ABAP language version
 
 HitHub targets the standard ABAP language version available on the minimum
-supported release, SAP NetWeaver AS ABAP 7.52 SP04. ABAP for Cloud Development
+supported release, SAP NetWeaver AS ABAP 7.55. ABAP for Cloud Development
 is not the target language version because HitHub requires classic ICF and
 on-premise persistence integration.
 

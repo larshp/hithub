@@ -1,6 +1,6 @@
 # Supported SAP application-server topology
 
-The MVP supports SAP NetWeaver AS ABAP 7.52 SP04 or later in either of these
+The MVP supports SAP NetWeaver AS ABAP 7.55 or later in either of these
 forms:
 
 - a single application server with the standard SAP database and enqueue

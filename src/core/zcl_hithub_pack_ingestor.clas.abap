@@ -3,7 +3,7 @@ CLASS zcl_hithub_pack_ingestor DEFINITION
 
   PUBLIC SECTION.
     TYPES ty_objects TYPE STANDARD TABLE OF zif_hithub_object_store=>ty_object
-      WITH DEFAULT KEY.
+      WITH EMPTY KEY.
 
     METHODS constructor
       IMPORTING

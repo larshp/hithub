@@ -2,7 +2,7 @@ CLASS zcl_hithub_git_capabilities DEFINITION
   PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
-    TYPES ty_capabilities TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    TYPES ty_capabilities TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     CLASS-METHODS advertised
       IMPORTING

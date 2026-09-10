@@ -12,14 +12,14 @@ CLASS zcl_hithub_changed_files DEFINITION
         oid  TYPE string,
         mode TYPE string,
       END OF ty_file,
-      ty_files TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY,
+      ty_files TYPE STANDARD TABLE OF ty_file WITH EMPTY KEY,
       BEGIN OF ty_change,
         path    TYPE string,
         status  TYPE string,
         old_oid TYPE string,
         new_oid TYPE string,
       END OF ty_change,
-      ty_changes TYPE STANDARD TABLE OF ty_change WITH DEFAULT KEY.
+      ty_changes TYPE STANDARD TABLE OF ty_change WITH EMPTY KEY.
 
     CLASS-METHODS calculate
       IMPORTING

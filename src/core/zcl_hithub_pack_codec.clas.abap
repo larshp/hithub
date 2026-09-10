@@ -3,7 +3,7 @@ CLASS zcl_hithub_pack_codec DEFINITION
 
   PUBLIC SECTION.
     TYPES ty_objects TYPE STANDARD TABLE OF zif_hithub_object_store=>ty_object
-      WITH DEFAULT KEY.
+      WITH EMPTY KEY.
 
     METHODS constructor
       IMPORTING
@@ -41,7 +41,7 @@ CLASS zcl_hithub_pack_codec DEFINITION
         pack_offset TYPE i,
         delta_depth TYPE i,
       END OF ty_decoded,
-      ty_decoded_objects TYPE STANDARD TABLE OF ty_decoded WITH DEFAULT KEY.
+      ty_decoded_objects TYPE STANDARD TABLE OF ty_decoded WITH EMPTY KEY.
 
 ENDCLASS.
 

@@ -3,13 +3,13 @@ CLASS zcl_hithub_receive_request DEFINITION
 
   PUBLIC SECTION.
     TYPES:
-      ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
+      ty_lines TYPE STANDARD TABLE OF string WITH EMPTY KEY,
       BEGIN OF ty_command,
         old_oid  TYPE string,
         new_oid  TYPE string,
         ref_name TYPE string,
       END OF ty_command,
-      ty_commands TYPE STANDARD TABLE OF ty_command WITH DEFAULT KEY,
+      ty_commands TYPE STANDARD TABLE OF ty_command WITH EMPTY KEY,
       BEGIN OF ty_request,
         commands     TYPE ty_commands,
         capabilities TYPE ty_lines,

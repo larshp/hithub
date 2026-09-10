@@ -13,7 +13,7 @@ CLASS zcl_hithub_pr_comments DEFINITION
         body            TYPE string,
         created_at      TYPE string,
       END OF ty_comment,
-      ty_comments TYPE STANDARD TABLE OF ty_comment WITH DEFAULT KEY.
+      ty_comments TYPE STANDARD TABLE OF ty_comment WITH EMPTY KEY.
 
     CLASS-METHODS add
       IMPORTING

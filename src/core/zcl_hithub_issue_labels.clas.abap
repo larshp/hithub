@@ -4,7 +4,7 @@ CLASS zcl_hithub_issue_labels DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    TYPES ty_labels TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    TYPES ty_labels TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     CLASS-METHODS add
       IMPORTING
@@ -91,7 +91,7 @@ CLASS zcl_hithub_issue_labels IMPLEMENTATION.
     LOOP AT lt_rows INTO ls_row.
       APPEND ls_row-label TO rt_labels.
     ENDLOOP.
-    SORT rt_labels.
+    SORT rt_labels BY table_line.
   ENDMETHOD.
 
 ENDCLASS.

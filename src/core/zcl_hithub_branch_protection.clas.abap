@@ -9,7 +9,7 @@ CLASS zcl_hithub_branch_protection DEFINITION
         allow_force_push TYPE abap_bool,
         allow_delete     TYPE abap_bool,
       END OF ty_rule,
-      ty_rules TYPE STANDARD TABLE OF ty_rule WITH DEFAULT KEY.
+      ty_rules TYPE STANDARD TABLE OF ty_rule WITH EMPTY KEY.
 
     CLASS-METHODS allows
       IMPORTING

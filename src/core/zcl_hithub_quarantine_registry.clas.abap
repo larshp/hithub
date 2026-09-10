@@ -8,7 +8,7 @@ CLASS zcl_hithub_quarantine_registry DEFINITION
         quarantine    TYPE REF TO zif_hithub_quarantine,
         last_activity TYPE timestampl,
       END OF ty_entry,
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH EMPTY KEY.
 
     METHODS register
       IMPORTING

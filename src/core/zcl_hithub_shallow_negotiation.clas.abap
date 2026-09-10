@@ -7,7 +7,7 @@ CLASS zcl_hithub_shallow_negotiation DEFINITION
         oid     TYPE string,
         parents TYPE zcl_hithub_commit_codec=>ty_parents,
       END OF ty_commit,
-      ty_commits TYPE STANDARD TABLE OF ty_commit WITH DEFAULT KEY.
+      ty_commits TYPE STANDARD TABLE OF ty_commit WITH EMPTY KEY.
 
     CLASS-METHODS build
       IMPORTING
@@ -27,7 +27,7 @@ CLASS zcl_hithub_shallow_negotiation IMPLEMENTATION.
         oid   TYPE string,
         depth TYPE i,
       END OF ty_visit,
-      ty_visits TYPE STANDARD TABLE OF ty_visit WITH DEFAULT KEY.
+      ty_visits TYPE STANDARD TABLE OF ty_visit WITH EMPTY KEY.
     DATA lt_queue TYPE ty_visits.
     DATA lt_seen TYPE zcl_hithub_upload_request=>ty_lines.
     DATA lt_boundaries TYPE zcl_hithub_upload_request=>ty_lines.

@@ -105,7 +105,7 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
     DATA lt_rows TYPE STANDARD TABLE OF zhi_pull_request.
     DATA ls_row TYPE zhi_pull_request.
     DATA ls_pull_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
-    DATA lt_ordered TYPE STANDARD TABLE OF ty_ordered WITH DEFAULT KEY.
+    DATA lt_ordered TYPE STANDARD TABLE OF ty_ordered WITH EMPTY KEY.
     DATA ls_ordered TYPE ty_ordered.
 
     CLEAR rt_pull_requests.

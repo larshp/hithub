@@ -8,12 +8,12 @@ CLASS zcl_hithub_tree_codec DEFINITION
         name TYPE string,
         oid  TYPE xstring,
       END OF ty_entry,
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY,
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH EMPTY KEY,
       BEGIN OF ty_sort_entry,
         entry    TYPE ty_entry,
         sort_key TYPE string,
       END OF ty_sort_entry,
-      ty_sort_entries TYPE STANDARD TABLE OF ty_sort_entry WITH DEFAULT KEY.
+      ty_sort_entries TYPE STANDARD TABLE OF ty_sort_entry WITH EMPTY KEY.
 
     CLASS-METHODS encode
       IMPORTING

@@ -17,7 +17,7 @@ CLASS zcl_hithub_timeline DEFINITION
         occurred_at    TYPE string,
         details        TYPE string,
       END OF ty_entry,
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH EMPTY KEY.
 
     CLASS-METHODS list
       IMPORTING

@@ -2,7 +2,7 @@ INTERFACE zif_hithub_quarantine
   PUBLIC.
 
   TYPES ty_objects TYPE STANDARD TABLE OF zif_hithub_object_store=>ty_object
-    WITH DEFAULT KEY.
+    WITH EMPTY KEY.
 
   METHODS stage
     IMPORTING

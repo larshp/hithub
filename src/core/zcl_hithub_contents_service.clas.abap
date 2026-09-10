@@ -15,7 +15,7 @@ CLASS zcl_hithub_contents_service DEFINITION
         last_commit    TYPE string,
         last_commit_at TYPE string,
       END OF ty_entry,
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH EMPTY KEY.
 
     METHODS constructor
       IMPORTING
@@ -171,7 +171,7 @@ CLASS zcl_hithub_contents_service IMPLEMENTATION.
   METHOD find_path.
     DATA ls_tree_key TYPE zif_hithub_object_store=>ty_object_key.
     DATA ls_tree_object TYPE zif_hithub_object_store=>ty_object.
-    DATA lt_parts TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA lt_parts TYPE STANDARD TABLE OF string WITH EMPTY KEY.
     DATA lv_part TYPE string.
     DATA lv_index TYPE i.
     DATA lv_last TYPE i.

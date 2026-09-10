@@ -9,7 +9,7 @@ CLASS zcl_hithub_json DEFINITION
     TYPES   kind  TYPE string.
     TYPES   value TYPE string.
     TYPES END OF ty_member.
-    TYPES ty_members TYPE STANDARD TABLE OF ty_member WITH DEFAULT KEY.
+    TYPES ty_members TYPE STANDARD TABLE OF ty_member WITH EMPTY KEY.
 
     TYPES BEGIN OF ty_document.
     TYPES   valid   TYPE abap_bool.

@@ -18,7 +18,7 @@ CLASS zcl_hithub_compare_service DEFINITION
         truncated TYPE abap_bool,
         patch     TYPE string,
       END OF ty_file,
-      ty_files TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY,
+      ty_files TYPE STANDARD TABLE OF ty_file WITH EMPTY KEY,
       BEGIN OF ty_comparison,
         found          TYPE abap_bool,
         reason         TYPE string,
@@ -402,7 +402,7 @@ CLASS zcl_hithub_compare_service IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD collect_history.
-    DATA lt_pending TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA lt_pending TYPE STANDARD TABLE OF string WITH EMPTY KEY.
     DATA ls_key TYPE zif_hithub_object_store=>ty_object_key.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
     DATA ls_decoded TYPE zcl_hithub_commit_codec=>ty_commit.

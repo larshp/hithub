@@ -8,7 +8,7 @@ CLASS zcl_hithub_receive_status DEFINITION
         ok       TYPE abap_bool,
         reason   TYPE string,
       END OF ty_result,
-      ty_results TYPE STANDARD TABLE OF ty_result WITH DEFAULT KEY.
+      ty_results TYPE STANDARD TABLE OF ty_result WITH EMPTY KEY.
 
     CLASS-METHODS build
       IMPORTING

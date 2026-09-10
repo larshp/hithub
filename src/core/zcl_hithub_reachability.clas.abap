@@ -3,7 +3,7 @@ CLASS zcl_hithub_reachability DEFINITION
 
   PUBLIC SECTION.
     TYPES ty_keys TYPE STANDARD TABLE OF zif_hithub_object_store=>ty_object_key
-      WITH DEFAULT KEY.
+      WITH EMPTY KEY.
 
     METHODS constructor
       IMPORTING

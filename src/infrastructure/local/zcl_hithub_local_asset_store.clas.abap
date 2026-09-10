@@ -21,7 +21,7 @@ CLASS zcl_hithub_local_asset_store DEFINITION
 
   PRIVATE SECTION.
     TYPES ty_assets TYPE STANDARD TABLE OF zif_hithub_asset_store=>ty_asset
-      WITH DEFAULT KEY.
+      WITH EMPTY KEY.
 
     CLASS-DATA gt_assets TYPE ty_assets.
 

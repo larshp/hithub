@@ -55,7 +55,7 @@ const expected = {
     },
     primaryKey: ["repository_id", "pull_request_id", "comment_id"],
   },
-  zhi_pr_line_comment: {
+  zhi_pr_line_cmnt: {
     columns: {
       repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
       comment_id: "NCHAR(36)", commit_oid: "NCHAR(64)",
@@ -72,7 +72,7 @@ const expected = {
     },
     primaryKey: ["repository_id", "pull_request_id", "review_id"],
   },
-  zhi_pr_merge_result: {
+  zhi_pr_merge_res: {
     columns: {
       repository_id: "NCHAR(36)", pull_request_id: "NCHAR(36)",
       merge_id: "NCHAR(36)", commit_oid: "NCHAR(64)",
@@ -88,7 +88,7 @@ const expected = {
     },
     primaryKey: ["repository_id", "id"],
   },
-  zhi_issue_comment: {
+  zhi_issue_cmnt: {
     columns: {
       repository_id: "NCHAR(36)", issue_id: "NCHAR(36)",
       comment_id: "NCHAR(36)", actor: "NCHAR(100)",
@@ -96,7 +96,7 @@ const expected = {
     },
     primaryKey: ["repository_id", "issue_id", "comment_id"],
   },
-  zhi_issue_assignee: {
+  zhi_issue_asgn: {
     columns: {
       repository_id: "NCHAR(36)", issue_id: "NCHAR(36)", actor: "NCHAR(100)",
     },

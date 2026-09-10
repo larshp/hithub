@@ -15,7 +15,7 @@ CLASS zcl_hithub_pr_snapshot DEFINITION
         head_oid      TYPE string,
         version       TYPE int8,
       END OF ty_snapshot.
-    TYPES ty_snapshots TYPE STANDARD TABLE OF ty_snapshot WITH DEFAULT KEY.
+    TYPES ty_snapshots TYPE STANDARD TABLE OF ty_snapshot WITH EMPTY KEY.
 
     CLASS-METHODS is_valid
       IMPORTING

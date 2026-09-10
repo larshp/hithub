@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Use SAP NetWeaver AS ABAP 7.52 SP04 or a later supported release. Install the
+Use SAP NetWeaver AS ABAP 7.55 or a later supported release. Install the
 HitHub ABAP sources and `ZHI_*` DDIC artifacts through the approved transport
 or abapGit process. The namespace must be registered before importing the
 transport, and the target system must have a configured database backup and

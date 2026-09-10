@@ -28,14 +28,14 @@ CLASS zcl_hithub_unified_diff DEFINITION
     CONSTANTS c_add_kind TYPE string VALUE 'add'.
     CONSTANTS c_delete_kind TYPE string VALUE 'delete'.
 
-    TYPES ty_lines TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-    TYPES ty_numbers TYPE STANDARD TABLE OF i WITH DEFAULT KEY.
+    TYPES ty_lines TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    TYPES ty_numbers TYPE STANDARD TABLE OF i WITH EMPTY KEY.
     TYPES:
       BEGIN OF ty_operation,
         kind TYPE string,
         text TYPE string,
       END OF ty_operation,
-      ty_operations TYPE STANDARD TABLE OF ty_operation WITH DEFAULT KEY.
+      ty_operations TYPE STANDARD TABLE OF ty_operation WITH EMPTY KEY.
 
     CLASS-METHODS split
       IMPORTING

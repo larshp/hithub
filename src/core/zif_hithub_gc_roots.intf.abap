@@ -2,7 +2,7 @@ INTERFACE zif_hithub_gc_roots
   PUBLIC.
 
   TYPES ty_keys TYPE STANDARD TABLE OF zif_hithub_object_store=>ty_object_key
-    WITH DEFAULT KEY.
+    WITH EMPTY KEY.
 
   METHODS list
     IMPORTING

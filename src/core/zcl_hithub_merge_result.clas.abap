@@ -30,8 +30,8 @@ ENDCLASS.
 CLASS zcl_hithub_merge_result IMPLEMENTATION.
 
   METHOD save.
-    DATA ls_row TYPE zhi_pr_merge_result.
-    DATA ls_existing TYPE zhi_pr_merge_result.
+    DATA ls_row TYPE zhi_pr_merge_res.
+    DATA ls_existing TYPE zhi_pr_merge_res.
 
     CLEAR rv_saved.
     IF is_result-repository_id IS INITIAL
@@ -40,7 +40,7 @@ CLASS zcl_hithub_merge_result IMPLEMENTATION.
         OR is_result-created_at IS INITIAL.
       RETURN.
     ENDIF.
-    SELECT SINGLE * FROM zhi_pr_merge_result INTO @ls_existing
+    SELECT SINGLE * FROM zhi_pr_merge_res INTO @ls_existing
       WHERE repository_id = @is_result-repository_id
         AND pull_request_id = @is_result-pull_request_id.
     IF sy-subrc = 0.
@@ -51,15 +51,15 @@ CLASS zcl_hithub_merge_result IMPLEMENTATION.
     ls_row-merge_id = is_result-merge_id.
     ls_row-commit_oid = is_result-commit_oid.
     ls_row-created_at = is_result-created_at.
-    INSERT zhi_pr_merge_result FROM @ls_row.
+    INSERT zhi_pr_merge_res FROM @ls_row.
     rv_saved = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
   METHOD read.
-    DATA ls_row TYPE zhi_pr_merge_result.
+    DATA ls_row TYPE zhi_pr_merge_res.
 
     CLEAR rs_result.
-    SELECT SINGLE * FROM zhi_pr_merge_result INTO @ls_row
+    SELECT SINGLE * FROM zhi_pr_merge_res INTO @ls_row
       WHERE repository_id = @iv_repository_id
         AND pull_request_id = @iv_pull_request_id.
     IF sy-subrc <> 0.

@@ -15,7 +15,7 @@ CLASS zcl_hithub_commit_service DEFINITION
         message     TYPE string,
         authored_at TYPE string,
       END OF ty_entry,
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH DEFAULT KEY.
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH EMPTY KEY.
 
     METHODS constructor
       IMPORTING
@@ -97,7 +97,7 @@ CLASS zcl_hithub_commit_service IMPLEMENTATION.
     TYPES ty_seen TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
     DATA lv_ref TYPE string.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
-    DATA lt_pending TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA lt_pending TYPE STANDARD TABLE OF string WITH EMPTY KEY.
     DATA lt_seen TYPE ty_seen.
     DATA lv_oid TYPE string.
     DATA lv_parent TYPE string.

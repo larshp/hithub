@@ -27,7 +27,7 @@ CLASS zcl_hithub_receive_batch DEFINITION
         command   TYPE zcl_hithub_receive_request=>ty_command,
         reference TYPE zif_hithub_metadata_store=>ty_reference,
       END OF ty_current,
-      ty_currents TYPE STANDARD TABLE OF ty_current WITH DEFAULT KEY.
+      ty_currents TYPE STANDARD TABLE OF ty_current WITH EMPTY KEY.
 
     DATA mo_store TYPE REF TO zif_hithub_object_store.
     DATA mo_metadata TYPE REF TO zif_hithub_metadata_store.
