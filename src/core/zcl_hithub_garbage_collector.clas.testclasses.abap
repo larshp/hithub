@@ -34,7 +34,7 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
     DATA lv_reachable_oid TYPE string.
     DATA lv_orphan_oid TYPE string.
-    DATA(lv_repository_id) = 'gc-repository-000000000000000000'.
+    DATA(lv_repository_id) = |gc-repository-000000000000000000|.
 
     ls_reachable-key-repository_id = lv_repository_id.
     ls_reachable-key-algorithm = 'sha1'.
@@ -87,7 +87,7 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     DATA lt_objects TYPE zif_hithub_quarantine=>ty_objects.
     DATA lv_protected_oid TYPE string.
     DATA lv_orphan_oid TYPE string.
-    DATA(lv_repository_id) = 'gc-quarantine-repository-0000000'.
+    DATA(lv_repository_id) = |gc-quarantine-repository-0000000|.
 
     ls_protected-key-repository_id = lv_repository_id.
     ls_protected-key-algorithm = 'sha1'.
@@ -128,7 +128,7 @@ CLASS ltcl_garbage_collector IMPLEMENTATION.
     DATA ls_new TYPE zif_hithub_object_store=>ty_object.
     DATA lv_old_oid TYPE string.
     DATA lv_new_oid TYPE string.
-    DATA(lv_repository_id) = 'gc-grace-repository-00000000'.
+    DATA(lv_repository_id) = |gc-grace-repository-00000000|.
 
     ls_old-key-repository_id = lv_repository_id.
     ls_old-key-algorithm = 'sha1'.

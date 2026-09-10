@@ -74,6 +74,7 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
     DATA lv_assign_number TYPE abap_bool.
     DATA lv_attempt TYPE i.
     DATA lv_number TYPE i.
+    DATA lv_now TYPE timestamp.
 
     CLEAR rs_result.
     ls_issue = is_issue.
@@ -93,7 +94,8 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
       RETURN.
     ENDIF.
     IF ls_issue-created_at IS INITIAL.
-      GET TIME STAMP FIELD ls_issue-created_at.
+      GET TIME STAMP FIELD lv_now.
+      ls_issue-created_at = |{ lv_now }|.
     ENDIF.
     IF ls_issue-updated_at IS INITIAL.
       ls_issue-updated_at = ls_issue-created_at.
@@ -216,6 +218,7 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
 
   METHOD update.
     DATA ls_row TYPE zhi_issue.
+    DATA lv_now TYPE timestamp.
 
     CLEAR rs_result.
     IF iv_repository_id IS INITIAL OR iv_id IS INITIAL
@@ -237,8 +240,8 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
     ENDIF.
     ls_row-title = iv_title.
     ls_row-body = iv_body.
-    ls_row-updated_at = ls_row-created_at.
-    GET TIME STAMP FIELD ls_row-updated_at.
+    GET TIME STAMP FIELD lv_now.
+    ls_row-updated_at = |{ lv_now }|.
     ls_row-version = ls_row-version + 1.
     UPDATE zhi_issue FROM @ls_row.
     IF sy-subrc <> 0.
@@ -252,6 +255,7 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
 
   METHOD transition.
     DATA ls_row TYPE zhi_issue.
+    DATA lv_now TYPE timestamp.
 
     CLEAR rs_result.
     IF iv_repository_id IS INITIAL OR iv_id IS INITIAL
@@ -276,7 +280,8 @@ CLASS zcl_hithub_issues IMPLEMENTATION.
       RETURN.
     ENDIF.
     ls_row-state = iv_state.
-    GET TIME STAMP FIELD ls_row-updated_at.
+    GET TIME STAMP FIELD lv_now.
+    ls_row-updated_at = |{ lv_now }|.
     ls_row-version = ls_row-version + 1.
     UPDATE zhi_issue FROM @ls_row.
     IF sy-subrc <> 0.

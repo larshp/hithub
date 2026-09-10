@@ -10,7 +10,7 @@ CLASS ltcl_tag_service IMPLEMENTATION.
     DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_tag_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
-    DATA(lv_repository_id) = 'tag-service-000000000000000000'.
+    DATA(lv_repository_id) = |tag-service-000000000000000000|.
     DATA(ls_created) = lo_service->create(
       iv_repository_id = lv_repository_id iv_name = 'release/v1'
       iv_oid = '1111111111111111111111111111111111111111' ).

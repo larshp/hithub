@@ -45,7 +45,7 @@ CLASS ltcl_sap_repo_lock IMPLEMENTATION.
       io_enqueue = lo_enqueue ).
     DATA(lo_server_b) = NEW zcl_hithub_sap_repo_lock(
       io_enqueue = lo_enqueue ).
-    DATA(lv_repository_id) = 'sap-lock-repository'.
+    DATA(lv_repository_id) = |sap-lock-repository|.
 
     ASSERT lo_server_a->zif_hithub_repository_lock~acquire(
       iv_repository_id = lv_repository_id iv_owner = 'server-a'

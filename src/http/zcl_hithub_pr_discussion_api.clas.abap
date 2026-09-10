@@ -217,6 +217,7 @@ CLASS zcl_hithub_pr_discussion_api IMPLEMENTATION.
     DATA ls_document TYPE zcl_hithub_json=>ty_document.
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
     DATA ls_review TYPE zcl_hithub_pr_reviews=>ty_review.
+    DATA lv_now TYPE timestamp.
     DATA lt_members TYPE zcl_hithub_json=>ty_members.
     DATA lv_valid TYPE abap_bool.
     DATA lv_id_seen TYPE abap_bool.
@@ -227,7 +228,8 @@ CLASS zcl_hithub_pr_discussion_api IMPLEMENTATION.
     ls_review-repository_id = iv_repository_id.
     ls_review-pull_request_id = iv_pull_request_id.
     ls_review-actor = io_context->actor_label( ).
-    GET TIME STAMP FIELD ls_review-created_at.
+    GET TIME STAMP FIELD lv_now.
+    ls_review-created_at = |{ lv_now }|.
     LOOP AT ls_document-members INTO ls_member.
       IF ls_member-kind <> 'string'.
         lv_valid = abap_false.
@@ -291,6 +293,7 @@ CLASS zcl_hithub_pr_discussion_api IMPLEMENTATION.
     DATA ls_document TYPE zcl_hithub_json=>ty_document.
     DATA ls_member TYPE zcl_hithub_json=>ty_member.
     DATA ls_comment TYPE zcl_hithub_pr_comments=>ty_comment.
+    DATA lv_now TYPE timestamp.
     DATA lt_members TYPE zcl_hithub_json=>ty_members.
     DATA lv_valid TYPE abap_bool.
     DATA lv_id_seen TYPE abap_bool.
@@ -301,7 +304,8 @@ CLASS zcl_hithub_pr_discussion_api IMPLEMENTATION.
     ls_comment-repository_id = iv_repository_id.
     ls_comment-pull_request_id = iv_pull_request_id.
     ls_comment-actor = io_context->actor_label( ).
-    GET TIME STAMP FIELD ls_comment-created_at.
+    GET TIME STAMP FIELD lv_now.
+    ls_comment-created_at = |{ lv_now }|.
     LOOP AT ls_document-members INTO ls_member.
       IF ls_member-kind <> 'string'.
         lv_valid = abap_false.

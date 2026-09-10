@@ -2564,11 +2564,13 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             DATA lv_issue_comment_id_seen TYPE abap_bool.
             DATA lv_issue_comment_body_seen TYPE abap_bool.
             DATA ls_issue_comment_member TYPE zcl_hithub_json=>ty_member.
+            DATA lv_issue_comment_now TYPE timestamp.
             lv_issue_comment_valid = ls_issue_comment_document-valid.
             ls_issue_comment-repository_id = ls_issue_post_repository-id.
             ls_issue_comment-issue_id = lv_issue_post_id.
             ls_issue_comment-actor = lo_issue_comment_context->actor_label( ).
-            GET TIME STAMP FIELD ls_issue_comment-created_at.
+            GET TIME STAMP FIELD lv_issue_comment_now.
+            ls_issue_comment-created_at = |{ lv_issue_comment_now }|.
             LOOP AT ls_issue_comment_document-members
                 INTO ls_issue_comment_member.
               IF ls_issue_comment_member-kind <> 'string'.

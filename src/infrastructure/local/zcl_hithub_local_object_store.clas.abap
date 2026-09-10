@@ -85,6 +85,7 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
 
   METHOD zif_hithub_object_store~write.
     DATA ls_row TYPE zhi_object.
+    DATA lv_now TYPE timestamp.
 
     CLEAR rv_created.
     IF is_object-key-repository_id IS INITIAL
@@ -99,7 +100,8 @@ CLASS zcl_hithub_local_object_store IMPLEMENTATION.
     ls_row-object_type = is_object-type.
     ls_row-object_size = is_object-size.
     IF is_object-created_at IS INITIAL.
-      GET TIME STAMP FIELD ls_row-created_at.
+      GET TIME STAMP FIELD lv_now.
+      ls_row-created_at = |{ lv_now }|.
     ELSE.
       ls_row-created_at = is_object-created_at.
     ENDIF.

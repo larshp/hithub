@@ -47,7 +47,7 @@ CLASS ltcl_work_number IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD shares_one_sequence.
-    DATA(lv_repository) = 'work-number-shared'.
+    DATA(lv_repository) = |work-number-shared|.
 
     ASSERT open_issue( lv_repository ) = '1'.
     ASSERT open_pull_request( lv_repository ) = '2'.
@@ -62,7 +62,7 @@ CLASS ltcl_work_number IMPLEMENTATION.
   METHOD ignores_non_numeric_identities.
     DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.
     DATA ls_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
-    DATA(lv_repository) = 'work-number-legacy'.
+    DATA(lv_repository) = |work-number-legacy|.
 
     ls_issue-repository_id = lv_repository.
     ls_issue-id = 'legacy-issue-uuid'.

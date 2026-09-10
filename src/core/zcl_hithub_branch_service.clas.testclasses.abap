@@ -16,8 +16,8 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
-    DATA(lv_repository_id) = 'branch-service-00000000000000000'.
-    DATA(lv_oid) = '1111111111111111111111111111111111111111'.
+    DATA(lv_repository_id) = |branch-service-00000000000000000|.
+    DATA(lv_oid) = |1111111111111111111111111111111111111111|.
     DATA(ls_result) = lo_service->create(
       iv_repository_id = lv_repository_id
       iv_name          = 'feature/test'
@@ -55,7 +55,7 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
-    DATA(lv_repository_id) = 'branch-stale-00000000000000000000'.
+    DATA(lv_repository_id) = |branch-stale-00000000000000000000|.
     DATA(ls_created) = lo_service->create(
       iv_repository_id = lv_repository_id
       iv_name          = 'main'

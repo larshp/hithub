@@ -34,7 +34,7 @@ CLASS ltcl_issues IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD numbers_issues_sequentially.
-    DATA(lv_repository) = 'issue-numbering-1'.
+    DATA(lv_repository) = |issue-numbering-1|.
     ASSERT open_issue(
       iv_repository_id = lv_repository iv_title = 'First' ) = '1'.
     ASSERT open_issue(
@@ -48,7 +48,7 @@ CLASS ltcl_issues IMPLEMENTATION.
 
   METHOD skips_numbers_already_taken.
     DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.
-    DATA(lv_repository) = 'issue-numbering-3'.
+    DATA(lv_repository) = |issue-numbering-3|.
     ls_issue-repository_id = lv_repository.
     ls_issue-id = '4'.
     ls_issue-title = 'Imported with an explicit number'.
@@ -66,7 +66,7 @@ CLASS ltcl_issues IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD lists_newest_number_first.
-    DATA(lv_repository) = 'issue-numbering-4'.
+    DATA(lv_repository) = |issue-numbering-4|.
     DATA lv_index TYPE i.
     DATA lt_issues TYPE zcl_hithub_issues=>ty_issues.
     DATA ls_issue TYPE zcl_hithub_issues=>ty_issue.

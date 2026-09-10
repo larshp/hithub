@@ -69,6 +69,7 @@ CLASS zcl_hithub_merge_service IMPLEMENTATION.
     DATA ls_merge_result TYPE zcl_hithub_merge_result=>ty_result.
     DATA ls_event TYPE zif_hithub_event_sink=>ty_event.
     DATA lv_merge_id TYPE string.
+    DATA lv_now TYPE timestamp.
 
     CLEAR rs_result.
     IF mo_store IS INITIAL OR mo_metadata IS INITIAL
@@ -181,7 +182,8 @@ CLASS zcl_hithub_merge_service IMPLEMENTATION.
     ls_merge_result-pull_request_id = iv_pull_request_id.
     ls_merge_result-merge_id = lv_merge_id.
     ls_merge_result-commit_oid = ls_merge-oid.
-    GET TIME STAMP FIELD ls_merge_result-created_at.
+    GET TIME STAMP FIELD lv_now.
+    ls_merge_result-created_at = |{ lv_now }|.
     zcl_hithub_merge_result=>save( ls_merge_result ).
     IF mo_event_sink IS NOT INITIAL.
       ls_event-action = 'merge'.

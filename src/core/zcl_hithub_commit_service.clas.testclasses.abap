@@ -15,7 +15,7 @@ CLASS ltcl_commit_service IMPLEMENTATION.
     DATA(lo_objects) = NEW zcl_hithub_local_object_store( ).
     DATA(lo_service) = NEW zcl_hithub_commit_service(
       io_metadata = lo_metadata io_objects = lo_objects ).
-    DATA(lv_repository_id) = 'commit-service-history-test'.
+    DATA(lv_repository_id) = |commit-service-history-test|.
     DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
