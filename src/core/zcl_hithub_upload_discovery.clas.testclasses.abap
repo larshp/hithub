@@ -41,7 +41,8 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSERT ls_packet-valid = abap_true.
     ASSERT ls_packet-kind = 'data'.
     lv_nul = CONV xstring( '00' ).
-    ASSERT ls_packet-payload CS lv_nul.
+    FIND lv_nul IN ls_packet-payload IN BYTE MODE.
+    ASSERT sy-subrc = 0.
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
     ASSERT ls_packet-valid = abap_true.
@@ -58,6 +59,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_body TYPE xstring.
     DATA ls_packet TYPE zcl_hithub_pkt_line_codec=>ty_packet.
     DATA lv_rest TYPE xstring.
+    DATA lv_nul TYPE xstring.
+    DATA lv_report_status TYPE xstring.
 
     lv_oid = '1111111111111111111111111111111111111111'.
     ls_reference-name = 'refs/heads/main'.
@@ -78,9 +81,12 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSERT ls_packet-kind = 'flush'.
     lv_rest = lv_rest+ls_packet-consumed_bytes.
     ls_packet = zcl_hithub_pkt_line_codec=>decode( lv_rest ).
-    ASSERT ls_packet-payload CS CONV xstring( '00' ).
-    ASSERT ls_packet-payload CS cl_abap_codepage=>convert_to(
-      source = 'report-status' ).
+    lv_nul = CONV xstring( '00' ).
+    FIND lv_nul IN ls_packet-payload IN BYTE MODE.
+    ASSERT sy-subrc = 0.
+    lv_report_status = cl_abap_codepage=>convert_to( source = 'report-status' ).
+    FIND lv_report_status IN ls_packet-payload IN BYTE MODE.
+    ASSERT sy-subrc = 0.
   ENDMETHOD.
 
   METHOD rejects_wrong_service.
