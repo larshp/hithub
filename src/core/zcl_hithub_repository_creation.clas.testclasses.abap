@@ -46,9 +46,33 @@ CLASS ltcl_repository_creation DEFINITION
     METHODS rejects_duplicate_name FOR TESTING RAISING cx_static_check.
     METHODS rejects_invalid_name FOR TESTING RAISING cx_static_check.
 
+    "! create( ) commits, and both fixtures below use a fixed name, so a
+    "! repository left behind by an earlier run makes the name unavailable
+    "! for good. Report that here rather than as a bare create failure.
+    METHODS assert_name_is_free
+      IMPORTING
+        io_metadata TYPE REF TO zif_hithub_metadata_store
+        iv_name     TYPE string
+      RAISING
+        cx_static_check.
+
 ENDCLASS.
 
 CLASS ltcl_repository_creation IMPLEMENTATION.
+
+  METHOD assert_name_is_free.
+    DATA ls_existing TYPE zif_hithub_metadata_store=>ty_repository.
+    DATA lv_existing_name TYPE string.
+
+    LOOP AT io_metadata->list_repositories( ) INTO ls_existing.
+      lv_existing_name = ls_existing-name.
+      TRANSLATE lv_existing_name TO LOWER CASE.
+      cl_abap_unit_assert=>assert_differs(
+        act = lv_existing_name
+        exp = iv_name
+        msg = |{ iv_name } was left behind by an earlier committed run| ).
+    ENDLOOP.
+  ENDMETHOD.
 
   METHOD creates_normalized_repository.
     DATA lv_readme TYPE string.
@@ -62,11 +86,15 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       io_objects = lo_objects
       io_identity = lo_identity ).
 
+    assert_name_is_free( io_metadata = lo_metadata iv_name = 'demo-repo' ).
     DATA(ls_result) = lo_service->create(
       iv_name           = 'Demo-Repo'
       iv_description    = 'created by contract'
       iv_default_branch = 'main' ).
 
+    cl_abap_unit_assert=>assert_initial(
+      act = ls_result-reason
+      msg = 'the repository could not be created' ).
     cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     cl_abap_unit_assert=>assert_equals(
       act = ls_result-repository-id
@@ -130,8 +158,13 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
       io_objects = NEW zcl_hithub_local_object_store( )
       io_identity = lo_identity ).
 
-    cl_abap_unit_assert=>assert_true(
-      act = lo_service->create( iv_name = 'duplicate-repo' )-success ).
+    assert_name_is_free(
+      io_metadata = lo_metadata iv_name = 'duplicate-repo' ).
+    DATA(ls_first) = lo_service->create( iv_name = 'duplicate-repo' ).
+    cl_abap_unit_assert=>assert_initial(
+      act = ls_first-reason
+      msg = 'the first repository could not be created' ).
+    cl_abap_unit_assert=>assert_true( act = ls_first-success ).
     DATA(ls_result) = lo_service->create( iv_name = 'DUPLICATE-REPO' ).
     cl_abap_unit_assert=>assert_false( act = ls_result-success ).
     cl_abap_unit_assert=>assert_equals(

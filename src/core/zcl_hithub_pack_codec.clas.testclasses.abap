@@ -264,6 +264,18 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_entry-mode = '100644'.
     ls_entry-name = 'reachable.txt'.
     ls_entry-oid = CONV xstring( ls_blob-key-oid ).
+    " walk( ) turns these bytes back into a lower case oid to reach the
+    " blob, so the conversion has to be lossless in both directions.
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( ls_entry-oid )
+      exp = 20
+      msg = 'the blob oid does not convert to 20 bytes' ).
+    lv_oid = ls_entry-oid.
+    TRANSLATE lv_oid TO LOWER CASE.
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_oid
+      exp = ls_blob-key-oid
+      msg = 'the blob oid does not survive the byte conversion' ).
     APPEND ls_entry TO lt_entries.
     ls_tree-key-repository_id = lv_repository_id.
     ls_tree-key-algorithm = 'sha1'.
@@ -297,11 +309,22 @@ CLASS ltcl_test IMPLEMENTATION.
     lt_roundtrip = lo_codec->unpack(
       iv_pack = lv_pack iv_repository_id = lv_repository_id ).
 
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_unpacked )
+      exp = 3
+      msg = 'the first unpack lost objects' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_roundtrip )
+      exp = 3
+      msg = 'the second unpack lost objects' ).
+
     lo_store = NEW lcl_pack_object_store( lt_roundtrip ).
     lo_reader = NEW zcl_hithub_object_reader( lo_store ).
     lo_reachability = NEW zcl_hithub_reachability( lo_reader ).
     lt_reachable = lo_reachability->walk( ls_commit_object-key ).
 
+    " commit -> tree comes from the commit text, tree -> blob from the raw
+    " oid bytes, so two reachable keys point at the latter step.
     cl_abap_unit_assert=>assert_equals( act = lines( lt_reachable ) exp = 3 ).
     LOOP AT lt_reachable INTO ls_key.
       READ TABLE lt_roundtrip INTO ls_object
@@ -489,15 +512,26 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND ls_object TO lt_objects.
     lv_pack = lo_codec->repack( lt_objects ).
 
+    DATA ls_target_key TYPE zif_hithub_object_store=>ty_object_key.
+    ls_target_key-repository_id = lv_repository_id.
+    ls_target_key-algorithm = 'sha1'.
+    ls_target_key-oid = lv_target_oid.
+    " receive( ) commits into a fixture repository with a fixed id, so an
+    " earlier run leaves both the object and the ref in place.
+    cl_abap_unit_assert=>assert_false(
+      act = lo_store->zif_hithub_object_store~contains( ls_target_key )
+      msg = 'the incoming object was left behind by an earlier run' ).
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_metadata->zif_hithub_metadata_store~read_reference(
+        iv_repository_id = lv_repository_id
+        iv_name          = 'refs/tags/incoming' )-oid
+      msg = 'refs/tags/incoming was left behind by an earlier run' ).
+
     cl_abap_unit_assert=>assert_true(
       act = lo_receiver->receive(
         iv_pack = lv_pack iv_repository_id = lv_repository_id
         iv_ref_name = 'refs/tags/incoming'
         iv_target_oid = lv_target_oid ) ).
-    DATA ls_target_key TYPE zif_hithub_object_store=>ty_object_key.
-    ls_target_key-repository_id = lv_repository_id.
-    ls_target_key-algorithm = 'sha1'.
-    ls_target_key-oid = lv_target_oid.
     cl_abap_unit_assert=>assert_true(
       act = lo_store->zif_hithub_object_store~contains( ls_target_key ) ).
     DATA(ls_event) = lo_event_sink->event( ).

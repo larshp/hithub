@@ -8,6 +8,7 @@ CLASS ltcl_persist_contract DEFINITION
     METHODS repository_roundtrip FOR TESTING RAISING cx_static_check.
     METHODS reference_compare_and_swap FOR TESTING RAISING cx_static_check.
     METHODS object_roundtrip FOR TESTING RAISING cx_static_check.
+    METHODS object_roundtrip_git_payloads FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -169,6 +170,91 @@ CLASS ltcl_persist_contract IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = ls_read-payload
       exp = ls_object-payload ).
+  ENDMETHOD.
+
+  METHOD object_roundtrip_git_payloads.
+    " object_roundtrip above stores two bytes. The browsing services store
+    " whole tree and commit payloads and then decode what comes back, so
+    " check that shape separately.
+    DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
+    DATA lt_entries TYPE zcl_hithub_tree_codec=>ty_entries.
+    DATA lt_decoded TYPE zcl_hithub_tree_codec=>ty_entries.
+    DATA ls_entry TYPE zcl_hithub_tree_codec=>ty_entry.
+    DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA ls_decoded TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_read TYPE zif_hithub_object_store=>ty_object.
+    DATA lv_repository_id TYPE string.
+    DATA lv_blob_oid TYPE string.
+    DATA lv_tree_oid TYPE string.
+    DATA lv_payload TYPE xstring.
+
+    lv_repository_id = 'contract-git-payloads-00000000000'.
+    lv_blob_oid = 'ce013625030ba8dba906f756967f9e9ca394464a'.
+
+    ls_entry-mode = '100644'.
+    ls_entry-name = 'README.md'.
+    ls_entry-oid = CONV xstring( lv_blob_oid ).
+    APPEND ls_entry TO lt_entries.
+    lv_payload = zcl_hithub_tree_codec=>encode( lt_entries ).
+    lv_tree_oid = zcl_hithub_object_id=>calculate(
+      iv_algorithm = 'sha1' iv_type = 'tree' iv_payload = lv_payload ).
+
+    ls_object-key-repository_id = lv_repository_id.
+    ls_object-key-algorithm = 'sha1'.
+    ls_object-key-oid = lv_tree_oid.
+    ls_object-type = 'tree'.
+    ls_object-size = xstrlen( lv_payload ).
+    ls_object-payload = lv_payload.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_object )
+      msg = 'the tree object could not be written' ).
+    ls_read = lo_store->zif_hithub_object_store~read( ls_object-key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-type
+      exp = 'tree'
+      msg = 'the stored tree does not read back as a tree' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-payload
+      exp = lv_payload
+      msg = 'the stored tree payload does not read back unchanged' ).
+    lt_decoded = zcl_hithub_tree_codec=>decode( ls_read-payload ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_decoded )
+      exp = 1
+      msg = 'the tree read back from the store does not decode' ).
+
+    ls_commit-tree = lv_tree_oid.
+    ls_commit-author = 'Alice <alice@example.test> 100 +0000'.
+    ls_commit-committer = ls_commit-author.
+    ls_commit-message = 'Initial commit'.
+    lv_payload = zcl_hithub_commit_codec=>encode( ls_commit ).
+
+    CLEAR ls_object.
+    ls_object-key-repository_id = lv_repository_id.
+    ls_object-key-algorithm = 'sha1'.
+    ls_object-key-oid = zcl_hithub_object_id=>calculate(
+      iv_algorithm = 'sha1' iv_type = 'commit' iv_payload = lv_payload ).
+    ls_object-type = 'commit'.
+    ls_object-size = xstrlen( lv_payload ).
+    ls_object-payload = lv_payload.
+    cl_abap_unit_assert=>assert_true(
+      act = lo_store->zif_hithub_object_store~write( ls_object )
+      msg = 'the commit object could not be written' ).
+    ls_read = lo_store->zif_hithub_object_store~read( ls_object-key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-type
+      exp = 'commit'
+      msg = 'the stored commit does not read back as a commit' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-payload
+      exp = lv_payload
+      msg = 'the stored commit payload does not read back unchanged' ).
+    ls_decoded = zcl_hithub_commit_codec=>decode( ls_read-payload ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-tree
+      exp = lv_tree_oid
+      msg = 'the commit read back from the store loses its tree' ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -86,6 +86,7 @@ CLASS ltcl_compare_service IMPLEMENTATION.
 
   METHOD store.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_read TYPE zif_hithub_object_store=>ty_object.
 
     rv_oid = zcl_hithub_object_id=>calculate(
       iv_algorithm = 'sha1' iv_type = iv_type iv_payload = iv_payload ).
@@ -95,7 +96,29 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     ls_object-type = iv_type.
     ls_object-size = xstrlen( iv_payload ).
     ls_object-payload = iv_payload.
-    cl_abap_unit_assert=>assert_true( act = mo_writer->write( ls_object ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = strlen( rv_oid )
+      exp = 40
+      msg = |{ iv_type } did not hash to a 40 character sha1| ).
+    " write( ) refuses an object that is already stored, so tell a genuine
+    " write failure apart from two fixtures colliding on one oid.
+    cl_abap_unit_assert=>assert_false(
+      act = mo_objects->zif_hithub_object_store~contains( ls_object-key )
+      msg = |a { iv_type } with oid { rv_oid } is already stored| ).
+    cl_abap_unit_assert=>assert_true(
+      act = mo_writer->write( ls_object )
+      msg = |the { iv_type } object could not be written| ).
+    " compare( ) resolves everything through the store, so a payload that
+    " does not come back unchanged breaks every assertion further down.
+    ls_read = mo_objects->zif_hithub_object_store~read( ls_object-key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-type
+      exp = iv_type
+      msg = |the stored { iv_type } does not read back as a { iv_type }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-payload
+      exp = iv_payload
+      msg = |the stored { iv_type } payload does not read back unchanged| ).
   ENDMETHOD.
 
   METHOD blob.
@@ -112,6 +135,8 @@ CLASS ltcl_compare_service IMPLEMENTATION.
 
   METHOD commit.
     DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA ls_decoded TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA lv_payload TYPE xstring.
 
     ls_commit-tree = iv_tree.
     IF iv_parent IS NOT INITIAL.
@@ -120,9 +145,21 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     ls_commit-author = 'Tester <tester@example.com> 0 +0000'.
     ls_commit-committer = ls_commit-author.
     ls_commit-message = iv_message.
-    rv_oid = store(
-      iv_type    = 'commit'
-      iv_payload = zcl_hithub_commit_codec=>encode( ls_commit ) ).
+    lv_payload = zcl_hithub_commit_codec=>encode( ls_commit ).
+
+    " The merge base walk reads the tree and the parents back out of the
+    " payload, so check the codec before compare( ) depends on it.
+    ls_decoded = zcl_hithub_commit_codec=>decode( lv_payload ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-tree
+      exp = iv_tree
+      msg = |commit { iv_message } lost its tree in the codec| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( ls_decoded-parents )
+      exp = lines( ls_commit-parents )
+      msg = |commit { iv_message } lost its parents in the codec| ).
+
+    rv_oid = store( iv_type = 'commit' iv_payload = lv_payload ).
   ENDMETHOD.
 
   METHOD reference.
@@ -149,6 +186,11 @@ CLASS ltcl_compare_service IMPLEMENTATION.
     rs_entry-mode = iv_mode.
     rs_entry-name = iv_name.
     rs_entry-oid = CONV xstring( iv_oid ).
+    " Two trees that differ only here must not collapse onto one payload.
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( rs_entry-oid )
+      exp = 20
+      msg = |the oid { iv_oid } of { iv_name } is not 20 bytes| ).
   ENDMETHOD.
 
   METHOD diffs_nested_trees.
@@ -194,6 +236,14 @@ CLASS ltcl_compare_service IMPLEMENTATION.
 
     DATA(ls_comparison) = compare( iv_base = 'main' iv_head = 'topic' ).
     cl_abap_unit_assert=>assert_true( act = ls_comparison-found ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-base_oid
+      exp = lv_base_commit
+      msg = 'main did not resolve to the base commit' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_comparison-head_oid
+      exp = lv_head_commit
+      msg = 'topic did not resolve to the head commit' ).
     cl_abap_unit_assert=>assert_equals(
       act = ls_comparison-merge_base_oid
       exp = lv_base_commit ).

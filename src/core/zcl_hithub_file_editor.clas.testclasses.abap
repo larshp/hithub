@@ -15,6 +15,7 @@ CLASS ltcl_file_editor DEFINITION
     DATA mv_head TYPE string.
 
     METHODS setup.
+    METHODS reads_the_seeded_files FOR TESTING RAISING cx_static_check.
     METHODS edits_a_nested_file FOR TESTING RAISING cx_static_check.
     METHODS keeps_sibling_entries FOR TESTING RAISING cx_static_check.
     METHODS rejects_unchanged_content FOR TESTING RAISING cx_static_check.
@@ -79,10 +80,17 @@ CLASS ltcl_file_editor IMPLEMENTATION.
     rs_entry-mode = iv_mode.
     rs_entry-name = iv_name.
     rs_entry-oid = CONV xstring( iv_oid ).
+    " rebuild( ) turns these bytes back into a string to address the child
+    " object, so a lossy conversion here breaks every edit below.
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( rs_entry-oid )
+      exp = 20
+      msg = |the oid { iv_oid } of { iv_name } is not 20 bytes| ).
   ENDMETHOD.
 
   METHOD write.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_read TYPE zif_hithub_object_store=>ty_object.
 
     rv_oid = zcl_hithub_object_id=>calculate(
       iv_algorithm = 'sha1' iv_type = iv_type iv_payload = iv_payload ).
@@ -92,9 +100,27 @@ CLASS ltcl_file_editor IMPLEMENTATION.
     ls_object-type = iv_type.
     ls_object-size = xstrlen( iv_payload ).
     ls_object-payload = iv_payload.
+    cl_abap_unit_assert=>assert_equals(
+      act = strlen( rv_oid )
+      exp = 40
+      msg = |{ iv_type } did not hash to a 40 character sha1| ).
+    " save( ) commits, so a repository left behind by an earlier run would
+    " make write( ) refuse the seed as a duplicate.
+    cl_abap_unit_assert=>assert_false(
+      act = mo_objects->zif_hithub_object_store~contains( ls_object-key )
+      msg = |a { iv_type } with oid { rv_oid } is already stored| ).
     cl_abap_unit_assert=>assert_true(
       act = NEW zcl_hithub_object_writer( mo_objects )->write(
         ls_object ) ).
+    ls_read = mo_objects->zif_hithub_object_store~read( ls_object-key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-type
+      exp = iv_type
+      msg = |the stored { iv_type } does not read back as a { iv_type }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-payload
+      exp = iv_payload
+      msg = |the stored { iv_type } payload does not read back unchanged| ).
   ENDMETHOD.
 
   METHOD blob.
@@ -159,8 +185,31 @@ CLASS ltcl_file_editor IMPLEMENTATION.
     rv_text = cl_abap_codepage=>convert_from( ls_object-payload ).
   ENDMETHOD.
 
+  METHOD reads_the_seeded_files.
+    " save( ) refuses with 'file was not found on this branch' when the
+    " contents service cannot walk the tree, which reads the same as a
+    " genuinely missing file. Check the plain read on its own first.
+    seed( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'README.md' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/app.abap' )
+      exp = |old line{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/util.abap' )
+      exp = |helper{ cl_abap_char_utilities=>newline }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/docs/guide.md' )
+      exp = |guide{ cl_abap_char_utilities=>newline }| ).
+  ENDMETHOD.
+
   METHOD edits_a_nested_file.
     seed( ).
+    " The editor can only rewrite a file it can read first.
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/docs/guide.md' )
+      exp = |guide{ cl_abap_char_utilities=>newline }| ).
     DATA(ls_result) = mo_editor->save(
       iv_repository_id     = mv_repository_id
       iv_ref               = 'main'
@@ -169,6 +218,9 @@ CLASS ltcl_file_editor IMPLEMENTATION.
       iv_message           = 'Update the guide'
       iv_author            = c_author
       iv_expected_head_oid = mv_head ).
+    cl_abap_unit_assert=>assert_initial(
+      act = ls_result-reason
+      msg = 'the editor refused the edit' ).
     cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     cl_abap_unit_assert=>assert_differs(
       act = ls_result-commit_oid
@@ -200,15 +252,21 @@ CLASS ltcl_file_editor IMPLEMENTATION.
 
   METHOD keeps_sibling_entries.
     seed( ).
-    cl_abap_unit_assert=>assert_true(
-      act = mo_editor->save(
-        iv_repository_id     = mv_repository_id
-        iv_ref               = 'refs/heads/main'
-        iv_path              = 'src/app.abap'
-        iv_content           = |new line{ cl_abap_char_utilities=>newline }|
-        iv_message           = 'Rewrite app'
-        iv_author            = c_author
-        iv_expected_head_oid = mv_head )-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'src/app.abap' )
+      exp = |old line{ cl_abap_char_utilities=>newline }| ).
+    DATA(ls_rewrite) = mo_editor->save(
+      iv_repository_id     = mv_repository_id
+      iv_ref               = 'refs/heads/main'
+      iv_path              = 'src/app.abap'
+      iv_content           = |new line{ cl_abap_char_utilities=>newline }|
+      iv_message           = 'Rewrite app'
+      iv_author            = c_author
+      iv_expected_head_oid = mv_head ).
+    cl_abap_unit_assert=>assert_initial(
+      act = ls_rewrite-reason
+      msg = 'the editor refused the edit' ).
+    cl_abap_unit_assert=>assert_true( act = ls_rewrite-success ).
     cl_abap_unit_assert=>assert_equals(
       act = text_at( 'src/app.abap' )
       exp = |new line{ cl_abap_char_utilities=>newline }| ).
@@ -226,6 +284,11 @@ CLASS ltcl_file_editor IMPLEMENTATION.
 
   METHOD rejects_unchanged_content.
     seed( ).
+    " 'file was not found on this branch' here would mean the editor never
+    " reached the content comparison at all.
+    cl_abap_unit_assert=>assert_equals(
+      act = text_at( 'README.md' )
+      exp = |readme{ cl_abap_char_utilities=>newline }| ).
     DATA(ls_result) = mo_editor->save(
       iv_repository_id     = mv_repository_id
       iv_ref               = 'main'

@@ -18,10 +18,19 @@ CLASS ltcl_branch_service IMPLEMENTATION.
       io_metadata = lo_metadata io_transaction = lo_transaction ).
     DATA(lv_repository_id) = |branch-service-00000000000000000|.
     DATA(lv_oid) = |1111111111111111111111111111111111111111|.
+    " The delete at the end of this test is the only thing that clears the
+    " committed fixture, so an earlier abort leaves the branch behind.
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_service->find(
+        iv_repository_id = lv_repository_id iv_name = 'feature/test' )-name
+      msg = 'the branch was left behind by an earlier committed run' ).
     DATA(ls_result) = lo_service->create(
       iv_repository_id = lv_repository_id
       iv_name          = 'feature/test'
       iv_oid           = lv_oid ).
+    cl_abap_unit_assert=>assert_initial(
+      act = ls_result-reason
+      msg = 'the branch could not be created' ).
     cl_abap_unit_assert=>assert_true( act = ls_result-success ).
     cl_abap_unit_assert=>assert_equals(
       act = ls_result-reference-name
@@ -62,10 +71,19 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
     DATA(lv_repository_id) = |branch-stale-00000000000000000000|.
+    " create( ) commits, and the fixture id is fixed, so a branch left
+    " behind by an earlier run makes this create fail as a duplicate.
+    cl_abap_unit_assert=>assert_initial(
+      act = lo_service->find(
+        iv_repository_id = lv_repository_id iv_name = 'main' )-name
+      msg = 'refs/heads/main was left behind by an earlier committed run' ).
     DATA(ls_created) = lo_service->create(
       iv_repository_id = lv_repository_id
       iv_name          = 'main'
       iv_oid           = '3333333333333333333333333333333333333333' ).
+    cl_abap_unit_assert=>assert_initial(
+      act = ls_created-reason
+      msg = 'the branch could not be created' ).
     cl_abap_unit_assert=>assert_true( act = ls_created-success ).
     DATA(ls_result) = lo_service->update(
       iv_repository_id    = lv_repository_id

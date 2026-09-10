@@ -60,6 +60,7 @@ CLASS ltcl_contents_service IMPLEMENTATION.
 
   METHOD write.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA ls_read TYPE zif_hithub_object_store=>ty_object.
 
     rv_oid = zcl_hithub_object_id=>calculate(
       iv_algorithm = 'sha1' iv_type = iv_type iv_payload = iv_payload ).
@@ -69,9 +70,27 @@ CLASS ltcl_contents_service IMPLEMENTATION.
     ls_object-type = iv_type.
     ls_object-size = xstrlen( iv_payload ).
     ls_object-payload = iv_payload.
+    cl_abap_unit_assert=>assert_equals(
+      act = strlen( rv_oid )
+      exp = 40
+      msg = |{ iv_type } did not hash to a 40 character sha1| ).
+    " A committed row from an earlier run would make write( ) refuse.
+    cl_abap_unit_assert=>assert_false(
+      act = mo_objects->zif_hithub_object_store~contains( ls_object-key )
+      msg = |a { iv_type } with oid { rv_oid } is already stored| ).
     cl_abap_unit_assert=>assert_true(
       act = NEW zcl_hithub_object_writer( mo_objects )->write(
         ls_object ) ).
+    " Everything below reaches the object again through the store.
+    ls_read = mo_objects->zif_hithub_object_store~read( ls_object-key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-type
+      exp = iv_type
+      msg = |the stored { iv_type } does not read back as a { iv_type }| ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_read-payload
+      exp = iv_payload
+      msg = |the stored { iv_type } payload does not read back unchanged| ).
   ENDMETHOD.
 
   METHOD reference.
@@ -87,9 +106,15 @@ CLASS ltcl_contents_service IMPLEMENTATION.
 
   METHOD seed.
     DATA lt_entries TYPE zcl_hithub_tree_codec=>ty_entries.
+    DATA lt_decoded TYPE zcl_hithub_tree_codec=>ty_entries.
     DATA ls_entry TYPE zcl_hithub_tree_codec=>ty_entry.
     DATA ls_commit TYPE zcl_hithub_commit_codec=>ty_commit.
+    DATA ls_decoded TYPE zcl_hithub_commit_codec=>ty_commit.
     DATA ls_tag TYPE zcl_hithub_tag_codec=>ty_tag.
+    DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+    DATA ls_key TYPE zif_hithub_object_store=>ty_object_key.
+    DATA ls_object TYPE zif_hithub_object_store=>ty_object.
+    DATA lv_entry_oid TYPE string.
 
     DATA(lv_blob) = write(
       iv_type    = 'blob'
@@ -98,6 +123,10 @@ CLASS ltcl_contents_service IMPLEMENTATION.
     ls_entry-mode = '100644'.
     ls_entry-name = 'README.md'.
     ls_entry-oid = CONV xstring( lv_blob ).
+    cl_abap_unit_assert=>assert_equals(
+      act = xstrlen( ls_entry-oid )
+      exp = 20
+      msg = 'the README blob oid does not convert to 20 bytes' ).
     APPEND ls_entry TO lt_entries.
     ls_commit-tree = write(
       iv_type = 'tree' iv_payload = zcl_hithub_tree_codec=>encode( lt_entries ) ).
@@ -118,6 +147,49 @@ CLASS ltcl_contents_service IMPLEMENTATION.
       iv_name = 'refs/tags/v1'
       iv_oid  = write(
         iv_type = 'tag' iv_payload = zcl_hithub_tag_codec=>encode( ls_tag ) ) ).
+
+    " Walk the seeded chain once here, so a broken link is reported at this
+    " line instead of as an empty listing in every test below.
+    ls_reference = mo_metadata->zif_hithub_metadata_store~read_reference(
+      iv_repository_id = mv_repository_id iv_name = 'refs/heads/main' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_reference-oid
+      exp = mv_commit
+      msg = 'refs/heads/main does not read back as the seeded commit' ).
+
+    ls_key-repository_id = mv_repository_id.
+    ls_key-algorithm = 'sha1'.
+    ls_key-oid = mv_commit.
+    ls_object = mo_objects->zif_hithub_object_store~read( ls_key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_object-type
+      exp = 'commit'
+      msg = 'the seeded head does not read back as a commit' ).
+    ls_decoded = zcl_hithub_commit_codec=>decode( ls_object-payload ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_decoded-tree
+      exp = ls_commit-tree
+      msg = 'the head commit does not decode back to its tree' ).
+
+    ls_key-oid = ls_decoded-tree.
+    ls_object = mo_objects->zif_hithub_object_store~read( ls_key ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_object-type
+      exp = 'tree'
+      msg = 'the root tree of the head commit cannot be read' ).
+    lt_decoded = zcl_hithub_tree_codec=>decode( ls_object-payload ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_decoded )
+      exp = 1
+      msg = 'the root tree does not decode to one entry' ).
+    READ TABLE lt_decoded INTO ls_entry INDEX 1.
+    cl_abap_unit_assert=>assert_subrc( ).
+    lv_entry_oid = ls_entry-oid.
+    TRANSLATE lv_entry_oid TO LOWER CASE.
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_entry_oid
+      exp = lv_blob
+      msg = 'the README entry does not point back at the README blob' ).
   ENDMETHOD.
 
   METHOD readme_at.
