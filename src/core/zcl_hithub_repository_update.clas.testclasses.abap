@@ -13,7 +13,7 @@ CLASS ltcl_repository_update IMPLEMENTATION.
 
   METHOD updates_with_compare_and_swap.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     ls_repository-id = 'update-repository-0000000000000000'.
     ls_repository-name = 'update-repository'.
@@ -44,7 +44,7 @@ CLASS ltcl_repository_update IMPLEMENTATION.
 
   METHOD rejects_bad_branch_no_version.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     ls_repository-id = 'update-invalid-000000000000000000'.
     ls_repository-name = 'update-invalid'.

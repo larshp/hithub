@@ -14,7 +14,7 @@ CLASS ltcl_repository_purge IMPLEMENTATION.
   METHOD purges_deleted_repository.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
     DATA(lo_objects) = NEW zcl_hithub_local_object_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
     DATA ls_object TYPE zif_hithub_object_store=>ty_object.
@@ -57,7 +57,7 @@ CLASS ltcl_repository_purge IMPLEMENTATION.
   METHOD rejects_visible_repository.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
     DATA(lo_objects) = NEW zcl_hithub_local_object_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     ls_repository-id = 'purge-visible-000000000000000000'.
     ls_repository-name = 'purge-visible'.

@@ -101,7 +101,7 @@ CLASS ltcl_hithub_receive_failure IMPLEMENTATION.
     DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
     DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_quarantine) = NEW lcl_hithub_failure_quarantine( ).
     DATA(lo_receiver) = NEW zcl_hithub_pack_receiver(
       io_codec = lo_codec io_store = lo_store io_metadata = lo_metadata
@@ -147,7 +147,7 @@ CLASS ltcl_hithub_receive_failure IMPLEMENTATION.
     DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
     DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_quarantine) = NEW lcl_hithub_failure_quarantine( ).
     DATA(lo_batch) = NEW zcl_hithub_receive_batch(
       io_codec = lo_codec io_store = lo_store io_metadata = lo_metadata

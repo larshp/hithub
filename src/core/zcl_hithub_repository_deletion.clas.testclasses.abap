@@ -13,7 +13,7 @@ CLASS ltcl_repository_deletion IMPLEMENTATION.
 
   METHOD soft_deletes_with_version.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     ls_repository-id = 'delete-repository-0000000000000000'.
     ls_repository-name = 'delete-repository'.
@@ -38,7 +38,7 @@ CLASS ltcl_repository_deletion IMPLEMENTATION.
 
   METHOD rejects_stale_delete.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
     ls_repository-id = 'delete-stale-000000000000000000000'.
     ls_repository-name = 'delete-stale'.

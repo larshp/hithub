@@ -1,4 +1,4 @@
-CLASS zcl_hithub_local_unit_work DEFINITION
+CLASS zcl_hithub_unit_work DEFINITION
   PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -9,14 +9,9 @@ CLASS zcl_hithub_local_unit_work DEFINITION
 
 ENDCLASS.
 
-CLASS zcl_hithub_local_unit_work IMPLEMENTATION.
+CLASS zcl_hithub_unit_work IMPLEMENTATION.
 
   METHOD zif_hithub_transaction~start.
-    IF mv_active = abap_true.
-      RETURN.
-    ENDIF.
-    DATA(lo_sql) = NEW cl_sql_statement( ).
-    lo_sql->execute_update( statement = 'BEGIN TRANSACTION' ).
     mv_active = abap_true.
   ENDMETHOD.
 
@@ -24,8 +19,7 @@ CLASS zcl_hithub_local_unit_work IMPLEMENTATION.
     IF mv_active <> abap_true.
       RETURN.
     ENDIF.
-    DATA(lo_sql) = NEW cl_sql_statement( ).
-    lo_sql->execute_update( statement = 'COMMIT' ).
+    COMMIT WORK AND WAIT.
     CLEAR mv_active.
   ENDMETHOD.
 
@@ -33,8 +27,7 @@ CLASS zcl_hithub_local_unit_work IMPLEMENTATION.
     IF mv_active <> abap_true.
       RETURN.
     ENDIF.
-    DATA(lo_sql) = NEW cl_sql_statement( ).
-    lo_sql->execute_update( statement = 'ROLLBACK' ).
+    ROLLBACK WORK.
     CLEAR mv_active.
   ENDMETHOD.
 

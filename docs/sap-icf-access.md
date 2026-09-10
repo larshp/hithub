@@ -25,7 +25,7 @@ names before the pull:
 | `ZHITHUB_CORE` | `/src/core/` | Domain and Git object model |
 | `ZHITHUB_FRONTEND` | `/src/frontend/` | Browser UI MIME objects |
 | `ZHITHUB_HTTP` | `/src/http/` | ICF handler and REST routes |
-| `ZHITHUB_INFRA` | `/src/infrastructure/` | Persistence selection |
+| `ZHITHUB_INFRA` | `/src/infrastructure/` | Persistence selection and unit of work |
 | `ZHITHUB_INFRA_LOCAL` | `/src/infrastructure/local/` | open-abap adapters |
 | `ZHITHUB_INFRA_SAP` | `/src/infrastructure/sap/` | SAP adapters |
 | `ZHITHUB_PERSISTENCE` | `/src/persistence/` | DDIC artifacts |
@@ -39,7 +39,9 @@ repository in a state abapGit would skip on import.
 `ZCL_HITHUB_PERSISTENCE` selects the adapters the handler runs on and defaults
 to the SAP set, so an installed service needs no configuration:
 
-- `ZCL_HITHUB_SAP_UNIT_WORK` commits through `COMMIT WORK AND WAIT`.
+- `ZCL_HITHUB_UNIT_WORK` commits through `COMMIT WORK AND WAIT`. It is the
+  only unit of work and is not selected by mode: `COMMIT WORK` and
+  `ROLLBACK WORK` end the LUW in both runtimes.
 - `ZCL_HITHUB_SAP_REPO_LOCK` serializes writers through the enqueue server
   using lock object `EZHI_REPO` over `ZHI_REFERENCE`. Confirm the lock object
   activated and that `ENQUEUE_EZHI_REPO` was generated with a `REPOSITORY_ID`
@@ -49,9 +51,10 @@ to the SAP set, so an installed service needs no configuration:
   Open SQL implementations unchanged.
 
 The open-abap deployment calls `ZCL_HITHUB_PERSISTENCE=>USE_OPEN_ABAP` during
-startup, because its adapters drive SQLite transactions and hold the repository
-lock in process memory. Never select that mode on an application server: the
-lock would not serialize anything beyond a single work process.
+startup, because it holds the repository lock in process memory and serves the
+browser assets from its own in-memory store instead of the MIME repository.
+Never select that mode on an application server: the lock would not serialize
+anything beyond a single work process.
 
 ## Browser UI assets
 

@@ -8,11 +8,11 @@ CLASS zcl_hithub_persistence DEFINITION
     CONSTANTS c_open_abap TYPE string VALUE 'open-abap'.
 
     "! Chooses the persistence adapters the ICF handler runs on. SAP is the
-    "! default because that is where an installed service runs: its unit of
-    "! work commits the ABAP LUW and its repository lock uses the enqueue
-    "! server. The open-abap deployment has to opt out through use_open_abap,
-    "! because its adapters drive SQLite transactions and an in-process lock
-    "! that only serialises callers inside one work process.
+    "! default because that is where an installed service runs: its repository
+    "! lock uses the enqueue server and its asset store reads the MIME
+    "! repository. The open-abap deployment has to opt out through
+    "! use_open_abap, because it holds the repository lock in process memory
+    "! and only serialises callers inside one work process.
     CLASS-METHODS use_sap.
 
     CLASS-METHODS use_open_abap.
@@ -87,11 +87,9 @@ CLASS zcl_hithub_persistence IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD transaction.
-    IF mode( ) = c_open_abap.
-      ro_transaction = NEW zcl_hithub_local_unit_work( ).
-    ELSE.
-      ro_transaction = NEW zcl_hithub_sap_unit_work( ).
-    ENDIF.
+    " COMMIT WORK and ROLLBACK WORK end the LUW in both runtimes, so the unit
+    " of work is the same class everywhere and there is nothing to vary here.
+    ro_transaction = NEW zcl_hithub_unit_work( ).
   ENDMETHOD.
 
   METHOD repository_lock.

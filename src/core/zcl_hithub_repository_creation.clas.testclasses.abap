@@ -55,7 +55,7 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
     DATA lo_readme TYPE REF TO cl_abap_conv_in_ce.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
     DATA(lo_objects) = NEW zcl_hithub_local_object_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_identity) = NEW lcl_repository_identity( ).
     DATA(lo_service) = NEW zcl_hithub_repository_creation(
       io_metadata = lo_metadata io_transaction = lo_transaction
@@ -110,7 +110,7 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
 
   METHOD rejects_duplicate_name.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_identity) = NEW lcl_second_repository_identity( ).
     DATA(lo_service) = NEW zcl_hithub_repository_creation(
       io_metadata = lo_metadata io_transaction = lo_transaction
@@ -126,7 +126,7 @@ CLASS ltcl_repository_creation IMPLEMENTATION.
 
   METHOD rejects_invalid_name.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_identity) = NEW lcl_repository_identity( ).
     DATA(lo_service) = NEW zcl_hithub_repository_creation(
       io_metadata = lo_metadata io_transaction = lo_transaction

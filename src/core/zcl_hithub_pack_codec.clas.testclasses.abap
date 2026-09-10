@@ -368,7 +368,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
     DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_receiver) = NEW zcl_hithub_pack_receiver(
       io_codec = lo_codec io_store = lo_store io_metadata = lo_metadata
       io_transaction = lo_transaction ).
@@ -425,7 +425,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
     DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_limits) = NEW zcl_hithub_pack_limits(
       iv_max_pack_size = 1 iv_max_objects = 1 ).
     DATA(lo_receiver) = NEW zcl_hithub_pack_receiver(
@@ -446,7 +446,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_codec) = NEW zcl_hithub_pack_codec( lo_compression ).
     DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_quarantine) = NEW zcl_hithub_quarantine( lo_store ).
     DATA(lo_event_sink) = NEW lcl_receive_event_sink( ).
     DATA(lo_clock) = NEW lcl_receive_clock( ).

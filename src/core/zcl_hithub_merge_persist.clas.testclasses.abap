@@ -34,7 +34,7 @@ CLASS ltcl_merge_persist IMPLEMENTATION.
     ls_reference-oid = lv_oid.
     lo_store = NEW zcl_hithub_local_object_store( ).
     lo_metadata = NEW zcl_hithub_local_meta_store( ).
-    lo_transaction = NEW zcl_hithub_local_unit_work( ).
+    lo_transaction = NEW zcl_hithub_unit_work( ).
     lo_persist = NEW zcl_hithub_merge_persist(
       io_store = lo_store io_metadata = lo_metadata
       io_transaction = lo_transaction ).
@@ -71,7 +71,7 @@ CLASS ltcl_merge_persist IMPLEMENTATION.
     ls_reference-oid = lv_oid.
     lo_store = NEW zcl_hithub_local_object_store( ).
     lo_metadata = NEW zcl_hithub_local_meta_store( ).
-    lo_transaction = NEW zcl_hithub_local_unit_work( ).
+    lo_transaction = NEW zcl_hithub_unit_work( ).
     lo_persist = NEW zcl_hithub_merge_persist(
       io_store = lo_store io_metadata = lo_metadata
       io_transaction = lo_transaction ).

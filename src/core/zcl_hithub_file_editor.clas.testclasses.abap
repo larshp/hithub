@@ -68,7 +68,7 @@ CLASS ltcl_file_editor IMPLEMENTATION.
     mo_editor = NEW zcl_hithub_file_editor(
       io_metadata    = mo_metadata
       io_objects     = mo_objects
-      io_transaction = NEW zcl_hithub_local_unit_work( )
+      io_transaction = NEW zcl_hithub_unit_work( )
       io_lock        = NEW zcl_hithub_local_repo_lock( ) ).
     " Each test seeds identical objects, so every one needs its own repository.
     gv_sequence = gv_sequence + 1.

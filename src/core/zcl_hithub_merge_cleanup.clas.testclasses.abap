@@ -15,7 +15,7 @@ CLASS ltcl_merge_cleanup IMPLEMENTATION.
     DATA lo_cleanup TYPE REF TO zcl_hithub_merge_cleanup.
     DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
     lo_metadata = NEW zcl_hithub_local_meta_store( ).
-    lo_transaction = NEW zcl_hithub_local_unit_work( ).
+    lo_transaction = NEW zcl_hithub_unit_work( ).
     ls_reference-repository_id = 'merge-cleanup-repository'.
     ls_reference-name = 'refs/heads/feature'.
     ls_reference-algorithm = 'sha1'.

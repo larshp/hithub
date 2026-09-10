@@ -13,7 +13,7 @@ CLASS ltcl_branch_service IMPLEMENTATION.
 
   METHOD manages_branch_lifecycle.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
     DATA(lv_repository_id) = 'branch-service-00000000000000000'.
@@ -52,7 +52,7 @@ CLASS ltcl_branch_service IMPLEMENTATION.
 
   METHOD rejects_stale_update.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
     DATA(lv_repository_id) = 'branch-stale-00000000000000000000'.

@@ -7,7 +7,7 @@ ENDCLASS.
 CLASS ltcl_tag_service IMPLEMENTATION.
   METHOD manages_tag_lifecycle.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
-    DATA(lo_transaction) = NEW zcl_hithub_local_unit_work( ).
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_tag_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
     DATA(lv_repository_id) = 'tag-service-000000000000000000'.

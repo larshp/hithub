@@ -11,11 +11,11 @@ CLASS ltcl_persistence DEFINITION
     METHODS shares_the_event_sink FOR TESTING RAISING cx_static_check.
     METHODS serves_the_asset_store FOR TESTING RAISING cx_static_check.
 
-    CLASS-METHODS is_sap_transaction
+    CLASS-METHODS is_unit_work
       IMPORTING
-        io_transaction TYPE REF TO zif_hithub_transaction
+        io_transaction      TYPE REF TO zif_hithub_transaction
       RETURNING
-        VALUE(rv_sap)  TYPE abap_bool.
+        VALUE(rv_unit_work) TYPE abap_bool.
 
     CLASS-METHODS is_sap_lock
       IMPORTING
@@ -43,14 +43,14 @@ CLASS ltcl_persistence IMPLEMENTATION.
     zcl_hithub_persistence=>use_sap( ).
   ENDMETHOD.
 
-  METHOD is_sap_transaction.
-    DATA lo_sap TYPE REF TO zcl_hithub_sap_unit_work.
-    CLEAR rv_sap.
+  METHOD is_unit_work.
+    DATA lo_unit_work TYPE REF TO zcl_hithub_unit_work.
+    CLEAR rv_unit_work.
     TRY.
-        lo_sap ?= io_transaction.
-        rv_sap = xsdbool( lo_sap IS BOUND ).
+        lo_unit_work ?= io_transaction.
+        rv_unit_work = xsdbool( lo_unit_work IS BOUND ).
       CATCH cx_sy_move_cast_error.
-        CLEAR rv_sap.
+        CLEAR rv_unit_work.
     ENDTRY.
   ENDMETHOD.
 
@@ -99,7 +99,7 @@ CLASS ltcl_persistence IMPLEMENTATION.
 
   METHOD serves_sap_adapters.
     zcl_hithub_persistence=>use_sap( ).
-    ASSERT is_sap_transaction(
+    ASSERT is_unit_work(
       zcl_hithub_persistence=>transaction( ) ) = abap_true.
     ASSERT is_sap_lock(
       zcl_hithub_persistence=>repository_lock( ) ) = abap_true.
@@ -111,8 +111,10 @@ CLASS ltcl_persistence IMPLEMENTATION.
 
   METHOD serves_open_abap_adapters.
     zcl_hithub_persistence=>use_open_abap( ).
-    ASSERT is_sap_transaction(
-      zcl_hithub_persistence=>transaction( ) ) = abap_false.
+    " The unit of work does not vary: COMMIT WORK and ROLLBACK WORK end the
+    " LUW in both runtimes, so both modes serve the same class.
+    ASSERT is_unit_work(
+      zcl_hithub_persistence=>transaction( ) ) = abap_true.
     ASSERT is_sap_lock(
       zcl_hithub_persistence=>repository_lock( ) ) = abap_false.
     ASSERT is_sap_metadata_store(
