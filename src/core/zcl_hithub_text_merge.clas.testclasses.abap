@@ -30,7 +30,7 @@ CLASS ltcl_text_merge IMPLEMENTATION.
 
     ASSERT ls_result-clean = abap_false.
     ASSERT ls_result-text CS '<<<<<<< ours'.
-    ASSERT ls_result-text CS '======='. 
+    ASSERT ls_result-text CS '======='.
     ASSERT ls_result-text CS '>>>>>>> theirs'.
   ENDMETHOD.
 

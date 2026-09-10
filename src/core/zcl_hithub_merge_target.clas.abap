@@ -25,7 +25,7 @@ CLASS zcl_hithub_merge_target DEFINITION
     DATA mo_lock TYPE REF TO zcl_hithub_merge_lock.
     DATA mo_metadata TYPE REF TO zif_hithub_metadata_store.
     DATA mv_repository_id TYPE string.
-  
+
 ENDCLASS.
 
 CLASS zcl_hithub_merge_target IMPLEMENTATION.
