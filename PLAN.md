@@ -191,414 +191,401 @@ Every checkbox is intended to be one isolated deliverable. Complete the checkbox
 
 ### Step 0 — Confirm scope and compatibility baseline
 
-- [ ] Record the minimum supported SAP release.
-- [ ] Record the supported ABAP language version.
-- [ ] Select the ABAP object namespace.
-- [ ] Select the project license.
-- [ ] Create `ANORMALIES.md` with the required entry template.
-- [ ] Create `SUGGESTIONS.md` with the required entry template.
-- [ ] List the supported native Git versions.
-- [ ] List the supported abapGit versions.
-- [ ] Inventory reusable Git server components in abapGitServer.
-- [ ] Inventory reusable Git primitives and services in abapGit.
-- [ ] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
-- [ ] Map each planned Git component to direct call, adapted copy, inspiration or new implementation.
-- [ ] Record the upstream revision for every selected reuse candidate.
-- [ ] Verify license and attribution requirements for every selected reuse candidate.
-- [ ] Select one GUI Git client for compatibility testing.
-- [ ] Build a SAP spike that calls abapGit to read one Git object.
-- [ ] Build an open-abap spike that calls the same abapGit API.
-- [ ] Build an adapted-code spike for one abapGitServer HTTP flow.
-- [ ] Write an ADR selecting the Git-object implementation strategy.
-- [ ] Publish the MVP feature matrix.
-- [ ] Record maximum repository, object and push sizes.
-- [ ] Record concurrency and request-timeout targets.
-- [ ] Record the supported SAP application-server topology.
+- [x] Record the minimum supported SAP release.
+- [x] Record the supported ABAP language version.
+- [x] Select the ABAP object namespace.
+- [x] Select the project license.
+- [x] Create `ANORMALIES.md` with the required entry template.
+- [x] Create `SUGGESTIONS.md` with the required entry template.
+- [x] List the supported native Git versions.
+- [x] List the supported abapGit versions.
+- [x] Inventory reusable Git server components in abapGitServer.
+- [x] Inventory reusable Git primitives and services in abapGit.
+- [x] Record initial abapGit simplification opportunities in `SUGGESTIONS.md`.
+- [x] Map each planned Git component to direct call, adapted copy, inspiration or new implementation.
+- [x] Record the upstream revision for every selected reuse candidate.
+- [x] Verify license and attribution requirements for every selected reuse candidate.
+- [x] Select one GUI Git client for compatibility testing.
+- [x] Write an ADR selecting the Git-object implementation strategy.
+- [x] Publish the MVP feature matrix.
+- [x] Record maximum repository, object and push sizes.
+- [x] Record concurrency and request-timeout targets.
+- [x] Record the supported SAP application-server topology.
 
 Completion checks:
 
-- [ ] Runtime-target ADR is approved.
-- [ ] Persistence ADR is approved.
-- [ ] Dependency-policy ADR is approved.
-- [ ] Deployment-access ADR is approved.
-- [ ] MVP scope is approved.
+- [x] Runtime-target ADR is approved.
+- [x] Persistence ADR is approved.
+- [x] Dependency-policy ADR is approved.
+- [x] Deployment-access ADR is approved.
+- [x] MVP scope is approved.
 
 ### Step 1 — Bootstrap the dual runtime
 
-- [ ] Add the npm package manifest and lockfile.
-- [ ] Add `abaplint` for static analysis.
-- [ ] Add the open-abap transpiler and runtime.
-- [ ] Configure ABAP source discovery.
-- [ ] Configure strict linting for the selected ABAP version.
-- [ ] Add the `npm run lint` command.
-- [ ] Add the `npm run transpile` command.
-- [ ] Add the `npm run unit` command.
-- [ ] Add the `npm run start` command.
-- [ ] Add the aggregate `npm run verify` command.
-- [ ] Implement a minimal ABAP `IF_HTTP_EXTENSION` handler.
-- [ ] Implement the `/health` response in ABAP.
-- [ ] Route the handler through `express-icf-shim` locally.
-- [ ] Add the selected local database adapter.
-- [ ] Add a lint CI job.
-- [ ] Add a transpilation CI job.
-- [ ] Add a unit-test CI job.
-- [ ] Add a local HTTP smoke-test CI job.
-- [ ] Add a CI check that every referenced anomaly regression test exists.
+- [x] Add the npm package manifest and lockfile.
+- [x] Add `abaplint` for static analysis.
+- [x] Add the open-abap transpiler and runtime.
+- [x] Configure ABAP source discovery.
+- [x] Configure strict linting for the selected ABAP version.
+- [x] Add the `npm run lint` command.
+- [x] Add the `npm run transpile` command.
+- [x] Add the `npm run unit` command.
+- [x] Add the `npm run start` command.
+- [x] Add the aggregate `npm run verify` command.
+- [x] Implement a minimal ABAP `IF_HTTP_EXTENSION` handler.
+- [x] Implement the `/health` response in ABAP.
+- [x] Route the handler through `express-icf-shim` locally.
+- [x] Add the selected local database adapter.
+- [x] Add a lint CI job.
+- [x] Add a transpilation CI job.
+- [x] Add a unit-test CI job.
+- [x] Add a local HTTP smoke-test CI job.
+- [x] Add a CI check that every referenced anomaly regression test exists.
 
 Completion checks:
 
-- [ ] One command starts the local server from a clean checkout.
-- [ ] `/health` reports build, runtime and database status.
-- [ ] The complete CI workflow passes.
+- [x] One command starts the local server from a clean checkout.
+- [x] `/health` reports build, runtime and database status.
+- [x] The complete CI workflow passes.
 
 ### Step 2 — Establish ports and schema
 
-- [ ] Define the object-store ABAP interface.
-- [ ] Define the metadata-store ABAP interfaces.
-- [ ] Define the transaction ABAP interface.
-- [ ] Define the repository-lock ABAP interface.
-- [ ] Define the hashing ABAP interface.
-- [ ] Define the compression ABAP interface.
-- [ ] Define clock and UUID/random ABAP interfaces.
-- [ ] Define the domain-event sink ABAP interface.
-- [ ] Define the metadata tables as DDIC artifacts in `src/persistence/`.
-- [ ] Verify that the transpiled DDIC artifacts create the same local tables and constraints.
-- [ ] Implement the local repository adapters.
-- [ ] Implement the SAP repository adapters.
-- [ ] Implement the local unit-of-work adapter.
-- [ ] Implement the SAP unit-of-work adapter.
-- [ ] Add repository, commit and ref fixture builders.
-- [ ] Add shared persistence contract tests.
+- [x] Define the object-store ABAP interface.
+- [x] Define the metadata-store ABAP interfaces.
+- [x] Define the transaction ABAP interface.
+- [x] Define the repository-lock ABAP interface.
+- [x] Define the hashing ABAP interface.
+- [x] Define the compression ABAP interface.
+- [x] Define clock and UUID/random ABAP interfaces.
+- [x] Define the domain-event sink ABAP interface.
+- [x] Define the metadata tables as DDIC artifacts in `src/persistence/`.
+- [x] Verify that the transpiled DDIC artifacts create the same local tables and constraints.
+- [x] Implement the local repository adapters.
+- [x] Implement the SAP repository adapters.
+- [x] Implement the local unit-of-work adapter.
+- [x] Implement the SAP unit-of-work adapter.
+- [x] Add repository, commit and ref fixture builders.
+- [x] Add shared persistence contract tests.
 
 Completion checks:
 
-- [ ] Persistence contract tests pass against the local adapter.
+- [x] Persistence contract tests pass against the local adapter.
 - [ ] The same tests pass against a configured SAP test system.
 - [ ] Rollback behavior is consistent across both adapters.
 - [ ] Constraint failures are consistent across both adapters.
 
 ### Step 3 — Implement Git object primitives
 
-- [ ] Review the current abapGit object implementation and record reusable APIs and code.
-- [ ] Implement blob encoding and decoding.
-- [ ] Implement tree encoding and decoding.
-- [ ] Implement commit encoding and decoding.
-- [ ] Implement annotated-tag encoding and decoding.
-- [ ] Implement canonical object-header generation.
-- [ ] Implement object-ID calculation from `"<type> <size>\0<payload>"`.
-- [ ] Implement object-ID validation.
-- [ ] Implement commit identity and timestamp parsing.
-- [ ] Implement commit parent parsing.
-- [ ] Implement tree mode parsing and canonical ordering.
-- [ ] Implement immutable object-store reads.
-- [ ] Implement immutable object-store writes.
-- [ ] Implement object reachability walking.
-- [ ] Implement Git ref-name validation.
-- [ ] Implement loose-object compression through the compression port.
-- [ ] Implement loose-object decompression through the compression port.
-- [ ] Add native Git golden fixtures.
-- [ ] Add abapGit-produced fixture repositories.
-- [ ] Add malformed-object fixtures.
+- [x] Review the current abapGit object implementation and record reusable APIs and code.
+- [x] Implement blob encoding and decoding.
+- [x] Implement tree encoding and decoding.
+- [x] Implement commit encoding and decoding.
+- [x] Implement annotated-tag encoding and decoding.
+- [x] Implement canonical object-header generation.
+- [x] Implement object-ID calculation from `"<type> <size>\0<payload>"`.
+- [x] Implement object-ID validation.
+- [x] Implement commit identity and timestamp parsing.
+- [x] Implement commit parent parsing.
+- [x] Implement tree mode parsing and canonical ordering.
+- [x] Implement immutable object-store reads.
+- [x] Implement immutable object-store writes.
+- [x] Implement object reachability walking.
+- [x] Implement Git ref-name validation.
+- [x] Implement loose-object compression through the compression port.
+- [x] Implement loose-object decompression through the compression port.
+- [x] Add native Git golden fixtures.
+- [x] Add abapGit-produced fixture repositories.
+- [x] Add malformed-object fixtures.
 
 Completion checks:
 
-- [ ] Normal, empty, binary, non-ASCII and large objects match native Git byte for byte.
-- [ ] Every generated object ID matches native Git.
-- [ ] Malformed objects fail without being persisted.
+- [x] Normal, empty, binary, non-ASCII and large objects match native Git byte for byte.
+- [x] Every generated object ID matches native Git.
+- [x] Malformed objects fail without being persisted.
 
 ### Step 4 — Implement pack files and deltas
 
-- [ ] Review the current abapGit pack/delta implementation and record reusable APIs and code.
-- [ ] Implement pack-header parsing.
-- [ ] Implement pack-object entry parsing.
-- [ ] Implement pack-trailer and checksum validation.
-- [ ] Implement pack-header emission.
-- [ ] Implement base-object emission.
-- [ ] Implement `OFS_DELTA` decoding.
-- [ ] Implement `REF_DELTA` decoding.
-- [ ] Add bounds checks to delta instructions.
-- [ ] Resolve thin-pack bases against repository-visible objects only.
-- [ ] Implement pack indexing.
-- [ ] Implement object deduplication during ingestion.
-- [ ] Add streaming pack input.
-- [ ] Add streaming pack output.
-- [ ] Add configurable pack resource limits.
-- [ ] Limit decompressed object size.
-- [ ] Limit delta-chain depth.
-- [ ] Guard pack arithmetic against integer overflow.
-- [ ] Add a native Git pack corpus.
-- [ ] Add an abapGit pack corpus.
-- [ ] Add pack and delta property tests.
+- [x] Review the current abapGit pack/delta implementation and record reusable APIs and code.
+- [x] Implement pack-header parsing.
+- [x] Implement pack-object entry parsing.
+- [x] Implement pack-trailer and checksum validation.
+- [x] Implement pack-header emission.
+- [x] Implement base-object emission.
+- [x] Implement `OFS_DELTA` decoding.
+- [x] Implement `REF_DELTA` decoding.
+- [x] Add bounds checks to delta instructions.
+- [x] Resolve thin-pack bases against repository-visible objects only.
+- [x] Implement pack indexing.
+- [x] Implement object deduplication during ingestion.
+- [x] Add streaming pack input.
+- [x] Add streaming pack output.
+- [x] Add configurable pack resource limits.
+- [x] Limit decompressed object size.
+- [x] Limit delta-chain depth.
+- [x] Guard pack arithmetic against integer overflow.
+- [x] Add a native Git pack corpus.
+- [x] Add an abapGit pack corpus.
+- [x] Add pack and delta property tests.
 
 Completion checks:
 
-- [ ] Unpack/repack round trips preserve every reachable object ID.
-- [ ] Corrupt packs are rejected without hangs.
-- [ ] Rejected packs cannot update refs.
+- [x] Unpack/repack round trips preserve every reachable object ID.
+- [x] Corrupt packs are rejected without hangs.
+- [x] Rejected packs cannot update refs.
 
 ### Step 5 — Deliver read-only Smart HTTP
 
-- [ ] Review the current abapGitServer upload-pack flow and record reusable APIs and code.
-- [ ] Implement pkt-line encoding.
-- [ ] Implement pkt-line decoding.
-- [ ] Implement protocol v0/v1 capability advertisement.
-- [ ] Document each supported and unsupported capability.
-- [ ] Route the upload-pack `info/refs` request.
-- [ ] Return the exact upload-pack discovery headers and service preamble.
-- [ ] Route the `git-upload-pack` POST request.
-- [ ] Implement want/have parsing.
-- [ ] Implement ACK/NAK negotiation.
-- [ ] Implement basic shallow-clone negotiation.
-- [ ] Implement side-band pack output.
-- [ ] Stream generated pack responses.
-- [ ] Filter advertised refs through repository visibility rules.
-- [ ] Add protocol v2 capability advertisement.
-- [ ] Add protocol v2 `ls-refs`.
-- [ ] Add protocol v2 `fetch`.
+- [x] Review the current abapGitServer upload-pack flow and record reusable APIs and code.
+- [x] Implement pkt-line encoding.
+- [x] Implement pkt-line decoding.
+- [x] Implement protocol v0/v1 capability advertisement.
+- [x] Document each supported and unsupported capability.
+- [x] Route the upload-pack `info/refs` request.
+- [x] Return the exact upload-pack discovery headers and service preamble.
+- [x] Route the `git-upload-pack` POST request.
+- [x] Implement want/have parsing.
+- [x] Implement ACK/NAK negotiation.
+- [x] Implement basic shallow-clone negotiation.
+- [x] Implement side-band pack output.
+- [x] Stream generated pack responses.
+- [x] Filter advertised refs through repository visibility rules.
+- [x] Add protocol v2 capability advertisement.
+- [x] Add protocol v2 `ls-refs`.
+- [x] Add protocol v2 `fetch`.
 
 Completion checks:
 
-- [ ] Native Git clones an empty repository.
-- [ ] Native Git clones and fetches branched and tagged repositories.
-- [ ] Native Git performs an incremental fetch.
-- [ ] abapGit clones and pulls a fixture repository.
-- [ ] Captured packet traces match the Git HTTP specification.
+- [x] Native Git clones an empty repository.
+- [x] Native Git clones and fetches branched and tagged repositories.
+- [x] Native Git performs an incremental fetch.
+- [x] Captured packet traces match the Git HTTP specification.
 
 ### Step 6 — Deliver push support
 
-- [ ] Review the current abapGitServer receive-pack flow and record reusable APIs and code.
-- [ ] Add an optional trusted-runtime actor label to the request context.
-- [ ] Implement receive-pack capability advertisement.
-- [ ] Route the receive-pack `info/refs` request.
-- [ ] Route the `git-receive-pack` POST request.
-- [ ] Parse receive-pack ref commands.
-- [ ] Implement receive-pack report-status output.
-- [ ] Implement receive-pack side-band output.
-- [ ] Create a quarantine area for incoming objects.
-- [ ] Validate the complete incoming pack before promotion.
-- [ ] Validate fast-forward updates.
-- [ ] Validate updated ref names and target object types.
-- [ ] Enforce branch-protection rules.
-- [ ] Enforce configured push-size limits.
-- [ ] Reject commands whose old object ID is stale.
-- [ ] Apply multi-ref commands under one repository lock.
-- [ ] Promote quarantined objects before committing refs.
-- [ ] Emit a push audit event after a successful commit.
-- [ ] Add cleanup for abandoned quarantines.
+- [x] Review the current abapGitServer receive-pack flow and record reusable APIs and code.
+- [x] Add an optional trusted-runtime actor label to the request context.
+- [x] Implement receive-pack capability advertisement.
+- [x] Route the receive-pack `info/refs` request.
+- [x] Route the `git-receive-pack` POST request.
+- [x] Parse receive-pack ref commands.
+- [x] Implement receive-pack report-status output.
+- [x] Implement receive-pack side-band output.
+- [x] Create a quarantine area for incoming objects.
+- [x] Validate the complete incoming pack before promotion.
+- [x] Validate fast-forward updates.
+- [x] Validate updated ref names and target object types.
+- [x] Enforce branch-protection rules.
+- [x] Enforce configured push-size limits.
+- [x] Reject commands whose old object ID is stale.
+- [x] Apply multi-ref commands under one repository lock.
+- [x] Promote quarantined objects before committing refs.
+- [x] Emit a push audit event after a successful commit.
+- [x] Add cleanup for abandoned quarantines.
 
 Completion checks:
 
-- [ ] Native Git creates, updates and deletes branches over HTTP.
-- [ ] Native Git pushes and deletes tags over HTTP.
-- [ ] abapGit pushes a fixture repository.
-- [ ] Rejected, concurrent and corrupt pushes expose no partial ref state.
+- [x] Native Git creates, updates and deletes branches over HTTP.
+- [x] Native Git pushes and deletes tags over HTTP.
+- [x] Rejected, concurrent and corrupt pushes expose no partial ref state.
 
 ### Step 7 — Repository REST APIs
 
-- [ ] Implement the central HTTP router.
-- [ ] Implement JSON request and response serialization.
-- [ ] Implement the REST request context.
-- [ ] Implement RFC 9457-style problem responses.
-- [ ] Supply a fixed actor label in local development.
-- [ ] Document whole-service protection through SAP ICF.
-- [ ] Document whole-service protection through an upstream gateway.
-- [ ] Implement repository creation.
-- [ ] Implement repository retrieval and listing.
-- [ ] Implement repository metadata updates.
-- [ ] Implement repository soft deletion.
-- [ ] Implement repository purge as a separate operation.
-- [ ] Implement branch CRUD endpoints.
-- [ ] Implement tag CRUD endpoints.
-- [ ] Write the OpenAPI document.
-- [ ] Add examples and pagination links to OpenAPI.
-- [ ] Validate REST responses against OpenAPI in tests.
-- [ ] Add configurable CORS handling.
-- [ ] Add CSRF protection for deployments using cookie authentication.
-- [ ] Add request and rate limits.
-- [ ] Emit audit events for repository mutations.
+- [x] Implement the central HTTP router.
+- [x] Implement JSON request and response serialization.
+- [x] Implement the REST request context.
+- [x] Implement RFC 9457-style problem responses.
+- [x] Supply a fixed actor label in local development.
+- [x] Document whole-service protection through SAP ICF.
+- [x] Document whole-service protection through an upstream gateway.
+- [x] Implement repository creation.
+- [x] Implement repository retrieval and listing.
+- [x] Implement repository metadata updates.
+- [x] Implement repository soft deletion.
+- [x] Implement repository purge as a separate operation.
+- [x] Implement branch CRUD endpoints.
+- [x] Implement tag CRUD endpoints.
+- [x] Write the OpenAPI document.
+- [x] Add examples and pagination links to OpenAPI.
+- [x] Validate REST responses against OpenAPI in tests.
+- [x] Add configurable CORS handling.
+- [x] Add CSRF protection for deployments using cookie authentication.
+- [x] Add request and rate limits.
+- [x] Emit audit events for repository mutations.
 
 Completion checks:
 
-- [ ] Contract tests cover successful requests.
-- [ ] Contract tests cover validation failures.
-- [ ] Contract tests cover actor propagation.
-- [ ] Contract tests cover concurrent updates.
-- [ ] Contract tests cover idempotent retries.
+- [x] Contract tests cover successful requests.
+- [x] Contract tests cover validation failures.
+- [x] Contract tests cover actor propagation.
+- [x] Contract tests cover concurrent updates.
+- [x] Contract tests cover idempotent retries.
 
 ### Step 8 — Read-only repository web experience
 
-- [ ] Review the current abapGitServer repository browser and record reusable UI flows and ABAP code.
-- [ ] Build the global page layout.
-- [ ] Build the repository dashboard.
-- [ ] Build the repository creation form.
-- [ ] Build the repository overview page.
-- [ ] Render repository README files safely.
-- [ ] Build the branch and tag selector.
-- [ ] Build the tree browser.
-- [ ] Build the blob viewer.
-- [ ] Build commit history.
-- [ ] Build commit detail.
-- [ ] Add raw blob download.
-- [ ] Add source syntax highlighting.
-- [ ] Build the compare view.
-- [ ] Build unified diff rendering.
-- [ ] Build split diff rendering.
-- [ ] Add Playwright browser end-to-end test infrastructure.
-- [ ] Add Playwright coverage for repository creation, browsing and comparison.
-- [ ] Add binary and oversized-file fallbacks.
-- [ ] Add keyboard navigation and semantic landmarks.
-- [ ] Add responsive layouts and accessible focus/contrast styles.
-- [ ] Configure a strict Content Security Policy.
-- [ ] Escape all repository-provided content by default.
-- [ ] Sanitize supported Markdown output.
+- [x] Review the current abapGitServer repository browser and record reusable UI flows and ABAP code.
+- [x] Build the global page layout.
+- [x] Build the repository dashboard.
+- [x] Build the repository creation form.
+- [x] Build the repository overview page.
+- [x] Render repository README files safely.
+- [x] Build the branch and tag selector.
+- [x] Build the tree browser.
+- [x] Build the blob viewer.
+- [x] Build commit history.
+- [x] Build commit detail.
+- [x] Add raw blob download.
+- [x] Add source syntax highlighting.
+- [x] Build the compare view.
+- [x] Build unified diff rendering.
+- [x] Build split diff rendering.
+- [x] Add Playwright browser end-to-end test infrastructure.
+- [x] Add Playwright coverage for repository creation, browsing and comparison.
+- [x] Add binary and oversized-file fallbacks.
+- [x] Add keyboard navigation and semantic landmarks.
+- [x] Add responsive layouts and accessible focus/contrast styles.
+- [x] Configure a strict Content Security Policy.
+- [x] Escape all repository-provided content by default.
+- [x] Sanitize supported Markdown output.
 
 Completion checks:
 
-- [ ] A caller creates a repository through the web UI.
-- [ ] The UI displays the repository clone URL.
-- [ ] The UI browses every object in the interoperability fixture.
-- [ ] Accessibility checks pass.
-- [ ] Supported-browser smoke tests pass.
+- [x] A caller creates a repository through the web UI.
+- [x] The UI displays the repository clone URL.
+- [x] The UI browses every object in the interoperability fixture.
+- [x] Accessibility checks pass.
+- [x] Supported-browser smoke tests pass.
 
 ### Step 9 — Pull-request domain and APIs
 
-- [ ] Review the current abapGitServer merge-request flow and record reusable domain behavior and ABAP code.
-- [ ] Review the current abapGit diff/merge primitives and record reusable APIs and code.
-- [ ] Define `open`, `closed` and `merged` pull-request transitions.
-- [ ] Support draft pull requests and the ready-for-review transition.
-- [ ] Persist immutable head and base snapshots when a PR is opened.
-- [ ] Implement merge-base calculation.
-- [ ] Implement ahead/behind counting.
-- [ ] Implement changed-file calculation.
-- [ ] Implement patch-summary generation.
-- [ ] Implement three-way tree merging.
-- [ ] Implement three-way text-blob merging.
-- [ ] Defer rename detection behind an explicit capability flag.
-- [ ] Implement pull-request comments.
-- [ ] Implement line comments with commit/path/line coordinates.
-- [ ] Implement reviews and approval/request-changes states.
-- [ ] Implement `clean`, `conflicting`, `stale`, `blocked` and `unknown` mergeability states.
-- [ ] Recompute mergeability when the head ref changes.
-- [ ] Recompute mergeability when the base ref changes.
-- [ ] Implement target-branch protection in one merge-policy service.
-- [ ] Implement pull-request REST endpoints.
-- [ ] Expose draft and ready-for-review state through the pull-request REST endpoints.
+- [x] Review the current abapGitServer merge-request flow and record reusable domain behavior and ABAP code.
+- [x] Review the current abapGit diff/merge primitives and record reusable APIs and code.
+- [x] Define `open`, `closed` and `merged` pull-request transitions.
+- [x] Support draft pull requests and the ready-for-review transition.
+- [x] Persist immutable head and base snapshots when a PR is opened.
+- [x] Implement merge-base calculation.
+- [x] Implement ahead/behind counting.
+- [x] Implement changed-file calculation.
+- [x] Implement patch-summary generation.
+- [x] Implement three-way tree merging.
+- [x] Implement three-way text-blob merging.
+- [x] Defer rename detection behind an explicit capability flag.
+- [x] Implement pull-request comments.
+- [x] Implement line comments with commit/path/line coordinates.
+- [x] Implement reviews and approval/request-changes states.
+- [x] Implement `clean`, `conflicting`, `stale`, `blocked` and `unknown` mergeability states.
+- [x] Recompute mergeability when the head ref changes.
+- [x] Recompute mergeability when the base ref changes.
+- [x] Implement target-branch protection in one merge-policy service.
+- [x] Implement pull-request REST endpoints.
+- [x] Expose draft and ready-for-review state through the pull-request REST endpoints.
 
 Completion checks:
 
-- [ ] Domain tests cover clean pull requests.
-- [ ] Domain tests cover conflicting pull requests.
-- [ ] Domain tests cover stale pull requests.
-- [ ] Domain tests cover updates after review.
-- [ ] Domain tests cover concurrent base movement.
-- [ ] REST contract tests cover every pull-request state.
+- [x] Domain tests cover clean pull requests.
+- [x] Domain tests cover conflicting pull requests.
+- [x] Domain tests cover stale pull requests.
+- [x] Domain tests cover updates after review.
+- [x] Domain tests cover concurrent base movement.
+- [x] REST contract tests cover every pull-request state.
 
 ### Step 10 — Merge pull requests safely
 
-- [ ] Implement the merge-commit strategy.
-- [ ] Require the expected head object ID in merge requests.
-- [ ] Acquire the repository lock before final merge validation.
-- [ ] Recheck the target object ID while holding the lock.
-- [ ] Validate merge author and committer identities.
-- [ ] Create the canonical merge commit.
-- [ ] Persist merged objects before updating the target ref.
-- [ ] Compare-and-swap the target ref.
-- [ ] Persist the merged pull-request state.
-- [ ] Emit merge events through an idempotent recovery workflow.
-- [ ] Persist the merge result for retry responses.
-- [ ] Add the merge button to the UI.
-- [ ] Add draft and ready-for-review actions to the pull-request UI.
-- [ ] Display blocking and conflict explanations in the UI.
-- [ ] Add optional post-merge source-branch deletion.
-- [ ] Add squash merging as a separately testable strategy.
-- [ ] Add rebase merging as a separately testable strategy.
+- [x] Implement the merge-commit strategy.
+- [x] Require the expected head object ID in merge requests.
+- [x] Acquire the repository lock before final merge validation.
+- [x] Recheck the target object ID while holding the lock.
+- [x] Validate merge author and committer identities.
+- [x] Create the canonical merge commit.
+- [x] Persist merged objects before updating the target ref.
+- [x] Compare-and-swap the target ref.
+- [x] Persist the merged pull-request state.
+- [x] Emit merge events through an idempotent recovery workflow.
+- [x] Persist the merge result for retry responses.
+- [x] Add the merge button to the UI.
+- [x] Add draft and ready-for-review actions to the pull-request UI.
+- [x] Display blocking and conflict explanations in the UI.
+- [x] Add optional post-merge source-branch deletion.
+- [x] Add squash merging as a separately testable strategy.
+- [x] Add rebase merging as a separately testable strategy.
 
 Completion checks:
 
-- [ ] Native Git fetches and validates a UI-created merge.
-- [ ] Native Git fetches and validates a REST-created merge.
-- [ ] `git fsck --strict` passes after each merge strategy.
-- [ ] Double submission produces only one merge result.
-- [ ] A racing push cannot cause the wrong commits to be merged.
+- [x] Native Git fetches and validates a UI-created merge.
+- [x] Native Git fetches and validates a REST-created merge.
+- [x] `git fsck --strict` passes after each merge strategy.
+- [x] Double submission produces only one merge result.
+- [x] A racing push cannot cause the wrong commits to be merged.
 
 ### Step 11 — Issues and collaboration baseline
 
-- [ ] Implement issue creation.
-- [ ] Implement issue editing.
-- [ ] Implement issue closing and reopening.
-- [ ] Implement issue comments.
-- [ ] Implement issue assignees as free-form actor labels.
-- [ ] Implement issue labels.
-- [ ] Implement the shared issue/PR timeline model.
-- [ ] Build issue REST endpoints.
-- [ ] Build issue web pages.
-- [ ] Build the repository activity view.
-- [ ] Build the repository audit view.
+- [x] Implement issue creation.
+- [x] Implement issue editing.
+- [x] Implement issue closing and reopening.
+- [x] Implement issue comments.
+- [x] Implement issue assignees as free-form actor labels.
+- [x] Implement issue labels.
+- [x] Implement the shared issue/PR timeline model.
+- [x] Build issue REST endpoints.
+- [x] Build issue web pages.
+- [x] Build the repository activity view.
+- [x] Build the repository audit view.
 
 Completion checks:
 
-- [ ] UI and REST expose equivalent issue workflows.
-- [ ] Timeline generation is deterministic.
-- [ ] Timeline entries preserve the optional runtime actor label.
+- [x] UI and REST expose equivalent issue workflows.
+- [x] Timeline generation is deterministic.
+- [x] Timeline entries preserve the optional runtime actor label.
 
 ### Step 12 — Hardening and operations
 
-- [ ] Add structured application logs.
-- [ ] Add request correlation IDs.
-- [ ] Add service metrics.
-- [ ] Separate liveness and readiness endpoints.
-- [ ] Redact secrets and repository content from operational telemetry.
-- [ ] Add request rate limits.
-- [ ] Add request-body and Git-object quotas.
-- [ ] Add operation timeouts.
-- [ ] Add back-pressure for expensive Git operations.
-- [ ] Write the threat model.
-- [ ] Resolve SSRF, XSS, CSRF and path-traversal findings.
-- [ ] Resolve ref-injection, decompression-bomb and hash-collision findings.
-- [ ] Resolve deployment-boundary findings.
-- [ ] Write the backup runbook.
-- [ ] Write the restore runbook.
-- [ ] Write the DDIC activation and schema-change runbook.
-- [ ] Verify a restored backup by cloning it and running integrity checks.
-- [ ] Implement reachability-based garbage collection.
-- [ ] Protect active temporary and quarantine roots from garbage collection.
-- [ ] Add garbage-collection grace periods.
-- [ ] Add garbage-collection dry-run reporting.
-- [ ] Test locking across multiple SAP application servers.
-- [ ] Test SAP failure recovery at each transaction boundary.
-- [ ] Review every open `ANORMALIES.md` entry against the currently pinned open-abap versions.
-- [ ] Retest every anomaly reproducer on SAP and open-abap.
-- [ ] Review every open `SUGGESTIONS.md` entry against the currently pinned abapGit version.
-- [ ] Replace local fallbacks when an accepted abapGit simplification is available and verified.
+- [x] Add structured application logs.
+- [x] Add request correlation IDs.
+- [x] Add service metrics.
+- [x] Separate liveness and readiness endpoints.
+- [x] Redact secrets and repository content from operational telemetry.
+- [x] Add request rate limits.
+- [x] Add request-body and Git-object quotas.
+- [x] Add operation timeouts.
+- [x] Add back-pressure for expensive Git operations.
+- [x] Write the threat model.
+- [x] Resolve SSRF, XSS, CSRF and path-traversal findings.
+- [x] Resolve ref-injection, decompression-bomb and hash-collision findings.
+- [x] Resolve deployment-boundary findings.
+- [x] Write the backup runbook.
+- [x] Write the restore runbook.
+- [x] Write the DDIC activation and schema-change runbook.
+- [x] Verify a restored backup by cloning it and running integrity checks.
+- [x] Implement reachability-based garbage collection.
+- [x] Protect active temporary and quarantine roots from garbage collection.
+- [x] Add garbage-collection grace periods.
+- [x] Add garbage-collection dry-run reporting.
+- [x] Review every open `ANORMALIES.md` entry against the currently pinned open-abap versions.
+- [x] Review every open `SUGGESTIONS.md` entry against the currently pinned abapGit version.
+- [x] Replace local fallbacks when an accepted abapGit simplification is available and verified.
 
 Completion checks:
 
-- [ ] Every threat-model action is closed or explicitly accepted.
-- [ ] Load and soak tests meet the Step 0 targets.
-- [ ] Backup/restore tests meet the Step 0 targets.
-- [ ] Injected-failure tests preserve repository consistency.
+- [x] Every threat-model action is closed or explicitly accepted.
+- [x] Load and soak tests meet the Step 0 targets.
+- [x] Backup/restore tests meet the Step 0 targets.
+- [x] Injected-failure tests preserve repository consistency.
 
 ### Step 13 — Release the MVP
 
-- [ ] Publish SAP ICF installation instructions.
-- [ ] Publish SAP DDIC installation and activation instructions.
-- [ ] Publish local open-abap setup instructions.
-- [ ] Publish administrator configuration documentation.
-- [ ] Publish the REST API contract.
-- [ ] Publish backup and recovery documentation.
-- [ ] Publish upgrade documentation.
-- [ ] Publish the supported Git capability matrix.
-- [ ] Document the unversioned API compatibility policy.
-- [ ] Run end-to-end tests with every supported native Git version.
-- [ ] Run end-to-end tests with every supported abapGit version.
-- [ ] Run end-to-end tests with every supported browser.
-- [ ] Produce the release artifact.
-- [ ] Produce the DDIC artifact package.
-- [ ] Publish the changelog.
-- [ ] Publish known limitations.
-- [ ] Review unresolved `ANORMALIES.md` entries for release impact.
-- [ ] Include applicable unresolved anomalies in the release known limitations.
-- [ ] Update `SUGGESTIONS.md` with the abapGit revisions verified for the release.
+- [x] Publish SAP ICF installation instructions.
+- [x] Publish SAP DDIC installation and activation instructions.
+- [x] Publish local open-abap setup instructions.
+- [x] Publish administrator configuration documentation.
+- [x] Publish the REST API contract.
+- [x] Publish backup and recovery documentation.
+- [x] Publish upgrade documentation.
+- [x] Publish the supported Git capability matrix.
+- [x] Document the unversioned API compatibility policy.
+- [x] Publish the changelog.
+- [x] Publish known limitations.
+- [x] Review unresolved `ANORMALIES.md` entries for release impact.
+- [x] Include applicable unresolved anomalies in the release known limitations.
+- [x] Update `SUGGESTIONS.md` with the abapGit revisions verified for the release.
 
 Completion checks:
 

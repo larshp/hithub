@@ -1,0 +1,178 @@
+name: preview deployment
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+# Every job here pushes to the same branch of the same deployment repository,
+# so only one of them may run at a time.
+concurrency:
+  group: preview-deployment-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: >-
+      github.event.action != 'closed'
+      && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PREVIEW_DIRECTORY: "${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'push' && 'main' || 'preview' }}"
+      PREVIEW_LABEL: "${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || github.event_name == 'push' && 'main' || 'manual preview' }}"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # Checked out before the build, because the screenshots taken here are
+      # compared with the ones the main deployment already carries.
+      #
+      # Add a deploy key with write access to the deployment repository and put
+      # its private half in the DEPLOY repository secret.
+      - name: Check out deployment repository
+        uses: actions/checkout@v4
+        with:
+          repository: larshp/hithub-preview-deployments
+          ref: main
+          path: deployment
+          ssh-key: ${{ secrets.DEPLOY }}
+
+      - run: npm run web:build
+
+      - name: Push preview deployment
+        run: |
+          set -euo pipefail
+          rm -rf -- "$GITHUB_WORKSPACE/deployment/$PREVIEW_DIRECTORY"
+          mkdir -p -- "$GITHUB_WORKSPACE/deployment/$PREVIEW_DIRECTORY"
+          cp -R "$GITHUB_WORKSPACE/build/." \
+            "$GITHUB_WORKSPACE/deployment/$PREVIEW_DIRECTORY/"
+          node scripts/preview-deployment-root.mjs \
+            "$GITHUB_WORKSPACE/deployment"
+          cd "$GITHUB_WORKSPACE/deployment"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+
+          if git diff --cached --quiet; then
+            echo "Preview is unchanged"
+          else
+            git commit -m "Deploy $PREVIEW_LABEL"
+            git push origin HEAD:main
+          fi
+
+      - name: Add or update preview comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_URL: https://larshp.github.io/hithub-preview-deployments/pr-${{ github.event.pull_request.number }}/
+          SCREENSHOT_URL: https://larshp.github.io/hithub-preview-deployments/pr-${{ github.event.pull_request.number }}/screenshots/
+          VISUAL_DIFF_URL: https://larshp.github.io/hithub-preview-deployments/pr-${{ github.event.pull_request.number }}/visual-diffs/
+        run: |
+          set -euo pipefail
+
+          marker='<!-- hithub-preview-deployment -->'
+          short_sha="${GITHUB_SHA:0:7}"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          diff_count=''
+          summary_file="$GITHUB_WORKSPACE/build/visual-diffs/summary.json"
+          if [[ -f "$summary_file" ]]; then
+            diff_count=$(jq -r '.differences // empty' "$summary_file")
+          fi
+
+          case "$diff_count" in
+            '') diff_label='count unavailable' ;;
+            0)  diff_label='no differences' ;;
+            1)  diff_label='1 difference' ;;
+            *)  diff_label="$diff_count differences" ;;
+          esac
+
+          body=$(printf '%s\n\nPreview deployment: [Open HitHub](%s) - the whole server runs in your browser.\n\n[Screenshots](%s) - [Visual diffs against main](%s) (%s)\n\nBuilt from [`%s`](%s) - [Workflow run](%s)' \
+            "$marker" \
+            "$PREVIEW_URL" \
+            "$SCREENSHOT_URL" \
+            "$VISUAL_DIFF_URL" \
+            "$diff_label" \
+            "$short_sha" \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
+            "$run_url")
+
+          comments=$(gh api --paginate --slurp \
+            "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments?per_page=100")
+          comment_id=$(jq -r --arg marker "$marker" \
+            '[.[][] | select(.user.login == "github-actions[bot]" and (.body | contains($marker)))][0].id // empty' \
+            <<<"$comments")
+
+          if [[ -n "$comment_id" ]]; then
+            gh api --method PATCH \
+              "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" \
+              -f body="$body" >/dev/null
+            echo "Updated preview comment $comment_id"
+          else
+            gh api --method POST \
+              "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              -f body="$body" >/dev/null
+            echo "Created preview comment"
+          fi
+
+  # A preview is a few megabytes of bundled runtime, so a merged or abandoned
+  # pull request takes its deployment with it.
+  remove:
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.action == 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PREVIEW_DIRECTORY: "pr-${{ github.event.pull_request.number }}"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/checkout@v4
+        with:
+          repository: larshp/hithub-preview-deployments
+          ref: main
+          path: deployment
+          ssh-key: ${{ secrets.DEPLOY }}
+
+      - name: Remove preview deployment
+        run: |
+          set -euo pipefail
+          rm -rf -- "$GITHUB_WORKSPACE/deployment/$PREVIEW_DIRECTORY"
+          node scripts/preview-deployment-root.mjs \
+            "$GITHUB_WORKSPACE/deployment"
+          cd "$GITHUB_WORKSPACE/deployment"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+
+          if git diff --cached --quiet; then
+            echo "No preview to remove"
+          else
+            git commit -m "Remove preview for PR #${{ github.event.pull_request.number }}"
+            git push origin HEAD:main
+          fi

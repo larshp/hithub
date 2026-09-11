@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>HitHub preview</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font: 16px/1.5 system-ui, sans-serif;
+        color: #e6edf3;
+        background: #0d1117;
+      }
+      main { max-width: 34rem; padding: 2rem; }
+      h1 { margin: 0 0 .5rem; font-size: 1.4rem; }
+      p { margin: 0 0 .75rem; color: #9198a1; }
+      pre {
+        overflow: auto;
+        margin: 0;
+        padding: 1rem;
+        border-radius: 6px;
+        color: #e6edf3;
+        background: #161b22;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 id="preview-heading">Starting HitHub</h1>
+      <p id="preview-detail">
+        The application is installing itself in your browser. This takes a
+        moment the first time.
+      </p>
+    </main>
+    <script>
+      // This page is only ever shown before the service worker is installed.
+      // Once it controls this directory it answers the navigation itself, with
+      // the real application, and the file below is never evaluated again.
+      (async () => {
+        const heading = document.querySelector("#preview-heading");
+        const detail = document.querySelector("#preview-detail");
+        const root = new URL("./", location.href);
+
+        function fail(title, message) {
+          heading.textContent = title;
+          detail.textContent = "";
+          const output = document.createElement("pre");
+          output.textContent = message;
+          detail.after(output);
+        }
+
+        function attempted() {
+          // A browser that registers the worker but does not let it answer the
+          // navigation would otherwise reload this page forever.
+          const key = `hithub-preview-start:${root.pathname}`;
+          try {
+            const previous = Number(sessionStorage.getItem(key) || 0);
+            sessionStorage.setItem(key, String(Date.now()));
+            return Date.now() - previous < 10_000;
+          } catch (_error) {
+            return false;
+          }
+        }
+
+        function deepLink() {
+          // The site level 404 page parks a path here when a preview URL is
+          // opened before the worker exists to answer it.
+          try {
+            const target = sessionStorage.getItem("hithub-preview-target");
+            sessionStorage.removeItem("hithub-preview-target");
+            return target;
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        if (!("serviceWorker" in navigator)) {
+          fail("This browser cannot run the preview",
+            "The preview runs the HitHub server in a service worker. This "
+            + "browser does not support them, or they are turned off - "
+            + "private windows in some browsers disable them.");
+          return;
+        }
+        if (attempted()) {
+          fail("The preview did not start",
+            "The service worker was registered but did not answer the "
+            + "request for " + root.pathname + ". Reload the page to try "
+            + "again.");
+          return;
+        }
+
+        try {
+          await navigator.serviceWorker.register("./sw.js", {scope: "./"});
+          await navigator.serviceWorker.ready;
+        } catch (error) {
+          fail("The preview could not be installed", String(error));
+          return;
+        }
+        location.replace(deepLink() || root.href);
+      })();
+    </script>
+  </body>
+</html>
