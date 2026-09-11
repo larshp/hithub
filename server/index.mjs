@@ -2,7 +2,10 @@ import express from "express";
 import {createHash, randomUUID} from "node:crypto";
 import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
-import {createLocalDatabase} from "../scripts/local-database.mjs";
+import {
+  createLocalDatabase,
+  sqliteSchemaStatements,
+} from "../scripts/local-database.mjs";
 import {readSerializedAssets} from "../scripts/local-assets.mjs";
 import {initializeABAP} from "../output/init.mjs";
 import {cl_express_icf_shim} from "../output/cl_express_icf_shim.clas.mjs";
@@ -16,11 +19,7 @@ import {createGitAdmission} from "./git-admission.mjs";
 
 await initializeABAP();
 const generated = readFileSync(new URL("../output/init.mjs", import.meta.url), "utf8");
-const tick = String.fromCharCode(96);
-const statements = generated.split("\n")
-  .filter((line) => line.includes("sqlite.push("))
-  .map((line) => line.slice(line.indexOf(tick) + 1, line.lastIndexOf(tick)));
-const database = await createLocalDatabase(statements);
+const database = await createLocalDatabase(sqliteSchemaStatements(generated));
 globalThis.abap.context.databaseConnections.DEFAULT = database;
 // ZCL_HITHUB_PERSISTENCE defaults to the SAP adapters, which is right for an
 // installed ICF service but wrong here: this process drives SQLite and holds
