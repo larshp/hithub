@@ -105,6 +105,25 @@ try {
   if (created.status !== 201) throw new Error("UI issue test repository creation failed");
   browser = await chromium.launch({headless: true});
   const page = await browser.newPage();
+  const sapServiceUrl = `http://127.0.0.1:${port}/sap/zhithub`;
+  await page.goto(`${sapServiceUrl}/?sap-client=100`, {waitUntil: "networkidle"});
+  await page.getByRole("link", {name: "ui-issue-repository"}).waitFor();
+  const resourcePaths = await page.evaluate(() => performance.getEntriesByType("resource")
+    .map((entry) => new URL(entry.name).pathname));
+  if (!resourcePaths.includes("/sap/zhithub/styles.css")
+      || !resourcePaths.includes("/sap/zhithub/app.js")) {
+    throw new Error(`SICF-prefixed assets escaped the service: ${resourcePaths.join(", ")}`);
+  }
+  const newRepositoryHref = await page.getByRole("link", {name: "New repository"})
+    .getAttribute("href");
+  if (newRepositoryHref !== "/sap/zhithub/ui/create") {
+    throw new Error(`SICF-prefixed navigation escaped the service: ${newRepositoryHref}`);
+  }
+  await page.getByRole("link", {name: "New repository"}).click();
+  await page.waitForURL(`${sapServiceUrl}/ui/create`);
+  await page.getByRole("heading", {name: "Create a repository"}).waitFor();
+  console.log("UI loads assets, API data, and routes below the SAP SICF prefix");
+
   await page.goto(
     `http://127.0.0.1:${port}/ui/repos/ui-issue-repository/issues/new`,
     {waitUntil: "networkidle"},

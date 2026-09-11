@@ -83,11 +83,11 @@ system copy: `ZCL_HITHUB_SAP_ASSET_STORE` reads the objects back through
    effect on the next request. A repeated request with `If-None-Match`
    answers `304`.
 
-The assets request `/api/...` and route on `/ui/...` as absolute paths, so the
-service has to be reachable at a host root. Publish it through the reverse
-proxy or Web Dispatcher rule that maps the host root to the ICF node, and see
-the [known limitations](known-limitations.md) before exposing the UI on a
-prefixed path.
+The browser derives its base path from the loaded shell, so assets, `/api/...`
+requests, `/ui/...` navigation and advertised Git clone URLs remain below the
+SICF service path. The UI therefore works directly at `/sap/zhithub/` as well
+as behind a reverse proxy. See the [known limitations](known-limitations.md)
+before exposing the service.
 
 ## Configure the ICF service
 

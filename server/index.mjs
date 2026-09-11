@@ -129,7 +129,7 @@ const contentSecurityPolicy = [
   "frame-ancestors 'none'",
   "img-src 'self' data:",
   "object-src 'none'",
-  "script-src 'self'",
+  "script-src 'self' 'sha256-32gi7i7gzEIztYhvK53O3Fy5xFgCyGoDKQDSU3nXLro='",
   "style-src 'self'",
 ].join("; ");
 
@@ -330,6 +330,17 @@ app.use((req, res, next) => {
 });
 
 app.use(express.raw({type: "*/*", limit: requestBodyLimit}));
+
+// Mirror the serialized SAP SICF mount locally. Express removes the mount
+// prefix from req.url while this handler runs, just as ICF removes the service
+// node from ~path_info before ZCL_HITHUB_HTTP sees it.
+app.use("/sap/zhithub", async (req, res) => {
+  await cl_express_icf_shim.run({
+    req,
+    res,
+    class: "ZCL_HITHUB_HTTP",
+  });
+});
 
 app.all(["/health", "/health/*"], async (req, res) => {
   await cl_express_icf_shim.run({

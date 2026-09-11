@@ -1,3 +1,41 @@
+const appBasePath = window.HITHUB_BASE_PATH || "";
+const routePath = appBasePath && window.location.pathname.startsWith(appBasePath)
+  ? window.location.pathname.slice(appBasePath.length) || "/"
+  : window.location.pathname;
+
+function appPath(path) {
+  if (!appBasePath || !path.startsWith("/")) return path;
+  return `${appBasePath}${path}`;
+}
+
+const browserFetch = window.fetch.bind(window);
+function fetch(resource, options) {
+  const target = typeof resource === "string" ? appPath(resource) : resource;
+  return browserFetch(target, options);
+}
+
+function prefixNavigation(root) {
+  const elements = [];
+  if (root.matches?.("a[href], form[action]")) elements.push(root);
+  elements.push(...(root.querySelectorAll?.("a[href], form[action]") || []));
+  for (const element of elements) {
+    const attribute = element.matches("form") ? "action" : "href";
+    const value = element.getAttribute(attribute) || "";
+    if (value === "/" || value.startsWith("/ui/") || value.startsWith("/api/")) {
+      element.setAttribute(attribute, appPath(value));
+    }
+  }
+}
+
+prefixNavigation(document);
+new MutationObserver((records) => {
+  for (const record of records) {
+    for (const node of record.addedNodes) {
+      if (node.nodeType === Node.ELEMENT_NODE) prefixNavigation(node);
+    }
+  }
+}).observe(document.body, {childList: true, subtree: true});
+
 const dashboard = document.querySelector("#repository-dashboard");
 const pageTitle = document.querySelector("#page-title");
 const pageLede = document.querySelector(".lede");
@@ -388,39 +426,39 @@ async function loadRepositories() {
   }
 }
 
-const repositoryRoute = window.location.pathname.match(/^\/ui\/repos\/([^/]+)$/);
-const treeRoute = window.location.pathname.match(
+const repositoryRoute = routePath.match(/^\/ui\/repos\/([^/]+)$/);
+const treeRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/files\/([^/]+)(?:\/(.*))?$/,
 );
-const blobRoute = window.location.pathname.match(
+const blobRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/blob\/([^/]+)\/(.+)$/,
 );
-const historyRoute = window.location.pathname.match(
+const historyRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/commits\/([^/]+)$/,
 );
-const commitRoute = window.location.pathname.match(
+const commitRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/commit\/([^/]+)$/,
 );
-const compareRoute = window.location.pathname.match(/^\/ui\/repos\/([^/]+)\/compare$/);
-const pullRequestListRoute = window.location.pathname.match(
+const compareRoute = routePath.match(/^\/ui\/repos\/([^/]+)\/compare$/);
+const pullRequestListRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/pulls$/,
 );
-const pullRequestRoute = window.location.pathname.match(
+const pullRequestRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/pulls\/([^/]+)$/,
 );
-const pullRequestCreateRoute = window.location.pathname.match(
+const pullRequestCreateRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/pulls\/new$/,
 );
-const issueListRoute = window.location.pathname.match(
+const issueListRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/issues$/,
 );
-const issueRoute = window.location.pathname.match(
+const issueRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/issues\/([^/]+)$/,
 );
-const issueCreateRoute = window.location.pathname.match(
+const issueCreateRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/issues\/new$/,
 );
-const auditRoute = window.location.pathname.match(
+const auditRoute = routePath.match(
   /^\/ui\/repos\/([^/]+)\/audit$/,
 );
 const repositoryPageRoute = repositoryRoute || treeRoute || blobRoute || historyRoute
@@ -532,7 +570,7 @@ async function copyText(value, control) {
 }
 
 function referenceHref(encoded, name) {
-  return `/ui/repos/${encoded}/files/${encodeURIComponent(shortReference(name))}`;
+  return appPath(`/ui/repos/${encoded}/files/${encodeURIComponent(shortReference(name))}`);
 }
 
 function createReferenceSwitcher(options) {
@@ -804,7 +842,7 @@ function createCodeMenu(cloneUrl) {
   return menu;
 }
 
-if (window.location.pathname !== "/") {
+if (routePath !== "/") {
   createRepositoryLink.hidden = true;
   pageLede.hidden = false;
   panel.removeAttribute("aria-label");
@@ -816,7 +854,7 @@ if (repositoryPageRoute) {
   pageIntro.classList.add("repository-page-intro");
   showRepositoryNavigation(repositoryName);
 }
-if (window.location.pathname === "/ui/create") showCreateForm();
+if (routePath === "/ui/create") showCreateForm();
 else if (pullRequestListRoute) showPullRequests(decodeURIComponent(pullRequestListRoute[1]));
 else if (pullRequestCreateRoute) showCreatePullRequest(
   decodeURIComponent(pullRequestCreateRoute[1]),
@@ -924,7 +962,7 @@ function showCreateForm() {
         status.textContent = body.detail || "Repository could not be created.";
         return;
       }
-      window.location.href = `/ui/repos/${encodeURIComponent(body.name)}`;
+      window.location.href = appPath(`/ui/repos/${encodeURIComponent(body.name)}`);
     } catch (_error) {
       status.className = "form-status is-error";
       status.textContent = "Repository could not be created. Try again shortly.";
@@ -963,7 +1001,7 @@ async function showRepositoryOverview(name) {
     ) : null;
     const contents = contentsResponse?.ok ? await contentsResponse.json() : null;
     dashboard.replaceChildren();
-    const cloneUrl = `${window.location.origin}/${repository.name}.git`;
+    const cloneUrl = `${window.location.origin}${appPath(`/${repository.name}.git`)}`;
     const selector = document.createElement("div");
     selector.className = "reference-toolbar";
     const branchControl = document.createElement("div");
@@ -1645,7 +1683,7 @@ async function showCreateIssue(repository) {
       });
       if (!response.ok) throw new Error(`issue create returned ${response.status}`);
       const issue = await response.json();
-      window.location.href = `/ui/repos/${encodeURIComponent(repository)}/issues/${encodeURIComponent(issue.id)}`;
+      window.location.href = appPath(`/ui/repos/${encodeURIComponent(repository)}/issues/${encodeURIComponent(issue.id)}`);
     } catch (_error) {
       submit.disabled = false;
       status.className = "form-status is-error";
@@ -2030,7 +2068,7 @@ async function showCreatePullRequest(repository) {
         });
         const created = await create.json();
         if (!create.ok) throw new Error(created.detail || "create failed");
-        window.location.href = `/ui/repos/${encoded}/pulls/${encodeURIComponent(created.id)}`;
+        window.location.href = appPath(`/ui/repos/${encoded}/pulls/${encodeURIComponent(created.id)}`);
       } catch (error) {
         submit.disabled = false;
         status.className = "form-status is-error";
@@ -2394,7 +2432,7 @@ async function showTreeBrowser(repository, branch, path) {
   historyLink.textContent = "History";
   browserActions.append(
     overviewLink, historyLink,
-    createCodeMenu(`${window.location.origin}/${repository}.git`),
+    createCodeMenu(`${window.location.origin}${appPath(`/${repository}.git`)}`),
   );
   browserHeader.append(breadcrumb, browserActions);
   const loading = document.createElement("li");
@@ -2501,8 +2539,9 @@ function createFileEditor(context) {
       });
       const body = await response.json().catch(() => null);
       if (!response.ok) throw new Error(body?.detail || `commit returned ${response.status}`);
-      window.location.href =
-        `/ui/repos/${encoded}/blob/${encodeURIComponent(branch)}/${encodedPath}`;
+      window.location.href = appPath(
+        `/ui/repos/${encoded}/blob/${encodeURIComponent(branch)}/${encodedPath}`,
+      );
     } catch (error) {
       submit.disabled = false;
       status.className = "form-status is-error";
@@ -2718,8 +2757,9 @@ async function showCommitHistory(repository, branch) {
         tags,
         current: current || branches[0],
         defaultBranch: shortReference(branches[0].name),
-        hrefFor: (name) =>
+        hrefFor: (name) => appPath(
           `/ui/repos/${encoded}/commits/${encodeURIComponent(shortReference(name))}`,
+        ),
       });
       toolbar.append(switcher.menu);
     }
