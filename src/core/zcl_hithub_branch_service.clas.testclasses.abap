@@ -4,22 +4,67 @@ CLASS ltcl_branch_service DEFINITION
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
+    CONSTANTS c_lifecycle_repository TYPE string
+      VALUE 'branch-service-00000000000000000'.
+    CONSTANTS c_stale_repository TYPE string
+      VALUE 'branch-stale-00000000000000000000'.
+
+    METHODS setup RAISING cx_static_check.
+    METHODS teardown RAISING cx_static_check.
     METHODS manages_branch_lifecycle FOR TESTING RAISING cx_static_check.
     METHODS rejects_stale_update FOR TESTING RAISING cx_static_check.
+
+    "! create( ), update( ) and delete( ) commit, so a branch outlives the
+    "! rollback ABAP Unit does after each test method and the fixed fixture
+    "! ids would collide on the next run.
+    METHODS drop_fixture_branches RAISING cx_static_check.
 
 ENDCLASS.
 
 CLASS ltcl_branch_service IMPLEMENTATION.
+
+  METHOD setup.
+    " Recover from a run that ended before its teardown.
+    drop_fixture_branches( ).
+  ENDMETHOD.
+
+  METHOD teardown.
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
+
+    lo_transaction->zif_hithub_transaction~start( ).
+    drop_fixture_branches( ).
+    " The deletes have to be committed, otherwise the rollback that ends
+    " the test method puts the branches straight back.
+    lo_transaction->zif_hithub_transaction~commit( ).
+  ENDMETHOD.
+
+  METHOD drop_fixture_branches.
+    DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
+    DATA lt_repositories TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    DATA lv_repository_id TYPE string.
+    DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+
+    APPEND c_lifecycle_repository TO lt_repositories.
+    APPEND c_stale_repository TO lt_repositories.
+    LOOP AT lt_repositories INTO lv_repository_id.
+      LOOP AT lo_metadata->zif_hithub_metadata_store~list_references(
+          lv_repository_id ) INTO ls_reference.
+        lo_metadata->zif_hithub_metadata_store~delete_reference(
+          iv_repository_id = lv_repository_id
+          iv_name          = ls_reference-name ).
+      ENDLOOP.
+    ENDLOOP.
+  ENDMETHOD.
 
   METHOD manages_branch_lifecycle.
     DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
     DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
-    DATA(lv_repository_id) = |branch-service-00000000000000000|.
+    DATA(lv_repository_id) = c_lifecycle_repository.
     DATA(lv_oid) = |1111111111111111111111111111111111111111|.
-    " The delete at the end of this test is the only thing that clears the
-    " committed fixture, so an earlier abort leaves the branch behind.
+    " setup( ) and teardown( ) clear the fixture, so anything still here
+    " came from outside this test.
     cl_abap_unit_assert=>assert_initial(
       act = lo_service->find(
         iv_repository_id = lv_repository_id iv_name = 'feature/test' )-name
@@ -70,9 +115,9 @@ CLASS ltcl_branch_service IMPLEMENTATION.
     DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
     DATA(lo_service) = NEW zcl_hithub_branch_service(
       io_metadata = lo_metadata io_transaction = lo_transaction ).
-    DATA(lv_repository_id) = |branch-stale-00000000000000000000|.
-    " create( ) commits, and the fixture id is fixed, so a branch left
-    " behind by an earlier run makes this create fail as a duplicate.
+    DATA(lv_repository_id) = c_stale_repository.
+    " create( ) commits, so a leftover branch would fail this as a
+    " duplicate. setup( ) and teardown( ) clear the fixture.
     cl_abap_unit_assert=>assert_initial(
       act = lo_service->find(
         iv_repository_id = lv_repository_id iv_name = 'main' )-name

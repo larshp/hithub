@@ -42,13 +42,19 @@ CLASS ltcl_repository_creation DEFINITION
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
+    METHODS setup RAISING cx_static_check.
+    METHODS teardown RAISING cx_static_check.
     METHODS creates_normalized_repository FOR TESTING RAISING cx_static_check.
     METHODS rejects_duplicate_name FOR TESTING RAISING cx_static_check.
     METHODS rejects_invalid_name FOR TESTING RAISING cx_static_check.
 
-    "! create( ) commits, and both fixtures below use a fixed name, so a
-    "! repository left behind by an earlier run makes the name unavailable
-    "! for good. Report that here rather than as a bare create failure.
+    "! create( ) commits, so a repository outlives the rollback ABAP Unit
+    "! does after each test method. The identity doubles above hand out
+    "! fixed ids, so the same rows would be in the way on the next run.
+    METHODS drop_fixture_repositories RAISING cx_static_check.
+
+    "! Nothing else may hold the fixture name either, because create( )
+    "! compares names across every repository on the system.
     METHODS assert_name_is_free
       IMPORTING
         io_metadata TYPE REF TO zif_hithub_metadata_store
@@ -59,6 +65,49 @@ CLASS ltcl_repository_creation DEFINITION
 ENDCLASS.
 
 CLASS ltcl_repository_creation IMPLEMENTATION.
+
+  METHOD setup.
+    " Recover from a run that ended before its teardown.
+    drop_fixture_repositories( ).
+  ENDMETHOD.
+
+  METHOD teardown.
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
+
+    lo_transaction->zif_hithub_transaction~start( ).
+    drop_fixture_repositories( ).
+    " The purge has to be committed, otherwise the rollback that ends the
+    " test method puts the repositories straight back.
+    lo_transaction->zif_hithub_transaction~commit( ).
+  ENDMETHOD.
+
+  METHOD drop_fixture_repositories.
+    DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
+    DATA(lo_objects) = NEW zcl_hithub_local_object_store( ).
+    DATA lt_ids TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    DATA lv_id TYPE string.
+    DATA ls_repository TYPE zif_hithub_metadata_store=>ty_repository.
+
+    APPEND NEW lcl_repository_identity( )->zif_hithub_identity~uuid( )
+      TO lt_ids.
+    APPEND NEW lcl_second_repository_identity( )->zif_hithub_identity~uuid( )
+      TO lt_ids.
+    LOOP AT lt_ids INTO lv_id.
+      lo_objects->zif_hithub_object_store~purge_repository( lv_id ).
+      ls_repository = lo_metadata->zif_hithub_metadata_store~read_repository_any(
+        lv_id ).
+      IF ls_repository-id IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      " purge_repository( ) only removes a repository that is marked as
+      " deleted, and it takes the references with it.
+      ls_repository-deleted = abap_true.
+      lo_metadata->zif_hithub_metadata_store~save_repository( ls_repository ).
+      lo_metadata->zif_hithub_metadata_store~purge_repository(
+        iv_repository_id    = lv_id
+        iv_expected_version = ls_repository-version ).
+    ENDLOOP.
+  ENDMETHOD.
 
   METHOD assert_name_is_free.
     DATA ls_existing TYPE zif_hithub_metadata_store=>ty_repository.

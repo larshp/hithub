@@ -173,6 +173,8 @@ ENDCLASS.
 CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
 
   PRIVATE SECTION.
+    METHODS setup RAISING cx_static_check.
+    METHODS teardown RAISING cx_static_check.
     METHODS round_trips_multiple_objects FOR TESTING RAISING cx_static_check.
     METHODS round_trips_reachable_objects FOR TESTING RAISING cx_static_check.
     METHODS rejects_corrupt_pack FOR TESTING RAISING cx_static_check.
@@ -182,9 +184,50 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
     METHODS promotes_before_ref_save FOR TESTING RAISING cx_static_check.
     METHODS unpacks_delta_objects FOR TESTING RAISING cx_static_check.
 
+    "! receive( ) commits once it accepts a pack, so the objects and the
+    "! ref outlive the rollback ABAP Unit does after each test method and
+    "! the fixed fixture ids would be in the way on the next run.
+    METHODS drop_fixture_repositories RAISING cx_static_check.
+
 ENDCLASS.
 
 CLASS ltcl_test IMPLEMENTATION.
+
+  METHOD setup.
+    " Recover from a run that ended before its teardown.
+    drop_fixture_repositories( ).
+  ENDMETHOD.
+
+  METHOD teardown.
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
+
+    lo_transaction->zif_hithub_transaction~start( ).
+    drop_fixture_repositories( ).
+    " The deletes have to be committed, otherwise the rollback that ends
+    " the test method puts the fixture straight back.
+    lo_transaction->zif_hithub_transaction~commit( ).
+  ENDMETHOD.
+
+  METHOD drop_fixture_repositories.
+    DATA(lo_store) = NEW zcl_hithub_local_object_store( ).
+    DATA(lo_metadata) = NEW zcl_hithub_local_meta_store( ).
+    DATA lt_ids TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    DATA lv_id TYPE string.
+    DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+
+    APPEND 'pack-rejected-ref-repository-000' TO lt_ids.
+    APPEND 'pack-limit-repository-000000000' TO lt_ids.
+    APPEND 'pack-quarantine-repository-0000' TO lt_ids.
+    LOOP AT lt_ids INTO lv_id.
+      lo_store->zif_hithub_object_store~purge_repository( lv_id ).
+      LOOP AT lo_metadata->zif_hithub_metadata_store~list_references( lv_id )
+          INTO ls_reference.
+        lo_metadata->zif_hithub_metadata_store~delete_reference(
+          iv_repository_id = lv_id
+          iv_name          = ls_reference-name ).
+      ENDLOOP.
+    ENDLOOP.
+  ENDMETHOD.
 
   METHOD round_trips_multiple_objects.
     DATA(lo_compression) = NEW lcl_pack_compression( ).

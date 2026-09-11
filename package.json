@@ -9,6 +9,7 @@
     "serialize:check": "node scripts/abapgit-metadata.mjs --check",
     "transpile": "abap_transpile abap_transpile.json",
     "unit": "npm run transpile && node scripts/run-unit.mjs",
+    "unit:repeat": "npm run transpile && node scripts/run-unit-all.mjs --repeat 2",
     "smoke": "npm run transpile && node scripts/http-smoke.mjs",
     "contract": "npm run transpile && node scripts/rest-contract.mjs",
     "security": "npm run transpile && node scripts/security-smoke.mjs",
