@@ -108,6 +108,17 @@ try {
   const sapServiceUrl = `http://127.0.0.1:${port}/sap/zhithub`;
   await page.goto(`${sapServiceUrl}/?sap-client=100`, {waitUntil: "networkidle"});
   await page.getByRole("link", {name: "ui-issue-repository"}).waitFor();
+  if (await page.evaluate(() => document.documentElement.hidden)) {
+    throw new Error("UI remained hidden after its stylesheet loaded");
+  }
+  const pageColors = await page.evaluate(() => ({
+    background: getComputedStyle(document.body).backgroundColor,
+    text: getComputedStyle(document.body).color,
+  }));
+  if (pageColors.background !== "rgb(13, 17, 23)"
+      || pageColors.text !== "rgb(240, 246, 252)") {
+    throw new Error(`SICF-prefixed styles were not applied: ${JSON.stringify(pageColors)}`);
+  }
   const resourcePaths = await page.evaluate(() => performance.getEntriesByType("resource")
     .map((entry) => new URL(entry.name).pathname));
   if (!resourcePaths.includes("/sap/zhithub/styles.css")

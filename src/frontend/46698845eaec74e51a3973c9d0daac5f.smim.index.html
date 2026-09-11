@@ -4,7 +4,32 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="HitHub repository browser">
+    <meta name="color-scheme" content="dark">
     <title>HitHub</title>
+    <script>
+      (() => {
+        const path = window.location.pathname;
+        const uiRoute = path.match(/^(.*)\/ui(?:\/|$)/);
+        const servicePath = uiRoute ? uiRoute[1] : path.replace(/\/+$/, "");
+        window.HITHUB_BASE_PATH = servicePath === "/" ? "" : servicePath;
+        document.documentElement.hidden = true;
+        const stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = `${window.HITHUB_BASE_PATH}/styles.css`;
+        const reveal = () => {
+          document.documentElement.hidden = false;
+        };
+        stylesheet.addEventListener("load", reveal, {once: true});
+        stylesheet.addEventListener("error", reveal, {once: true});
+        document.head.append(stylesheet);
+        document.addEventListener("DOMContentLoaded", () => {
+          const application = document.createElement("script");
+          application.type = "module";
+          application.src = `${window.HITHUB_BASE_PATH}/app.js`;
+          document.body.append(application);
+        }, {once: true});
+      })();
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -60,21 +85,5 @@
         </div>
       </footer>
     </div>
-    <script>
-      (() => {
-        const path = window.location.pathname;
-        const uiRoute = path.match(/^(.*)\/ui(?:\/|$)/);
-        const servicePath = uiRoute ? uiRoute[1] : path.replace(/\/+$/, "");
-        window.HITHUB_BASE_PATH = servicePath === "/" ? "" : servicePath;
-        const stylesheet = document.createElement("link");
-        stylesheet.rel = "stylesheet";
-        stylesheet.href = `${window.HITHUB_BASE_PATH}/styles.css`;
-        document.head.append(stylesheet);
-        const application = document.createElement("script");
-        application.type = "module";
-        application.src = `${window.HITHUB_BASE_PATH}/app.js`;
-        document.body.append(application);
-      })();
-    </script>
   </body>
 </html>

@@ -129,7 +129,7 @@ const contentSecurityPolicy = [
   "frame-ancestors 'none'",
   "img-src 'self' data:",
   "object-src 'none'",
-  "script-src 'self' 'sha256-32gi7i7gzEIztYhvK53O3Fy5xFgCyGoDKQDSU3nXLro='",
+  "script-src 'self' 'sha256-dtpq6E07C3S125MU43w9nF1acKqdkddRFf2mvnUbC5A='",
   "style-src 'self'",
 ].join("; ");
 
