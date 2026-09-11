@@ -20,6 +20,7 @@
     "7bit_ascii": {
       "exclude": ["zcl_hithub_object_id.clas.testclasses.abap"]
     },
+    "xml_bom": true,
     "abapdoc": false,
     "add_test_attributes": true,
     "aff_and_xml": true,
