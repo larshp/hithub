@@ -14,7 +14,8 @@ CLASS ltcl_file_editor DEFINITION
     DATA mv_repository_id TYPE string.
     DATA mv_head TYPE string.
 
-    METHODS setup.
+    METHODS setup RAISING cx_static_check.
+    METHODS teardown RAISING cx_static_check.
     METHODS reads_the_seeded_files FOR TESTING RAISING cx_static_check.
     METHODS edits_a_nested_file FOR TESTING RAISING cx_static_check.
     METHODS keeps_sibling_entries FOR TESTING RAISING cx_static_check.
@@ -26,6 +27,10 @@ CLASS ltcl_file_editor DEFINITION
     METHODS rejects_invalid_identity FOR TESTING RAISING cx_static_check.
 
     METHODS seed RAISING cx_static_check.
+
+    "! save( ) commits the seeded objects together with a successful edit,
+    "! so the rows outlive ABAP Unit's rollback and collide on the next run.
+    METHODS drop_fixture RAISING cx_static_check.
 
     METHODS write
       IMPORTING
@@ -64,16 +69,44 @@ ENDCLASS.
 CLASS ltcl_file_editor IMPLEMENTATION.
 
   METHOD setup.
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
+
+    " Each test seeds identical objects, so every one needs its own repository.
+    " The sequence restarts when SAP reloads the test class, therefore clear
+    " the same fixture id left by an earlier run before using it again.
+    gv_sequence = gv_sequence + 1.
+    mv_repository_id = |editor-{ gv_sequence }|.
     mo_metadata = NEW zcl_hithub_local_meta_store( ).
     mo_objects = NEW zcl_hithub_local_object_store( ).
+    lo_transaction->zif_hithub_transaction~start( ).
+    drop_fixture( ).
+    lo_transaction->zif_hithub_transaction~commit( ).
     mo_editor = NEW zcl_hithub_file_editor(
       io_metadata    = mo_metadata
       io_objects     = mo_objects
       io_transaction = NEW zcl_hithub_unit_work( )
       io_lock        = NEW zcl_hithub_local_repo_lock( ) ).
-    " Each test seeds identical objects, so every one needs its own repository.
-    gv_sequence = gv_sequence + 1.
-    mv_repository_id = |editor-{ gv_sequence }|.
+  ENDMETHOD.
+
+  METHOD teardown.
+    DATA(lo_transaction) = NEW zcl_hithub_unit_work( ).
+
+    lo_transaction->zif_hithub_transaction~start( ).
+    drop_fixture( ).
+    " The cleanup has to be committed because save( ) commits the fixture.
+    lo_transaction->zif_hithub_transaction~commit( ).
+  ENDMETHOD.
+
+  METHOD drop_fixture.
+    DATA ls_reference TYPE zif_hithub_metadata_store=>ty_reference.
+
+    LOOP AT mo_metadata->zif_hithub_metadata_store~list_references(
+        mv_repository_id ) INTO ls_reference.
+      mo_metadata->zif_hithub_metadata_store~delete_reference(
+        iv_repository_id = mv_repository_id
+        iv_name          = ls_reference-name ).
+    ENDLOOP.
+    mo_objects->zif_hithub_object_store~purge_repository( mv_repository_id ).
   ENDMETHOD.
 
   METHOD entry.
