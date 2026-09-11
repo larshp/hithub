@@ -2803,12 +2803,17 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             lv_pr_post_valid = ls_pr_post_document-valid.
             ls_pr_post_request-repository_id = ls_pr_post_repository-id.
             ls_pr_post_request-state = zcl_hithub_pull_request_state=>c_draft.
+            ls_pr_post_request-actor = lo_pr_post_context->actor_label( ).
             LOOP AT ls_pr_post_document-members INTO ls_pr_post_member.
               IF ls_pr_post_member-kind <> 'string'.
                 lv_pr_post_valid = abap_false.
                 CONTINUE.
               ENDIF.
               CASE ls_pr_post_member-name.
+                WHEN 'title'.
+                  ls_pr_post_request-title = ls_pr_post_member-value.
+                WHEN 'body'.
+                  ls_pr_post_request-body = ls_pr_post_member-value.
                 WHEN 'state'.
                   ls_pr_post_request-state = ls_pr_post_member-value.
                 WHEN 'source_ref'.
@@ -2830,7 +2835,9 @@ CLASS zcl_hithub_http IMPLEMENTATION.
             IF lv_pr_post_source_seen = abap_false
                 OR lv_pr_post_target_seen = abap_false
                 OR lv_pr_post_base_seen = abap_false
-                OR lv_pr_post_head_seen = abap_false.
+                OR lv_pr_post_head_seen = abap_false
+                OR strlen( ls_pr_post_request-title ) >
+                   zcl_hithub_pr_snapshot=>c_title_length.
               lv_pr_post_valid = abap_false.
             ENDIF.
             lv_pr_post_key = lo_pr_post_context->idempotency_key( ).

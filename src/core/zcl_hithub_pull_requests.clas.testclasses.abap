@@ -9,6 +9,7 @@ CLASS ltcl_pull_requests DEFINITION
     METHODS transitions_draft_to_open FOR TESTING RAISING cx_static_check.
     METHODS preserves_review_after_update FOR TESTING RAISING cx_static_check.
     METHODS persists_merged_state FOR TESTING RAISING cx_static_check.
+    METHODS keeps_description_over_state FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_pull_requests IMPLEMENTATION.
@@ -141,6 +142,50 @@ CLASS ltcl_pull_requests IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = ls_read-state
       exp = zcl_hithub_pull_request_state=>c_merged ).
+  ENDMETHOD.
+
+  METHOD keeps_description_over_state.
+    DATA ls_request TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
+    DATA ls_result TYPE zcl_hithub_pull_requests=>ty_result.
+    DATA lt_requests TYPE zcl_hithub_pr_snapshot=>ty_snapshots.
+    ls_request-repository_id = 'pull-requests-repository-6'.
+    ls_request-id = 'pull-request-1'.
+    ls_request-state = zcl_hithub_pull_request_state=>c_draft.
+    ls_request-source_ref = 'refs/heads/feature'.
+    ls_request-target_ref = 'refs/heads/main'.
+    ls_request-base_oid = 'base'.
+    ls_request-head_oid = 'head'.
+    ls_request-title = 'Rename the helper'.
+    ls_request-body = 'The old name said nothing about what it returns.'.
+    ls_request-actor = 'author'.
+
+    ls_result = zcl_hithub_pull_requests=>create( ls_request ).
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    " The response has to carry what was stored, not the sparse request.
+    cl_abap_unit_assert=>assert_not_initial(
+      act = ls_result-pull_request-created_at ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-pull_request-actor exp = 'author' ).
+
+    ls_result = zcl_hithub_pull_requests=>transition(
+      iv_repository_id    = ls_request-repository_id
+      iv_id               = ls_request-id
+      iv_state            = zcl_hithub_pull_request_state=>c_open
+      iv_expected_version = 1 ).
+    cl_abap_unit_assert=>assert_true( act = ls_result-success ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-pull_request-title exp = 'Rename the helper' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-pull_request-actor exp = 'author' ).
+    cl_abap_unit_assert=>assert_not_initial(
+      act = ls_result-pull_request-updated_at ).
+
+    lt_requests = zcl_hithub_pull_requests=>list(
+      iv_repository_id = ls_request-repository_id ).
+    cl_abap_unit_assert=>assert_equals( act = lines( lt_requests ) exp = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_requests[ 1 ]-body
+      exp = 'The old name said nothing about what it returns.' ).
   ENDMETHOD.
 
 ENDCLASS.

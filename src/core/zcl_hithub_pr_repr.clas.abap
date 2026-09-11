@@ -35,6 +35,16 @@ CLASS zcl_hithub_pr_repr IMPLEMENTATION.
     ls_member-value = is_pull_request-id.
     APPEND ls_member TO rt_members.
     CLEAR ls_member.
+    ls_member-name = 'title'.
+    ls_member-kind = 'string'.
+    ls_member-value = is_pull_request-title.
+    APPEND ls_member TO rt_members.
+    CLEAR ls_member.
+    ls_member-name = 'body'.
+    ls_member-kind = 'string'.
+    ls_member-value = is_pull_request-body.
+    APPEND ls_member TO rt_members.
+    CLEAR ls_member.
     ls_member-name = 'state'.
     ls_member-kind = 'string'.
     ls_member-value = is_pull_request-state.
@@ -58,6 +68,21 @@ CLASS zcl_hithub_pr_repr IMPLEMENTATION.
     ls_member-name = 'head_oid'.
     ls_member-kind = 'string'.
     ls_member-value = is_pull_request-head_oid.
+    APPEND ls_member TO rt_members.
+    CLEAR ls_member.
+    ls_member-name = 'actor'.
+    ls_member-kind = 'string'.
+    ls_member-value = is_pull_request-actor.
+    APPEND ls_member TO rt_members.
+    CLEAR ls_member.
+    ls_member-name = 'created_at'.
+    ls_member-kind = 'string'.
+    ls_member-value = is_pull_request-created_at.
+    APPEND ls_member TO rt_members.
+    CLEAR ls_member.
+    ls_member-name = 'updated_at'.
+    ls_member-kind = 'string'.
+    ls_member-value = is_pull_request-updated_at.
     APPEND ls_member TO rt_members.
     CLEAR ls_member.
     ls_member-name = 'version'.

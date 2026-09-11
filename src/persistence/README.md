@@ -6,7 +6,10 @@ The initial metadata schema is represented as abapGit table artifacts:
 - `ZHI_REFERENCE` stores repository-scoped refs and algorithm-aware OIDs.
 - `ZHI_OBJECT` stores immutable Git object identity and payload data.
 - `ZHI_EVENT` stores sanitized audit events.
-- `ZHI_PULL_REQUEST` stores pull-request state and write-once base/head tips.
+- `ZHI_PULL_REQUEST` stores pull-request state, title, description, author and
+  timestamps, plus the write-once base/head tips. `TITLE`, `BODY`, `ACTOR`,
+  `CREATED_AT` and `UPDATED_AT` were appended after `VERSION`, so the columns
+  that shipped first keep their position.
 - `ZHI_PR_COMMENT` stores immutable pull-request discussion comments.
 - `ZHI_PR_LINE_CMNT` stores immutable commit/path/line discussion comments.
 - `ZHI_PR_REVIEW` stores immutable approval and change-request reviews.

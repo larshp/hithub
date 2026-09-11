@@ -58,6 +58,9 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
       rs_result-reason = 'pull request is invalid or already exists'.
       RETURN.
     ENDIF.
+    " Normalize before the write so the response carries the stored title and
+    " timestamps rather than the sparse request.
+    ls_request = zcl_hithub_pr_snapshot=>normalize( ls_request ).
     IF lv_assign_number = abap_false.
       IF zcl_hithub_pr_snapshot=>open( ls_request ) = abap_false.
         rs_result-reason = 'pull request is invalid or already exists'.
@@ -123,6 +126,11 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
       ls_pull_request-target_ref = ls_row-target_ref.
       ls_pull_request-base_oid = ls_row-base_oid.
       ls_pull_request-head_oid = ls_row-head_oid.
+      ls_pull_request-title = ls_row-title.
+      ls_pull_request-body = ls_row-body.
+      ls_pull_request-actor = ls_row-actor.
+      ls_pull_request-created_at = ls_row-created_at.
+      ls_pull_request-updated_at = ls_row-updated_at.
       ls_pull_request-version = ls_row-version.
       CLEAR ls_ordered.
       ls_ordered-number = zcl_hithub_work_number=>parse( ls_pull_request-id ).
@@ -141,6 +149,7 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
     DATA ls_row TYPE zhi_pull_request.
     DATA ls_current TYPE zcl_hithub_pr_snapshot=>ty_snapshot.
     DATA lv_current_state TYPE string.
+    DATA lv_now TYPE timestamp.
 
     CLEAR rs_result.
     IF iv_repository_id IS INITIAL OR iv_id IS INITIAL
@@ -165,6 +174,8 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
       RETURN.
     ENDIF.
     ls_row-state = iv_state.
+    GET TIME STAMP FIELD lv_now.
+    ls_row-updated_at = |{ lv_now }|.
     ls_row-version = ls_row-version + 1.
     UPDATE zhi_pull_request FROM @ls_row.
     IF sy-subrc <> 0.
@@ -178,6 +189,11 @@ CLASS zcl_hithub_pull_requests IMPLEMENTATION.
     ls_current-target_ref = ls_row-target_ref.
     ls_current-base_oid = ls_row-base_oid.
     ls_current-head_oid = ls_row-head_oid.
+    ls_current-title = ls_row-title.
+    ls_current-body = ls_row-body.
+    ls_current-actor = ls_row-actor.
+    ls_current-created_at = ls_row-created_at.
+    ls_current-updated_at = ls_row-updated_at.
     ls_current-version = ls_row-version.
     rs_result-success = abap_true.
     rs_result-pull_request = ls_current.

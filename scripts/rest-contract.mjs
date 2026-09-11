@@ -275,6 +275,12 @@ try {
       || pullRequest.body?.state !== "draft") {
     fail("the first pull request was not numbered #1");
   }
+  if (pullRequest.body?.title !== "feature into main"
+      || !pullRequest.body?.actor
+      || !pullRequest.body?.created_at
+      || pullRequest.body?.updated_at !== pullRequest.body?.created_at) {
+    fail("a create without a title did not derive one, an author and a timestamp");
+  }
   const pullId = pullRequest.body.id;
   const rejectedPullId = await request(
     "/api/repos/contract-repository/pulls",
@@ -287,6 +293,23 @@ try {
   if (rejectedPullId.response.status !== 400) {
     fail("a client-supplied pull-request id was accepted");
   }
+  const rejectedPullTitle = await request(
+    "/api/repos/contract-repository/pulls",
+    {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({...pullRequestPayload, title: "x".repeat(256)}),
+    },
+  );
+  if (rejectedPullTitle.response.status !== 400) {
+    fail("an over-long pull-request title was accepted");
+  }
+  const describedPullPayload = {
+    ...pullRequestPayload,
+    source_ref: "refs/heads/retry",
+    title: "Rename the helper",
+    body: "The old name said nothing about what it returns.",
+  };
   const pullRetryFirst = await request(
     "/api/repos/contract-repository/pulls",
     {
@@ -295,7 +318,7 @@ try {
         "content-type": "application/json",
         "idempotency-key": "contract-pull-retry",
       },
-      body: JSON.stringify({...pullRequestPayload, source_ref: "refs/heads/retry"}),
+      body: JSON.stringify(describedPullPayload),
     },
   );
   const pullRetrySecond = await request(
@@ -306,7 +329,7 @@ try {
         "content-type": "application/json",
         "idempotency-key": "contract-pull-retry",
       },
-      body: JSON.stringify({...pullRequestPayload, source_ref: "refs/heads/retry"}),
+      body: JSON.stringify(describedPullPayload),
     },
   );
   if (pullRetryFirst.response.status !== 201
@@ -314,6 +337,13 @@ try {
       || pullRetryFirst.body?.id !== "2"
       || pullRetrySecond.body?.id !== "2") {
     fail("a retried pull-request create consumed a second number");
+  }
+  // The replay has to read the stored text back, not echo the retried request.
+  for (const attempt of [pullRetryFirst, pullRetrySecond]) {
+    if (attempt.body?.title !== describedPullPayload.title
+        || attempt.body?.body !== describedPullPayload.body) {
+      fail("a supplied pull-request title and description were not stored");
+    }
   }
   const pullRequestList = await request(
     "/api/repos/contract-repository/pulls",

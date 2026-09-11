@@ -54,6 +54,20 @@ the OpenAPI contract revision is tracked separately in
   the current reference, a `default` badge, keyboard navigation, and a
   "Create branch <name> from <ref>" row that posts to the branch API and opens
   the new branch. The branch and tag counters open the dropdown on their tab.
+- Pull requests carry a title, a description, an author and creation/update
+  timestamps, so the page no longer names itself after its two branches and
+  no longer prints the same canned sentence for every request. `TITLE`,
+  `BODY`, `ACTOR`, `CREATED_AT` and `UPDATED_AT` are appended to
+  `ZHI_PULL_REQUEST` after `VERSION`, keeping the existing columns in place,
+  and `PullRequest`/`PullRequestCreate` carry them through the REST contract.
+  `title` and `body` are optional on create: the server derives
+  "<source branch> into <target branch>" when no title is sent, and records
+  the author and the timestamp itself. Pull requests stored before this
+  release read back with an empty title, author and timestamp, and the list,
+  detail page and create form fall back to the branch names for them.
+- The pull-request tabs carry counts: the conversation count of reviews and
+  comments, the number of commits the source adds over the target, the number
+  of changed files, and the comparison's `+`/`−` line totals.
 
 ### Changed
 

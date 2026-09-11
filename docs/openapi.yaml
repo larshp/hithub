@@ -923,7 +923,19 @@ components:
         authored_at: {type: string}
     PullRequest:
       type: object
-      required: [id, state, source_ref, target_ref, base_oid, head_oid, version]
+      required:
+        - id
+        - title
+        - body
+        - state
+        - source_ref
+        - target_ref
+        - base_oid
+        - head_oid
+        - actor
+        - created_at
+        - updated_at
+        - version
       properties:
         id:
           type: string
@@ -932,11 +944,33 @@ components:
             Sequential pull-request number, drawn from the same per-repository
             sequence as issue numbers so the two never collide. Rendered as
             #1, #2, and so on.
+        title:
+          type: string
+          maxLength: 255
+          description: >-
+            Defaults to "<source branch> into <target branch>" when the create
+            request omits it. Pull requests created before this field existed
+            read back with an empty title.
+        body: {type: string}
         state: {type: string, enum: [draft, open, closed, merged]}
         source_ref: {type: string}
         target_ref: {type: string}
         base_oid: {type: string}
         head_oid: {type: string}
+        actor:
+          type: string
+          maxLength: 100
+          description: >-
+            Label of the actor that opened the pull request. Empty for pull
+            requests created before this field existed.
+        created_at:
+          type: string
+          description: >-
+            Creation timestamp. Empty for pull requests created before this
+            field existed.
+        updated_at:
+          type: string
+          description: Timestamp of the last state change.
         version: {type: integer, minimum: 1}
     PullRequestCreate:
       type: object
@@ -946,8 +980,15 @@ components:
         The pull-request number is assigned by the server from the same
         per-repository sequence as issues. Send an Idempotency-Key header to
         make a retried create return the original pull request instead of
-        consuming another number.
+        consuming another number. The author and the creation timestamp are
+        recorded by the server and cannot be supplied.
       properties:
+        title:
+          type: string
+          maxLength: 255
+          description: >-
+            Optional. Defaults to "<source branch> into <target branch>".
+        body: {type: string}
         state: {type: string, enum: [draft, open], default: draft}
         source_ref: {type: string, minLength: 1, maxLength: 160}
         target_ref: {type: string, minLength: 1, maxLength: 160}

@@ -44,6 +44,10 @@ const expected = {
       repository_id: "NCHAR(36)", id: "NCHAR(36)", state: "NCHAR(16)",
       source_ref: "NCHAR(160)", target_ref: "NCHAR(160)",
       base_oid: "NCHAR(64)", head_oid: "NCHAR(64)", version: "INT",
+      // Appended after version so the columns that shipped first keep their
+      // position and the change stays additive.
+      title: "NCHAR(255)", body: "TEXT", actor: "NCHAR(100)",
+      created_at: "NCHAR(27)", updated_at: "NCHAR(27)",
     },
     primaryKey: ["repository_id", "id"],
   },

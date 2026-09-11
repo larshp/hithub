@@ -199,6 +199,22 @@ function createStateBadge(state, kind = "issue") {
   return badge;
 }
 
+function setTabCount(count, value) {
+  const known = Number.isFinite(value);
+  count.textContent = known ? String(value) : "";
+  count.hidden = !known;
+}
+
+// Counts arrive with the tab for what is already loaded, and later for what
+// still has to be fetched; an unknown count stays hidden rather than showing 0.
+function createTabCount(tab, value) {
+  const count = document.createElement("span");
+  count.className = "detail-tab-count";
+  setTabCount(count, value);
+  tab.append(count);
+  return count;
+}
+
 function createWorkList({items, kind, createHref, renderRow}) {
   const wrapper = document.createElement("section");
   wrapper.className = "work-list-shell";
@@ -1266,6 +1282,9 @@ async function showPullRequest(repository, id) {
     const comments = commentsResponse.ok ? await commentsResponse.json() : [];
     const source = shortReference(pullRequest.source_ref);
     const target = shortReference(pullRequest.target_ref);
+    // Pull requests opened before titles and authors were stored read back
+    // without them, so both fall back to what the refs already say.
+    const actor = pullRequest.actor || "unknown";
     pageTitle.textContent = "Pull request";
     pageLede.textContent = `#${pullRequest.id} · ${repository}`;
     dashboard.replaceChildren();
@@ -1275,7 +1294,7 @@ async function showPullRequest(repository, id) {
     const titleLine = document.createElement("div");
     titleLine.className = "detail-title-line";
     const visibleTitle = document.createElement("h1");
-    visibleTitle.textContent = `${source} into ${target}`;
+    visibleTitle.textContent = pullRequest.title || `${source} into ${target}`;
     const number = document.createElement("span");
     number.textContent = `#${pullRequest.id}`;
     titleLine.append(visibleTitle, number);
@@ -1283,13 +1302,18 @@ async function showPullRequest(repository, id) {
     stateLine.className = "work-detail-state-line";
     stateLine.append(createStateBadge(pullRequest.state, "pull"));
     const summaryText = document.createElement("p");
-    summaryText.append(document.createTextNode(" wants to merge "));
+    const summaryActor = document.createElement("strong");
+    summaryActor.textContent = actor;
+    summaryText.append(summaryActor, document.createTextNode(" wants to merge "));
     const commitsLink = document.createElement("a");
     commitsLink.href = `/ui/repos/${encodedRepository}/commits/${encodeURIComponent(source)}`;
     commitsLink.textContent = source;
     const targetCode = document.createElement("code");
     targetCode.textContent = target;
     summaryText.append(commitsLink, document.createTextNode(" into "), targetCode);
+    summaryText.append(document.createTextNode(
+      ` · opened ${formatRelativeTimestamp(pullRequest.created_at)}`,
+    ));
     stateLine.append(summaryText);
     summary.append(titleLine, stateLine);
 
@@ -1316,7 +1340,13 @@ async function showPullRequest(repository, id) {
     filesTab.className = "detail-tab";
     filesTab.textContent = "Files changed";
     filesTab.setAttribute("aria-selected", "false");
-    tabs.append(conversationTab, commitsTab, checksTab, filesTab);
+    createTabCount(conversationTab, reviews.length + comments.length);
+    const commitsCount = createTabCount(commitsTab);
+    const filesCount = createTabCount(filesTab);
+    const diffstat = document.createElement("p");
+    diffstat.className = "detail-tabs-stat";
+    diffstat.hidden = true;
+    tabs.append(conversationTab, commitsTab, checksTab, filesTab, diffstat);
 
     const conversation = document.createElement("div");
     conversation.className = "detail-panel";
@@ -1327,20 +1357,24 @@ async function showPullRequest(repository, id) {
     const timeline = document.createElement("article");
     timeline.className = "timeline-card";
     const timelineHeader = document.createElement("header");
-    timelineHeader.append(createAvatar("H"));
+    timelineHeader.append(createAvatar(actor));
     const timelineMeta = document.createElement("p");
-    timelineMeta.append(document.createTextNode("This pull request compares "));
-    const sourceCode = document.createElement("code");
-    sourceCode.textContent = source;
-    const baseCode = document.createElement("code");
-    baseCode.textContent = target;
-    timelineMeta.append(sourceCode, document.createTextNode(" with "), baseCode, document.createTextNode("."));
+    const timelineAuthor = document.createElement("strong");
+    timelineAuthor.textContent = actor;
+    timelineMeta.append(timelineAuthor, document.createTextNode(
+      ` commented ${formatRelativeTimestamp(pullRequest.created_at)}`,
+    ));
     timelineHeader.append(timelineMeta);
     const timelineBody = document.createElement("div");
-    timelineBody.className = "timeline-body";
-    const timelineText = document.createElement("p");
-    timelineText.textContent = "Review the changed files and merge when the branch is ready.";
-    timelineBody.append(timelineText);
+    timelineBody.className = "timeline-body readme-content";
+    if (pullRequest.body) {
+      timelineBody.append(...renderMarkdownSafe(pullRequest.body).childNodes);
+    } else {
+      const timelineText = document.createElement("p");
+      timelineText.className = "muted-message";
+      timelineText.textContent = "No description provided.";
+      timelineBody.append(timelineText);
+    }
     timeline.append(timelineHeader, timelineBody);
 
     const mergeability = pullRequest.mergeability || "unknown";
@@ -1468,14 +1502,48 @@ async function showPullRequest(repository, id) {
     conversationTab.addEventListener("click", () => selectPanel("conversation"));
     filesTab.addEventListener("click", () => selectPanel("files"));
     dashboard.append(summary, tabs, conversation, files);
-    try {
-      const params = new URLSearchParams({base: pullRequest.target_ref, head: pullRequest.source_ref});
-      const compare = await fetch(`/api/repos/${encodedRepository}/compare?${params}`);
-      if (!compare.ok) throw new Error("comparison unavailable");
-      files.replaceChildren(renderUnifiedDiffSafe(await compare.json()));
-    } catch (_error) {
-      filesLoading.textContent = "Changed files are not available for this pull request.";
-    }
+    const countCommitsAhead = async () => {
+      const [head, base] = await Promise.all([
+        fetch(`/api/repos/${encodedRepository}/commits?ref=${encodeURIComponent(pullRequest.source_ref)}`),
+        fetch(`/api/repos/${encodedRepository}/commits?ref=${encodeURIComponent(pullRequest.target_ref)}`),
+      ]);
+      if (!head.ok || !base.ok) return undefined;
+      const [ahead, landed] = [await head.json(), await base.json()];
+      if (!Array.isArray(ahead) || !Array.isArray(landed)) return undefined;
+      // The commit endpoint walks back from each tip, so what the pull request
+      // adds is what the source reaches and the target does not.
+      const merged = new Set(landed.map((commit) => commit.oid));
+      return ahead.filter((commit) => !merged.has(commit.oid)).length;
+    };
+    await Promise.all([
+      (async () => {
+        try {
+          const params = new URLSearchParams({base: pullRequest.target_ref, head: pullRequest.source_ref});
+          const compare = await fetch(`/api/repos/${encodedRepository}/compare?${params}`);
+          if (!compare.ok) throw new Error("comparison unavailable");
+          const comparison = await compare.json();
+          files.replaceChildren(renderUnifiedDiffSafe(comparison));
+          setTabCount(filesCount, comparison?.summary?.total ?? comparison?.files?.length);
+          const added = document.createElement("span");
+          added.className = "stat-added";
+          added.textContent = `+${comparison?.additions ?? 0}`;
+          const removed = document.createElement("span");
+          removed.className = "stat-removed";
+          removed.textContent = `−${comparison?.deletions ?? 0}`;
+          diffstat.append(added, document.createTextNode(" "), removed);
+          diffstat.hidden = false;
+        } catch (_error) {
+          filesLoading.textContent = "Changed files are not available for this pull request.";
+        }
+      })(),
+      (async () => {
+        try {
+          setTabCount(commitsCount, await countCommitsAhead());
+        } catch (_error) {
+          setTabCount(commitsCount, undefined);
+        }
+      })(),
+    ]);
   } catch (_error) {
     dashboard.replaceChildren();
     const failure = document.createElement("p");
@@ -1508,11 +1576,14 @@ async function showPullRequests(repository) {
         content.className = "work-row-content";
         const heading = document.createElement("h2");
         const link = document.createElement("a");
+        const source = shortReference(pullRequest.source_ref);
+        const target = shortReference(pullRequest.target_ref);
         link.href = `/ui/repos/${encoded}/pulls/${encodeURIComponent(pullRequest.id)}`;
-        link.textContent = `${shortReference(pullRequest.source_ref)} into ${shortReference(pullRequest.target_ref)}`;
+        link.textContent = pullRequest.title || `${source} into ${target}`;
         heading.append(link);
         const meta = document.createElement("p");
-        meta.textContent = `#${pullRequest.id} · ${pullRequest.state === "draft" ? "Draft" : pullRequest.state} · ${shortReference(pullRequest.source_ref)} → ${shortReference(pullRequest.target_ref)}`;
+        const state = pullRequest.state === "draft" ? "Draft" : pullRequest.state;
+        meta.textContent = `#${pullRequest.id} · ${state} · opened ${formatRelativeTimestamp(pullRequest.created_at)} by ${pullRequest.actor || "unknown"} · ${source} → ${target}`;
         content.append(heading, meta);
         row.append(icon, content);
         return row;
@@ -1992,8 +2063,27 @@ async function showCreatePullRequest(repository) {
   const previewTitle = document.createElement("h3");
   previewTitle.textContent = "Select branches to preview this pull request";
   const previewText = document.createElement("p");
-  previewText.textContent = "The pull request title will be based on the selected branches.";
+  previewText.textContent = "Selecting branches fills in a title you can edit.";
   preview.append(previewTitle, previewText);
+  const titleLabel = document.createElement("label");
+  titleLabel.htmlFor = "pull-title";
+  titleLabel.textContent = "Title";
+  const title = document.createElement("input");
+  title.id = "pull-title";
+  title.required = true;
+  title.maxLength = 255;
+  // The branch selection keeps suggesting a title until the author writes one.
+  let titleEdited = false;
+  title.addEventListener("input", () => {
+    titleEdited = true;
+  });
+  const bodyLabel = document.createElement("label");
+  bodyLabel.htmlFor = "pull-body";
+  bodyLabel.textContent = "Description";
+  const body = document.createElement("textarea");
+  body.id = "pull-body";
+  body.rows = 8;
+  body.placeholder = "Describe what changes and why";
   const actions = document.createElement("div");
   actions.className = "form-actions";
   const cancel = document.createElement("a");
@@ -2009,7 +2099,11 @@ async function showCreatePullRequest(repository) {
   status.className = "form-status";
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
-  form.append(heading, hint, chooser, preview, actions, status);
+  form.append(
+    heading, hint, chooser, preview,
+    titleLabel, title, bodyLabel, body,
+    actions, status,
+  );
   dashboard.append(form);
   try {
     const encoded = encodeURIComponent(repository);
@@ -2036,7 +2130,9 @@ async function showCreatePullRequest(repository) {
     if (comparisonBranch) source.value = comparisonBranch.name;
     if (requestedSource && branches.some((branch) => branch.name === requestedSource)) source.value = requestedSource;
     const updatePreview = () => {
-      previewTitle.textContent = `${shortReference(source.value)} into ${shortReference(base.value)}`;
+      const suggestion = `${shortReference(source.value)} into ${shortReference(base.value)}`;
+      previewTitle.textContent = suggestion;
+      if (!titleEdited) title.value = suggestion;
       const sameBranch = source.value === base.value;
       previewText.textContent = sameBranch
         ? "Choose two different branches to create a pull request."
@@ -2052,6 +2148,15 @@ async function showCreatePullRequest(repository) {
       status.textContent = "Creating pull request...";
       const baseBranch = branches.find((branch) => branch.name === base.value);
       const sourceBranch = branches.find((branch) => branch.name === source.value);
+      const payload = {
+        title: title.value.trim(),
+        source_ref: sourceBranch.name,
+        target_ref: baseBranch.name,
+        base_oid: baseBranch.oid,
+        head_oid: sourceBranch.oid,
+      };
+      const description = body.value.trim();
+      if (description) payload.body = description;
       try {
         const create = await fetch(`/api/repos/${encoded}/pulls`, {
           method: "POST",
@@ -2059,12 +2164,7 @@ async function showCreatePullRequest(repository) {
             "content-type": "application/json",
             "idempotency-key": submissionKey,
           },
-          body: JSON.stringify({
-            source_ref: sourceBranch.name,
-            target_ref: baseBranch.name,
-            base_oid: baseBranch.oid,
-            head_oid: sourceBranch.oid,
-          }),
+          body: JSON.stringify(payload),
         });
         const created = await create.json();
         if (!create.ok) throw new Error(created.detail || "create failed");

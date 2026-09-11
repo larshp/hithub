@@ -343,6 +343,58 @@ test("shows pull request conversation and changed files tabs", async ({page}) =>
   await expect(page.locator(".merge-box")).toBeVisible();
 });
 
+test("shows the pull request title, description, author and tab counts", async ({page}) => {
+  await page.route("**/api/repos/demo/pulls/pull-3", async (route) => json(route, {
+    id: "pull-3", title: "Rename the helper",
+    body: "The old name said nothing about what it returns.",
+    state: "open", source_ref: "refs/heads/feature", target_ref: "refs/heads/main",
+    base_oid: "base", head_oid: "head", actor: "erin",
+    created_at: "20260830090000", updated_at: "20260830090000", version: 1,
+  }));
+  await page.route("**/api/repos/demo/pulls/pull-3/reviews", async (route) => json(route, []));
+  await page.route("**/api/repos/demo/pulls/pull-3/comments", async (route) => json(route, [
+    {id: "comment-1", actor: "dave", body: "Nice cleanup", created_at: "20260830110000"},
+  ]));
+  await page.route("**/api/repos/demo/compare?*", async (route) => json(route, {
+    files: [
+      {path: "README", patch: "@@ -1 +1 @@\n-old line\n+new line"},
+      {path: "LICENSE", patch: "@@ -1 +1 @@\n-old\n+new"},
+    ],
+    additions: 12, deletions: 3, summary: {added: 0, modified: 2, deleted: 0, total: 2},
+  }));
+  // Two commits on the source that the target has not reached.
+  await page.route("**/api/repos/demo/commits?*", async (route) => {
+    const ref = new URL(route.request().url()).searchParams.get("ref");
+    await json(route, ref === "refs/heads/main"
+      ? [{oid: "shared"}]
+      : [{oid: "head-2"}, {oid: "head-1"}, {oid: "shared"}]);
+  });
+  await page.goto("/ui/repos/demo/pulls/pull-3");
+  await expect(page.getByRole("heading", {name: "Rename the helper"})).toBeVisible();
+  await expect(page.locator(".work-detail-state-line")).toContainText("erin wants to merge");
+  await expect(page.locator(".timeline-card").first()).toContainText("erin commented");
+  await expect(page.locator(".timeline-card").first())
+    .toContainText("The old name said nothing about what it returns.");
+  await expect(page.getByRole("button", {name: "Conversation"})).toContainText("1");
+  await expect(page.getByRole("link", {name: "Commits"})).toContainText("2");
+  await expect(page.getByRole("button", {name: "Files changed"})).toContainText("2");
+  await expect(page.locator(".detail-tabs-stat")).toContainText("+12");
+  await expect(page.locator(".detail-tabs-stat")).toContainText("3");
+});
+
+test("falls back to the branch names for a pull request opened before titles", async ({page}) => {
+  await page.route("**/api/repos/demo/pulls/pull-4", async (route) => json(route, {
+    id: "pull-4", state: "open", source_ref: "refs/heads/feature",
+    target_ref: "refs/heads/main", base_oid: "base", head_oid: "head", version: 1,
+  }));
+  await page.route("**/api/repos/demo/pulls/pull-4/reviews", async (route) => json(route, []));
+  await page.route("**/api/repos/demo/pulls/pull-4/comments", async (route) => json(route, []));
+  await page.goto("/ui/repos/demo/pulls/pull-4");
+  await expect(page.getByRole("heading", {name: "feature into main"})).toBeVisible();
+  await expect(page.locator(".work-detail-state-line")).toContainText("unknown wants to merge");
+  await expect(page.locator(".timeline-card").first()).toContainText("No description provided.");
+});
+
 test("submits a pull request review from the conversation tab", async ({page}) => {
   await page.route("**/api/repos/demo/pulls/pull-2", async (route) => json(route, {
     id: "pull-2", state: "open", source_ref: "refs/heads/feature",
@@ -428,8 +480,16 @@ test("creates pull requests from branch selections without technical ID fields",
   await expect(page.getByLabel("Base")).toHaveValue("refs/heads/main");
   await expect(page.getByLabel("Compare")).toHaveValue("refs/heads/feature");
   await expect(page.getByLabel(/object ID|pull request ID/i)).toHaveCount(0);
+  // The branch selection suggests a title, and writing one keeps it.
+  await expect(page.getByLabel("Title")).toHaveValue("feature into main");
+  await page.getByLabel("Title").fill("Rename the helper");
+  await page.getByLabel("Description").fill("The old name said nothing.");
+  await page.getByLabel("Base").selectOption("refs/heads/main");
+  await expect(page.getByLabel("Title")).toHaveValue("Rename the helper");
   await page.getByRole("button", {name: "Create pull request"}).click();
   await page.waitForURL(/\/pulls\/7$/);
+  expect(submitted.title).toBe("Rename the helper");
+  expect(submitted.body).toBe("The old name said nothing.");
   expect(submitted.source_ref).toBe("refs/heads/feature");
   expect(submitted.target_ref).toBe("refs/heads/main");
   expect(submitted.base_oid).toBe("a".repeat(40));
