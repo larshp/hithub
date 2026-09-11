@@ -16,6 +16,12 @@ const rootPackage = "ZHITHUB";
 // its URL to keep the file name, the URL and ZCL_HITHUB_SAP_ASSET_STORE in
 // agreement. The folder object is the exception; see findMimeFolder.
 const mimeFolder = "/SAP/PUBLIC/zhithub";
+const sicfService = {
+  name: "ZHITHUB",
+  url: "/sap/zhithub/",
+  handler: "ZCL_HITHUB_HTTP",
+  text: "HitHub",
+};
 const mimeTypes = new Map(Object.entries({
   css: {type: "text/css", class: "M_TEXT_L"},
   html: {type: "text/html", class: "M_TEXT_L"},
@@ -128,6 +134,29 @@ function packageDocument(text) {
       </DEVC>`);
 }
 
+function sicfDocument({name, url, handler, text}) {
+  const originalName = name.toLowerCase();
+  return document("LCL_OBJECT_SICF", `      <URL>${url}</URL>
+      <ICFSERVICE>
+        <ICF_NAME>${name}</ICF_NAME>
+        <FALLTHRU>X</FALLTHRU>
+        <ORIG_NAME>${originalName}</ORIG_NAME>
+      </ICFSERVICE>
+      <ICFDOCU>
+        <ICF_NAME>${name}</ICF_NAME>
+        <ICF_LANGU>${master}</ICF_LANGU>
+        <ICF_DOCU>${text}</ICF_DOCU>
+      </ICFDOCU>
+      <ICFHANDLER_TABLE>
+        <ICFHANDLER>
+          <ICF_NAME>${name}</ICF_NAME>
+          <ICFORDER>01</ICFORDER>
+          <ICFTYP>A</ICFTYP>
+          <ICFHANDLER>${handler}</ICFHANDLER>
+        </ICFHANDLER>
+      </ICFHANDLER_TABLE>`);
+}
+
 // abapGit creates the MIME folder from a serialized SMIM object of its own,
 // and PUT on a file below a missing folder fails, so the folder has to ship.
 // Its file name cannot be generated: SAP assigns the folder its own LOIO GUID
@@ -204,6 +233,14 @@ export async function collect() {
   const {files, directories} = await walk(root);
   const expected = new Map();
   expected.set(".abapgit.xml", repositoryDocument);
+  // abapGit appends the first 25 SHA-1 characters of the service URL to SICF
+  // filenames. Keep the path-derived name aligned with its serialized URL so
+  // a pull does not create a second object for the same service.
+  const sicfHash = createHash("sha1").update(sicfService.url)
+    .digest("hex").slice(0, 25);
+  expected.set(join(root, "http",
+    `${sicfService.name.toLowerCase()} ${sicfHash}.sicf.xml`),
+  sicfDocument(sicfService));
   for (const directory of [root, ...directories]) {
     const key = relative(root, directory).split("\\").join("/");
     const definition = packages[key];
@@ -283,6 +320,19 @@ for (const [path, content] of expected) {
   const url = content.match(/<URL>([^<]+)<\/URL>/)?.[1];
   if (url && !current.includes(`<URL>${url}</URL>`)) {
     missing.push(`${path} does not declare <URL>${url}</URL>`);
+  }
+  if (path.endsWith(".sicf.xml")) {
+    const required = [
+      `<ICF_NAME>${sicfService.name}</ICF_NAME>`,
+      `<ORIG_NAME>${sicfService.name.toLowerCase()}</ORIG_NAME>`,
+      "<FALLTHRU>X</FALLTHRU>",
+      `<ICFHANDLER>${sicfService.handler}</ICFHANDLER>`,
+    ];
+    for (const element of required) {
+      if (!current.includes(element)) {
+        missing.push(`${path} does not declare ${element}`);
+      }
+    }
   }
 }
 

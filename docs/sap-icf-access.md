@@ -89,19 +89,21 @@ proxy or Web Dispatcher rule that maps the host root to the ICF node, and see
 the [known limitations](known-limitations.md) before exposing the UI on a
 prefixed path.
 
-## Create the ICF service
+## Configure the ICF service
 
-1. In transaction `SICF`, create or select a dedicated HTTPS service below the
-   organization's approved virtual host. The example service path is
-   `/default_host/hithub`; a customer namespace or reverse-proxy prefix may
-   be used if it is kept stable in the Git remote URLs.
-2. In the service's **Handler List**, add the HTTP extension class
-   `ZCL_HITHUB_HTTP`.
+1. The abapGit import creates `/default_host/sap/zhithub` from the serialized
+   `ZHITHUB` SICF object and assigns HTTP extension class `ZCL_HITHUB_HTTP` as
+   its application handler. Confirm the node and handler in transaction
+   `SICF` after the pull.
+2. A customer namespace or reverse-proxy prefix may be used, but it must be
+   kept stable in the Git remote URLs. If the imported node is moved, serialize
+   that SICF change back through abapGit so its path-derived identity stays in
+   sync with the repository.
 3. Keep the handler request-stateless. Do not add session state or a second
    application handler that parses Git request bodies.
 4. Activate the service and its parent nodes. Route the complete service path
    through HTTPS; the Git remote then has the form
-   `https://host.example/hithub/repository.git`.
+   `https://host.example/sap/zhithub/repository.git`.
 5. If multiple application servers are used, route them to the same SAP
    database and enqueue service. Follow the [supported topology](deployment-topology.md)
    and run the repository-lock deployment test before production use.
@@ -160,8 +162,8 @@ service path and repository name with the values configured above:
 
 ```sh
 curl --fail --silent --show-error \
-  https://host.example/hithub/health
-git clone https://host.example/hithub/repository.git
+  https://host.example/sap/zhithub/health
+git clone https://host.example/sap/zhithub/repository.git
 git -C repository fsck --strict
 ```
 
