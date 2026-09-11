@@ -233,13 +233,14 @@ export async function collect() {
   const {files, directories} = await walk(root);
   const expected = new Map();
   expected.set(".abapgit.xml", repositoryDocument);
-  // abapGit appends the first 25 SHA-1 characters of the service URL to SICF
-  // filenames. Keep the path-derived name aligned with its serialized URL so
-  // a pull does not create a second object for the same service.
+  // A SICF filename is a fixed 40-character object key: the lower-case
+  // service name padded to 15 characters, then the first 25 SHA-1 characters
+  // of its URL. The padding is significant to abapGit's substring mapper.
   const sicfHash = createHash("sha1").update(sicfService.url)
     .digest("hex").slice(0, 25);
+  const sicfObjectName = sicfService.name.toLowerCase().padEnd(15, " ");
   expected.set(join(root, "http",
-    `${sicfService.name.toLowerCase()} ${sicfHash}.sicf.xml`),
+    `${sicfObjectName}${sicfHash}.sicf.xml`),
   sicfDocument(sicfService));
   for (const directory of [root, ...directories]) {
     const key = relative(root, directory).split("\\").join("/");
