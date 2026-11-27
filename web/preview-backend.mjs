@@ -14,11 +14,11 @@ import "./preview-runtime.mjs";
 import {Buffer} from "buffer";
 import {SQLiteDatabaseClient} from "@abaplint/database-sqlite";
 import {initializeABAP} from "../output/init.mjs";
-import {cl_express_icf_shim} from "../output/cl_express_icf_shim.clas.mjs";
-import {zcl_hithub_persistence} from "../output/zcl_hithub_persistence.clas.mjs";
+import {cl_express_icf_shim} from "../output/express-icf-shim/cl_express_icf_shim.clas.mjs";
+import {zcl_hithub_persistence} from "../output/project/zcl_hithub_persistence.clas.mjs";
 import {
   zcl_hithub_local_asset_store,
-} from "../output/zcl_hithub_local_asset_store.clas.mjs";
+} from "../output/project/zcl_hithub_local_asset_store.clas.mjs";
 import {frontendAssets} from "./generated/frontend-assets.mjs";
 import {sqliteSchema} from "./generated/sqlite-schema.mjs";
 import {seedPreviewContent} from "./preview-seed.mjs";
