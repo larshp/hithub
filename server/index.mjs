@@ -8,11 +8,11 @@ import {
 } from "../scripts/local-database.mjs";
 import {readSerializedAssets} from "../scripts/local-assets.mjs";
 import {initializeABAP} from "../output/init.mjs";
-import {cl_express_icf_shim} from "../output/cl_express_icf_shim.clas.mjs";
-import {zcl_hithub_persistence} from "../output/zcl_hithub_persistence.clas.mjs";
+import {cl_express_icf_shim} from "../output/express-icf-shim/cl_express_icf_shim.clas.mjs";
+import {zcl_hithub_persistence} from "../output/project/zcl_hithub_persistence.clas.mjs";
 import {
   zcl_hithub_local_asset_store,
-} from "../output/zcl_hithub_local_asset_store.clas.mjs";
+} from "../output/project/zcl_hithub_local_asset_store.clas.mjs";
 import {logEvent} from "./logger.mjs";
 import {metricsSnapshot, observeRequest} from "./metrics.mjs";
 import {createGitAdmission} from "./git-admission.mjs";
@@ -330,6 +330,13 @@ app.use((req, res, next) => {
 
 app.use(express.raw({type: "*/*", limit: requestBodyLimit}));
 
+// Express 5 leaves req.body undefined when there is no body to parse, the ICF
+// shim always reads it as a Buffer.
+app.use((req, _res, next) => {
+  if (!Buffer.isBuffer(req.body)) req.body = Buffer.alloc(0);
+  next();
+});
+
 // Mirror the serialized SAP SICF mount locally. Express removes the mount
 // prefix from req.url while this handler runs, just as ICF removes the service
 // node from ~path_info before ZCL_HITHUB_HTTP sees it.
@@ -341,7 +348,7 @@ app.use("/sap/zhithub", async (req, res) => {
   });
 });
 
-app.all(["/health", "/health/*"], async (req, res) => {
+app.all("/health{/*splat}", async (req, res) => {
   await cl_express_icf_shim.run({
     req,
     res,
@@ -349,7 +356,7 @@ app.all(["/health", "/health/*"], async (req, res) => {
   });
 });
 
-app.all("*", async (req, res) => {
+app.all("/{*splat}", async (req, res) => {
   await cl_express_icf_shim.run({
     req,
     res,
@@ -392,7 +399,8 @@ app.use((error, req, res, next) => {
 
 const host = "127.0.0.1";
 const serverUrl = `http://${host}:${port}`;
-const httpServer = app.listen(port, host, () => {
+const httpServer = app.listen(port, host, (error) => {
+  if (error) throw error;
   logEvent("info", "server.started", {host, port, url: serverUrl});
 });
 httpServer.requestTimeout = operationTimeoutMs;

@@ -92,10 +92,8 @@ module.exports = {
     new webpack.NormalModuleReplacementPlugin(
       /%23ui2%23cl_json\.clas(?:\.locals)?\.mjs$/,
       (resource) => {
-        const filename = resource.request
-          .replace(/^\.\//, "")
-          .replaceAll("%23ui2%23", "#ui2#");
-        resource.request = path.resolve(__dirname, "output", filename);
+        const filename = resource.request.replaceAll("%23ui2%23", "#ui2#");
+        resource.request = path.resolve(resource.context, filename);
       },
     ),
     new webpack.ProvidePlugin({

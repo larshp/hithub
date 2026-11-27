@@ -38,7 +38,7 @@ async function writeCommit(payload) {
 async function fsck(strategy, result) {
   const commit = result.get().commit;
   const {zcl_hithub_commit_codec: CommitCodec} = await import(
-    "../output/zcl_hithub_commit_codec.clas.mjs"
+    "../output/project/zcl_hithub_commit_codec.clas.mjs"
   );
   const payload = await CommitCodec.encode({is_commit: commit});
   const oid = await writeCommit(payload);
@@ -67,13 +67,13 @@ try {
 
   await initializeABAP();
   const {zcl_hithub_merge_commit: MergeCommit} = await import(
-    "../output/zcl_hithub_merge_commit.clas.mjs"
+    "../output/project/zcl_hithub_merge_commit.clas.mjs"
   );
   const {zcl_hithub_squash_merge: SquashMerge} = await import(
-    "../output/zcl_hithub_squash_merge.clas.mjs"
+    "../output/project/zcl_hithub_squash_merge.clas.mjs"
   );
   const {zcl_hithub_rebase_merge: RebaseMerge} = await import(
-    "../output/zcl_hithub_rebase_merge.clas.mjs"
+    "../output/project/zcl_hithub_rebase_merge.clas.mjs"
   );
   const common = {
     iv_expected_head_oid: head,
